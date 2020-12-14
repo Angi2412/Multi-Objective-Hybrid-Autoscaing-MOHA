@@ -1,0 +1,17 @@
+
+    apiVersion: v1
+    kind: pod
+    metadata:
+      name: someName
+    spec:
+      replicas: many
+      template:
+        metadata:
+          labels:
+            run: someName
+        spec:
+          containers:
+          - name: someName
+            image: myImg
+            ports:
+            - containerPort: 1111

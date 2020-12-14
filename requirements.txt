@@ -2,3 +2,5 @@ scikit-learn
 kubernetes
 prometheus_client
 extrap
+locust
+PySimpleGUI

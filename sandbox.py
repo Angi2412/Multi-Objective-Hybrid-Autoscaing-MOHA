@@ -3,6 +3,8 @@ import os
 import logging
 import yaml
 from kubernetes import client, config
+import docker
+from pathlib import Path
 
 # deployment path
 deployment_path = os.path.join(os.getcwd(), "deployment.yaml")
@@ -50,6 +52,32 @@ def write_config(**kwargs):
             file.write(template.format(**kwargs))
     except IOError:
         logging.error("IOError while writing config.")
+
+
+def execute(name: str, port: int, docker_path: str):
+    image = build_image(name, docker_path)
+    # write_config(name=name, image=image, replicas=1, port=str(port))
+    # deploy()
+
+
+def build_image(name: str, docker_path: str) -> str:
+    # init
+    try:
+        directory_path = Path(docker_path).parent
+        if Path(docker_path).exists() and directory_path.exists():
+            pass
+        else:
+            raise FileNotFoundError
+    except FileNotFoundError:
+        logging.error("Could not find Dockerfile.")
+    try:
+        docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
+        # build image
+        build = docker_client.build(path=str(directory_path), tag="sandbox", dockerfile=docker_path)
+        print(list(build))
+        return "Yes"
+    except Exception as e:
+        logging.error(f"Could not build image: {e}")
 
 
 # test

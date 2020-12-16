@@ -1,5 +1,6 @@
 # This will be the gui for the sandbox
 import PySimpleGUI as sg
+import sandbox
 
 sg.theme('Reddit')
 
@@ -13,5 +14,5 @@ layout = [
 
 window = sg.Window('PodAutoScaler', layout)
 event, values = window.read()
+sandbox.execute(name=values[0], port=values[1], docker_path=values[2])
 window.close()
-print(event, values[0], values[1], values[2])  # the input data looks like a simple list when auto numbered

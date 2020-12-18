@@ -1,5 +1,5 @@
 scikit-learn
-kubernetes
+kubernetes-py
 prometheus_client
 extrap
 locust

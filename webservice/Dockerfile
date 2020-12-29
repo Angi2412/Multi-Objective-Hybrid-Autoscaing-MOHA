@@ -6,4 +6,4 @@ RUN pip3 install -r requirements.txt
 ADD . /app
 COPY test_webservice.py /app
 EXPOSE 5000
-ENTRYPOINT ["python", "app/test_webservice.py"]
+ENTRYPOINT ["python", "test_webservice.py"]

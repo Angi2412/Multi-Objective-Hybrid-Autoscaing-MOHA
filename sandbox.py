@@ -1,56 +1,79 @@
 # Copyright (c) 2020 Angelina Horn
 import logging
 import os
-from pathlib import Path
 import platform
+from pathlib import Path
 
 import docker
-from kubernetes_py import K8sConfig, K8sContainer, K8sDeployment, K8sService
+from kubernetes import client, config
 
-# deployment path
-deployment_path = os.path.join(os.getcwd(), "deployment.yaml")
+# deployment
+DEPLOYMENT_NAME = "sandbox-deployment"
 # init
 logging.getLogger().setLevel(logging.INFO)
 
 
-def deploy_to_cluster(name: str, port: int, image: str) -> str:
-    # load config
-    cfg_cert = K8sConfig()
-    logging.info(cfg_cert.api_host)
-    logging.info(cfg_cert.current_context)
-    logging.info(cfg_cert.clusters)
+def deploy_to_cluster(name: str, port: int, image: str):
+    # init API
+    config.load_kube_config()
+    apps_v1 = client.AppsV1Api()
+
+    # Configure Pod template container
+    container = client.V1Container(
+        name=name,
+        image=image,
+        ports=[client.V1ContainerPort(container_port=port)],
+        resources=client.V1ResourceRequirements(
+            requests={"cpu": "100m", "memory": "200Mi"},
+            limits={"cpu": "500m", "memory": "500Mi"}
+        ),
+        image_pull_policy="Never"
+    )
+    # Create and configure a spec section
+    template = client.V1PodTemplateSpec(
+        metadata=client.V1ObjectMeta(labels={"app": name}),
+        spec=client.V1PodSpec(containers=[container]))
+    # Create the specification of deployment
+    spec = client.V1DeploymentSpec(
+        replicas=1,
+        template=template,
+        selector={'matchLabels': {'app': name}})
+    # Instantiate the deployment object
+    deployment = client.V1Deployment(
+        api_version="apps/v1",
+        kind="Deployment",
+        metadata=client.V1ObjectMeta(name=DEPLOYMENT_NAME),
+        spec=spec)
+    # Create deployment
     try:
-        # create container
-        container = K8sContainer(name=name, image=image)
-        container.add_port(
-            container_port=port,
-            host_port=port,
-            name=name,
-            )
-        logging.info(container.as_json())
-        # create deployment
-        deployment = K8sDeployment(
-            config=cfg_cert,
-            name=name,
-            replicas=1
-        )
-        deployment.add_container(container)
-        deployment.create()
-        # # create service
-        # svc = K8sService(config=cfg, name=name)
-        # svc.add_port(name=f"{name}-port", port=port, target_port=port, protocol="NodePort")
-        # svc.add_selector(selector=dict(name=name))
-        # svc.set_cluster_ip('192.168.1.100')
-        # svc.create()
-        return "True"
+        api_response = apps_v1.create_namespaced_deployment(
+            body=deployment,
+            namespace="default")
+        print("Deployment created. status='%s'" % str(api_response.status))
+        if api_response.status["reason"] == "AlreadyExists":
+            delete_deployment(apps_v1)
+            deploy_to_cluster(name=name, port=port, image=image)
+        else:
+            raise Exception(api_response.status["reason"])
     except Exception as e:
-        logging.error(f"Error while deploying: {e}")
+            logging.info(f"Error while deployment: {e}")
+
+
+def delete_deployment(api_instance):
+    # Delete deployment
+    api_response = api_instance.delete_namespaced_deployment(
+        name=DEPLOYMENT_NAME,
+        namespace="default",
+        body=client.V1DeleteOptions(
+            propagation_policy='Foreground',
+            grace_period_seconds=5))
+    print("Deployment deleted. status='%s'" % str(api_response.status))
 
 
 def build_image(name: str, docker_path: str) -> str:
     # init
     try:
-        image = f"{name}:latest"
+        image_name = f"{name}:latest"
         directory_path = Path(docker_path).parent
         if Path(docker_path).exists() and directory_path.exists():
             pass
@@ -65,8 +88,9 @@ def build_image(name: str, docker_path: str) -> str:
             docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
         # build image
         build = docker_client.build(path=str(directory_path), tag=name, dockerfile=docker_path, rm=True)
-        logging.info(f"Build image with tag: {image}")
-        return image
+        logging.info(list(build))
+        logging.info(f"Build image with tag: {image_name}")
+        return image_name
     except docker.errors.BuildError as e:
         logging.error(f"Could not build image: {e}")
     except docker.errors.APIError as e:
@@ -76,7 +100,8 @@ def build_image(name: str, docker_path: str) -> str:
 def execute(name: str, port: int, docker_path: str, route: str, input_type: str, testfile_path: str) -> bool:
     try:
         image = build_image(name, docker_path)
-        host = deploy_to_cluster(name=name, port=port, image=image)
+        image = "testmonday:latest"
+        deploy_to_cluster(name=name, port=port, image=image)
         # print(host)
         # benchmark.configBenchmark(host=host, route=route, input_type=input_type, testfile_path=testfile_path)
         # benchmark.startBenchmark()

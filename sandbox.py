@@ -50,13 +50,8 @@ def deploy_to_cluster(name: str, port: int, image: str):
             body=deployment,
             namespace="default")
         print("Deployment created. status='%s'" % str(api_response.status))
-        if api_response.status["reason"] == "AlreadyExists":
-            delete_deployment(apps_v1)
-            deploy_to_cluster(name=name, port=port, image=image)
-        else:
-            raise Exception(api_response.status["reason"])
     except Exception as e:
-            logging.info(f"Error while deployment: {e}")
+        logging.info(f"Error while deployment: {e}")
 
 
 def delete_deployment(api_instance):
@@ -99,9 +94,10 @@ def build_image(name: str, docker_path: str) -> str:
 
 def execute(name: str, port: int, docker_path: str, route: str, input_type: str, testfile_path: str) -> bool:
     try:
-        image = build_image(name, docker_path)
-        image = "testmonday:latest"
-        deploy_to_cluster(name=name, port=port, image=image)
+        #image = build_image(name, docker_path)
+        #image = "testmonday:latest"
+        #deploy_to_cluster(name=name, port=port, image=image)
+        forward_port(name="sandbox-deployment-6ccf889d4c-qq4fc", port=5000)
         # print(host)
         # benchmark.configBenchmark(host=host, route=route, input_type=input_type, testfile_path=testfile_path)
         # benchmark.startBenchmark()
@@ -111,8 +107,14 @@ def execute(name: str, port: int, docker_path: str, route: str, input_type: str,
         return False
 
 
+def forward_port(name: str, port: int):
+    api_instance = client.CoreV1Api(client.ApiClient())
+    api_port_response = api_instance.connect_get_namespaced_pod_portforward(name, "default", ports=port)
+    print(api_port_response)
+
+
 if __name__ == '__main__':
     docker_path = os.path.join(os.getcwd(), "webservice", "Dockerfile")
     testfile_path = os.path.join(os.getcwd(), "data", "test.txt")
-    execute(name="testmonday", port=80, docker_path=docker_path, route="/healthcheck", input_type="",
+    execute(name="testmonday", port=5000, docker_path=docker_path, route="/healthcheck", input_type="",
             testfile_path=testfile_path)

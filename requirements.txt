@@ -1,6 +1,6 @@
 scikit-learn
 kubernetes
-prometheus_client
+prometheus-api-client
 extrap
 locust
 PySimpleGUI

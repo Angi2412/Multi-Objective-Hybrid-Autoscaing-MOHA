@@ -6,7 +6,7 @@ import os
 class User(HttpUser):
     # init
     load_dotenv()
-    host = "{os.getenv('HOST')}:{os.getenv('PORT')}"
+    host = f"http://{os.getenv('HOST')}:{os.getenv('PORT')}/"
     route = os.getenv("ROUTE")
     testfile_path = os.path.join(os.getcwd(), f"{os.getenv('TESTFILE')}.txt")
 

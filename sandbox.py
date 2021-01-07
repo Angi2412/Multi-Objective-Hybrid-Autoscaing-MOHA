@@ -1,21 +1,24 @@
 # Copyright (c) 2020 Angelina Horn
-import json
+import datetime
+import datetime as dt
 import logging
 import os
 import platform
 import subprocess
+import time
 from pathlib import Path
 
 import docker
-import requests
 from dotenv import load_dotenv, set_key
 from kubernetes import client, config
+from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame, Metric
 
 # deployment
 load_dotenv()
 NAMESPACE = os.getenv("NAMESPACE")
 DEPLOYMENT_NAME = os.getenv("DEPLOYMENT")
 DESIRED_PORT = int(os.getenv("PORT"))
+ROUTE = os.getenv("ROUTE")
 HOST = os.getenv("HOST")
 
 # init logger
@@ -40,8 +43,9 @@ def forward_port(port: int) -> None:
             break
     # forward port
     if pod_name is not DEPLOYMENT_NAME:
-        list_files = subprocess.run(["kubectl", "port-forward", pod_name, f"{port}:{DESIRED_PORT}"])
-        logging.info("The exit code was: %d" % list_files.returncode)
+        os.system(f"kubectl port-forward -n {NAMESPACE} {pod_name} {port}:{DESIRED_PORT} &")
+        # list_files = subprocess.run(["kubectl", "port-forward","-n", NAMESPACE, pod_name, f"{port}:{DESIRED_PORT}"])
+        logging.info("Port was forwarded.")
     else:
         logging.error("Could not find pod name.")
 
@@ -169,67 +173,75 @@ def start_locust(users: int, hatch: int, time_hh: int, time_mm: int) -> None:
     :param time_mm: runtime minutes
     :return: None
     """
-    locust_file = os.path.join(os.getcwd(), "data", "locustfile.py")
-    response = subprocess.run(
-        ["locust", "-f", locust_file, "--headless", "-u", users, "-r", hatch, "--run-time", f"{time_hh}h{time_mm}m"])
+    response = subprocess.call(["locust", "--csv=locust", "--headless", "-u", users, "-r", hatch, "--run-time", f"{time_hh}h{time_mm}m"])
     logging.info(response)
 
 
-def execute(name: str, port: int, docker_path: str, route: str, input_type: str, testfile_path: str) -> bool:
+def get_prometheus_data(time_hh: int, time_mm: int) -> None:
     """
-    Executes series of methods in order to use the sandbox.
-    :param name: desired name
-    :param port: desired port
-    :param docker_path: path to docker image
-    :param route: api route
-    :param input_type: type of input argument
-    :param testfile_path: path to test file
-    :return: if execution was successful
-    """
-    try:
-        # image = build_image(name=name, docker_path=docker_path)
-        # deploy_to_cluster(name=name, port=port, image=image)
-        # forward_port(port=port)
-        config_locust(host=HOST, route=route, port=DESIRED_PORT, testfile="test")
-        start_locust(users=10, hatch=1, time_hh=0, time_mm=3)
-        return True
-    except Exception as e:
-        logging.error(f"Error while executing: {e}")
-        return False
-
-
-def get_grafana_data() -> None:
-    """
-    Exports data from grafana to a json file.
+    Exports data from Prometheus.
     :return: None
     """
-    export_dir = os.getenv("GRAFANA_DIR")
-    headers = {'Authorization': f"Bearer {os.getenv('GRAFANA_API_KEY')}"}
-    response = requests.get(f"{os.getenv('GRAFANA_HOST')}/api/search?query=&", headers=headers)
-    response.raise_for_status()
-    dashboards = response.json()
+    # get metric data
+    metrics_memory_data = get_prometheus_metric(metric_name="container_memory_usage_bytes", time_hh=time_hh,
+                                                time_mm=time_mm) + get_prometheus_metric(
+        metric_name="kube_pod_container_resource_limits_memory_bytes", time_hh=time_hh, time_mm=time_mm)
+    metrics_cpu_data = get_prometheus_metric(metric_name="container_cpu_usage_seconds_total", time_hh=time_hh,
+                                             time_mm=time_mm) + get_prometheus_metric(
+        metric_name="kube_pod_container_resource_limits_cpu_cores", time_hh=time_hh, time_mm=time_mm)
+    # convert to dataframe
+    metric_memory_df = MetricRangeDataFrame(metrics_memory_data)
+    metric_cpu_df = MetricRangeDataFrame(metrics_cpu_data)
+    # init timestamp
+    x = datetime.datetime.now()
+    x = x.strftime("%Y%m%d-%H%M%S")
+    # write to csv file
+    metric_memory_df.to_csv(rf"data\{x}_memory.csv")
+    metric_cpu_df.to_csv(rf"data\{x}_csv.csv")
 
-    if not os.path.exists(export_dir):
-        os.makedirs(export_dir)
 
-    for d in dashboards:
-        print("Saving: " + d['title'])
-        response = requests.get('%s/api/dashboards/%s' % (os.getenv("GRAFANA_HOST"), d['uri']), headers=headers)
-        data = response.json()['dashboard']
-        dash = json.dumps(data, sort_keys=True, indent=4, separators=(',', ': '))
-        name = data['title'].replace(' ', '_').replace('/', '_').replace(':', '').replace('[', '').replace(']', '')
-        tmp = open(export_dir + name + '.json', 'w')
-        tmp.write(dash)
-        tmp.write('\n')
-        tmp.close()
+def get_prometheus_metric(metric_name: str, time_hh: int, time_mm: int) -> list:
+    """
+    Gets a given metric from prometheus in a given timeframe.
+    :param metric_name: name of the metric
+    :param time_hh: hours
+    :param time_mm: minutes
+    :return: metric
+    """
+    prom = PrometheusConnect(url=os.getenv("PROMETHEUS_HOST"), disable_ssl=True)
+    metric_data = prom.get_metric_range_data(
+        metric_name=metric_name,
+        start_time=(dt.datetime.now() - dt.timedelta(hours=time_hh, minutes=time_mm)),
+        end_time=dt.datetime.now(),
+    )
+    return metric_data
+
+
+def deployment(name: str, port: int, docker_path: str):
+    image = build_image(name=name, docker_path=docker_path)
+    deploy_to_cluster(name=name, port=port, image=image)
+    time.sleep(60)
+    forward_port(port=port)
+
+
+def benchmark():
+    # init time
+    hh = int(os.getenv("HH"))
+    mm = int(os.getenv("MM"))
+    sleep_time = (hh * 60 * 60) + (mm * 60)
+    # benchmark
+    #config_locust(host=HOST, route=ROUTE, port=DESIRED_PORT, testfile="test")
+    #start_locust(users=10, hatch=1, time_hh=hh, time_mm=mm)
+    #time.sleep(sleep_time)
+    get_prometheus_data(time_hh=hh, time_mm=mm)
 
 
 if __name__ == '__main__':
     """
     Main method for test purposes.
     """
-    #docker_path = os.path.join(os.getcwd(), "webservice", "Dockerfile")
-    #testfile_path = os.path.join(os.getcwd(), "data", "test.txt")
-    #execute(name="testmonday", port=5000, docker_path=docker_path, route="square", input_type="int",
-            #testfile_path=testfile_path)
-    get_grafana_data()
+    docker_path = os.path.join(os.getcwd(), "webservice", "Dockerfile")
+    testfile_path = os.path.join(os.getcwd(), "data", "test.txt")
+    #deployment(name="testmonday", port=5000, docker_path=docker_path)
+    #forward_port(port=5000)
+    benchmark()

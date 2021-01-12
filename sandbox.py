@@ -6,18 +6,20 @@ import datetime as dt
 import logging
 import os
 import platform
+import time
 from pathlib import Path
 
 import docker
 from dotenv import load_dotenv, set_key
+from gevent import monkey
 from kubernetes import client, config
 from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 
 from benchmark import start_locust
-import time
 
 # deployment
-load_dotenv()
+monkey.patch_all()
+load_dotenv(override=True)
 NAMESPACE = os.getenv("NAMESPACE")
 DEPLOYMENT_NAME = os.getenv("DEPLOYMENT")
 TARGET_PORT = os.getenv("PORT")
@@ -174,9 +176,11 @@ def build_docker_image(name: str, docker_path: str) -> str:
         logging.error(f"Could not build image: {e}")
 
 
-def config_locust(host: str, route: str, port: int, testfile: str, date: str) -> None:
+def config_locust(host: str, route: str, port: int, testfile: str, date: str, users: int, spawn_rate: int) -> None:
     """
     Configures locust by setting environment variables.
+    :param spawn_rate: benchmark spawn rate
+    :param users: benchmark users
     :param date: timestamp
     :param host: ms host
     :param route: ms route
@@ -199,18 +203,23 @@ def get_prometheus_data(mode: str) -> None:
     :return:
     """
     # metrics to export
-    metrics = [
+    metrics_resources = [
         "container_memory_usage_bytes",
         "kube_pod_container_resource_limits_memory_bytes",
         "container_cpu_usage_seconds_total",
-        "kube_pod_container_resource_limits_cpu_cores",
-        "request_total",
-        "response_latency_ms_bucket"
+        "kube_pod_container_resource_limits_cpu_cores"
     ]
-    # get metric data
-    metrics_data = get_prometheus_metric(metric_name=metrics[0])
-    for x in range(1, len(metrics)):
-        metrics_data = metrics_data + get_prometheus_metric(metric_name=metrics[x])
+    metrics_network = ["request_total", "response_latency_ms_bucket"]
+    # get metric data resources
+    metrics_data_resources = get_prometheus_metric(metric_name=None, host="TWO",
+                                                   query='sum (rate (container_cpu_usage_seconds_total{image!=""}[1m])) by (pod_name)') + get_prometheus_metric(
+        metric_name=None, host="TWO",
+        query='avg((avg (container_memory_working_set_bytes{pod="<pod name>"}) by (container_name , pod ))/ on (container_name , pod)(avg (container_spec_memory_limit_bytes>0 ) by (container_name, pod))*100)')
+    # get metric data network
+    metrics_data_network = get_prometheus_metric(metric_name=metrics_network[0], host="ONE", query=None) + get_prometheus_metric(
+        metric_name=metrics_network[1], host="ONE", query=None)
+
+    metrics_data = metrics_data_resources + metrics_data_network
 
     # convert to dataframe
     metric_df = MetricRangeDataFrame(metrics_data)
@@ -220,39 +229,71 @@ def get_prometheus_data(mode: str) -> None:
         date = dt.datetime.now()
         date = date.strftime("%Y%m%d-%H%M%S")
     else:
-        load_dotenv()
+        load_dotenv(override=True)
         date = str(os.getenv("DATE"))
     # write to csv file
     metric_df.to_csv(rf"data\{mode}\{date}_metrics.csv")
 
 
-def get_prometheus_metric(metric_name: str) -> list:
+def get_prometheus_metric(metric_name, host: str, query) -> list:
     """
     Gets a given metric from prometheus in a given timeframe.
+    :param query: custom query
+    :param host: which host to use
     :param metric_name: name of the metric
     :return: metric
     """
-    prom = PrometheusConnect(url=os.getenv("PROMETHEUS_HOST"), disable_ssl=True)
-    metric_data = prom.get_metric_range_data(
-        metric_name=metric_name,
-        start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
-        end_time=dt.datetime.now(),
-    )
+    p_host = os.getenv(f'PROMETHEUS_HOST_{host}')
+    prom = PrometheusConnect(url=p_host, disable_ssl=True)
+    if query is not None and metric_name is None:
+        metric_data = prom.custom_query_range(
+            query=query,
+            start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
+            end_time=dt.datetime.now(),
+            step="5s"
+        )
+    else:
+        metric_data = prom.get_metric_range_data(
+            metric_name=metric_name,
+            start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
+            end_time=dt.datetime.now(),
+        )
     return metric_data
 
 
-def deployment(name: str, port: int, docker_path: str):
+def deployment(name: str, port: int, docker_path: str) -> None:
+    """
+    Deployment methods.
+    :param name: ms name
+    :param port: ms port
+    :param docker_path: ms docker file
+    :return: None
+    """
     image = build_docker_image(name=name, docker_path=docker_path)
     k8s_deployment(name=name, port=port, image=image)
     k8s_service(app_port=port, app_name=name)
 
 
-def benchmark():
+def benchmark(route: str, testfile: str, users: int, spawn_rate: int) -> None:
+    """
+    Benchmark methods.
+    :param route: API route
+    :param testfile: test file
+    :param users: number of users
+    :param spawn_rate: spawn rate
+    :return: None
+    """
     # init date
     date = dt.datetime.now()
     date = date.strftime("%Y%m%d-%H%M%S")
     # benchmark
-    config_locust(host=HOST, route=ROUTE, port=get_k8s_app_port(), testfile="test", date=date)
+    config_locust(host=HOST, route=route, port=get_k8s_app_port(), testfile=testfile, date=date, users=users,
+                  spawn_rate=spawn_rate)
     time.sleep(5)
     start_locust()
     get_prometheus_data(mode="raw")
+    set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=os.getenv("DATE"))
+
+
+if __name__ == '__main__':
+    benchmark(route="square", testfile="test", users=1, spawn_rate=10)

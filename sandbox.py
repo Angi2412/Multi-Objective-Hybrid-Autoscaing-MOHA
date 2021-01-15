@@ -176,9 +176,11 @@ def build_docker_image(name: str, docker_path: str) -> str:
         logging.error(f"Could not build image: {e}")
 
 
-def config_locust(host: str, route: str, port: int, testfile: str, date: str, users: int, spawn_rate: int) -> None:
+def config_locust(appname: str, host: str, route: str, port: int, testfile: str, date: str, users: int,
+                  spawn_rate: int) -> None:
     """
     Configures locust by setting environment variables.
+    :param appname: name of the microservice
     :param spawn_rate: benchmark spawn rate
     :param users: benchmark users
     :param date: timestamp
@@ -203,31 +205,35 @@ def get_prometheus_data(mode: str) -> None:
     :return:
     """
     # metrics to export
-    metrics_resources = [
+    ressource_metrics = [
         "container_memory_usage_bytes",
+        "kube_pod_container_resource_requests_memory_bytes",
         "kube_pod_container_resource_limits_memory_bytes",
         "container_cpu_usage_seconds_total",
-        "kube_pod_container_resource_limits_cpu_cores"
+        "kube_pod_container_resource_limits_cpu_cores",
+        "kube_pod_container_resource_requests_cpu_cores",
+        "container_cpu_cfs_throttled_seconds_total",
+        "kube_deployment_spec_replicas"
     ]
-    metrics_network = ["request_total", "response_latency_ms_bucket"]
-    # get metric data resources
-    metrics_data_resources = get_prometheus_metric(metric_name=None, host="TWO",
-                                                   query='sum (rate (container_cpu_usage_seconds_total{image!=""}[1m])) by (pod_name)') + get_prometheus_metric(
-        metric_name=None, host="TWO",
-        query='avg((avg (container_memory_working_set_bytes{pod="<pod name>"}) by (container_name , pod ))/ on (container_name , pod)(avg (container_spec_memory_limit_bytes>0 ) by (container_name, pod))*100)')
-    # get metric data network
-    metrics_data_network = get_prometheus_metric(metric_name=metrics_network[0], host="ONE", query=None) + get_prometheus_metric(
-        metric_name=metrics_network[1], host="ONE", query=None)
-
-    metrics_data = metrics_data_resources + metrics_data_network
-
+    network_metrics = ["request_total", "response_latency_ms_bucket"]
+    # get ressource metric data resources
+    ressource_metrics_data = get_prometheus_metric(metric_name=ressource_metrics[0], mode="RESSOURCES")
+    for x in range(1, len(ressource_metrics)):
+        ressource_metrics_data = ressource_metrics_data + get_prometheus_metric(metric_name=ressource_metrics[x],
+                                                                                mode="RESSOURCES")
+    # get network metric data
+    network_metrics_data = get_prometheus_metric(metric_name=network_metrics[0],
+                                                 mode="NETWORK") + get_prometheus_metric(metric_name=network_metrics[1],
+                                                                                         mode="NETWORK")
     # convert to dataframe
+    metrics_data = ressource_metrics_data + network_metrics_data
     metric_df = MetricRangeDataFrame(metrics_data)
 
     if mode != "raw":
         # init timestamp
         date = dt.datetime.now()
         date = date.strftime("%Y%m%d-%H%M%S")
+        set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
     else:
         load_dotenv(override=True)
         date = str(os.getenv("DATE"))
@@ -235,29 +241,21 @@ def get_prometheus_data(mode: str) -> None:
     metric_df.to_csv(rf"data\{mode}\{date}_metrics.csv")
 
 
-def get_prometheus_metric(metric_name, host: str, query) -> list:
+def get_prometheus_metric(metric_name: str, mode: str) -> list:
     """
     Gets a given metric from prometheus in a given timeframe.
-    :param query: custom query
-    :param host: which host to use
+    :param mode: which prometheus to use
     :param metric_name: name of the metric
     :return: metric
     """
-    p_host = os.getenv(f'PROMETHEUS_HOST_{host}')
-    prom = PrometheusConnect(url=p_host, disable_ssl=True)
-    if query is not None and metric_name is None:
-        metric_data = prom.custom_query_range(
-            query=query,
-            start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
-            end_time=dt.datetime.now(),
-            step="5s"
-        )
-    else:
-        metric_data = prom.get_metric_range_data(
-            metric_name=metric_name,
-            start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
-            end_time=dt.datetime.now(),
-        )
+    prom = PrometheusConnect(url=os.getenv(f'PROMETHEUS_{mode}_HOST'), disable_ssl=True)
+
+    metric_data = prom.get_metric_range_data(
+        metric_name=metric_name,
+        start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
+        end_time=dt.datetime.now(),
+    )
+
     return metric_data
 
 
@@ -274,9 +272,10 @@ def deployment(name: str, port: int, docker_path: str) -> None:
     k8s_service(app_port=port, app_name=name)
 
 
-def benchmark(route: str, testfile: str, users: int, spawn_rate: int) -> None:
+def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int) -> None:
     """
     Benchmark methods.
+    :param name: name of ms
     :param route: API route
     :param testfile: test file
     :param users: number of users
@@ -287,7 +286,8 @@ def benchmark(route: str, testfile: str, users: int, spawn_rate: int) -> None:
     date = dt.datetime.now()
     date = date.strftime("%Y%m%d-%H%M%S")
     # benchmark
-    config_locust(host=HOST, route=route, port=get_k8s_app_port(), testfile=testfile, date=date, users=users,
+    config_locust(appname=name, host=HOST, route=route, port=get_k8s_app_port(), testfile=testfile, date=date,
+                  users=users,
                   spawn_rate=spawn_rate)
     time.sleep(5)
     start_locust()
@@ -296,4 +296,6 @@ def benchmark(route: str, testfile: str, users: int, spawn_rate: int) -> None:
 
 
 if __name__ == '__main__':
-    benchmark(route="square", testfile="test", users=1, spawn_rate=10)
+    test_docker_path = os.path.join(os.getcwd(), "webservice", "Dockerfile")
+    # deployment(name="webserver", port=5000, docker_path=test_docker_path)
+    benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10)

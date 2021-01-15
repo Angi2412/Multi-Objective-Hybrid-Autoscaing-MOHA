@@ -15,7 +15,7 @@ setup_logging("INFO", None)
 
 class User(HttpUser):
     # init
-    load_dotenv()
+    load_dotenv(override=True)
     host = f"http://{os.getenv('HOST')}:{os.getenv('PORT')}/"
     route = os.getenv("ROUTE")
     testfile_path = os.path.join(os.getcwd(), "data", "loadtest", f"{os.getenv('TESTFILE')}.txt")
@@ -41,7 +41,7 @@ def start_locust():
     env.create_local_runner()
 
     # CSV writer
-    load_dotenv()
+    load_dotenv(override=True)
     date = str(os.getenv('DATE'))
     stats_path = os.path.join(os.getcwd(), "data", "raw", f"{date}_locust")
     csv_writer = StatsCSVFileWriter(

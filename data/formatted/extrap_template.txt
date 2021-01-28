@@ -1,0 +1,8 @@
+$parameter
+
+$points
+
+REGION $region
+METRIC $metric
+
+$data

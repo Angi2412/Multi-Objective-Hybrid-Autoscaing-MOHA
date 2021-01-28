@@ -198,14 +198,16 @@ def config_locust(appname: str, host: str, route: str, port: int, testfile: str,
         set_key(dotenv_path=env_file, key_to_set=key, value_to_set=value)
 
 
-def get_prometheus_data(mode: str) -> None:
+def get_prometheus_data(mode: str, folder: str, iteration: int) -> None:
     """
     Exports metric data from prometheus to a csv file.
+    :param folder: save folder
+    :param iteration: number of current iteration
     :param mode: where to save
     :return:
     """
     # metrics to export
-    ressource_metrics = [
+    resource_metrics = [
         "container_memory_usage_bytes",
         "kube_pod_container_resource_requests_memory_bytes",
         "kube_pod_container_resource_limits_memory_bytes",
@@ -216,29 +218,20 @@ def get_prometheus_data(mode: str) -> None:
         "kube_deployment_spec_replicas"
     ]
     network_metrics = ["request_total", "response_latency_ms_bucket"]
-    # get ressource metric data resources
-    ressource_metrics_data = get_prometheus_metric(metric_name=ressource_metrics[0], mode="RESSOURCES")
-    for x in range(1, len(ressource_metrics)):
-        ressource_metrics_data = ressource_metrics_data + get_prometheus_metric(metric_name=ressource_metrics[x],
-                                                                                mode="RESSOURCES")
+    # get resource metric data resources
+    resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode="RESOURCES")
+    for x in range(1, len(resource_metrics)):
+        resource_metrics_data = resource_metrics_data + get_prometheus_metric(metric_name=resource_metrics[x],
+                                                                              mode="RESOURCES")
     # get network metric data
     network_metrics_data = get_prometheus_metric(metric_name=network_metrics[0],
                                                  mode="NETWORK") + get_prometheus_metric(metric_name=network_metrics[1],
                                                                                          mode="NETWORK")
     # convert to dataframe
-    metrics_data = ressource_metrics_data + network_metrics_data
+    metrics_data = resource_metrics_data + network_metrics_data
     metric_df = MetricRangeDataFrame(metrics_data)
-
-    if mode != "raw":
-        # init timestamp
-        date = dt.datetime.now()
-        date = date.strftime("%Y%m%d-%H%M%S")
-        set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
-    else:
-        load_dotenv(override=True)
-        date = str(os.getenv("DATE"))
     # write to csv file
-    metric_df.to_csv(rf"data\{mode}\{date}_metrics.csv")
+    metric_df.to_csv(rf"{folder}\metrics_{iteration}.csv")
 
 
 def get_prometheus_metric(metric_name: str, mode: str) -> list:
@@ -248,14 +241,14 @@ def get_prometheus_metric(metric_name: str, mode: str) -> list:
     :param metric_name: name of the metric
     :return: metric
     """
+    # init
     prom = PrometheusConnect(url=os.getenv(f'PROMETHEUS_{mode}_HOST'), disable_ssl=True)
-
+    # get data
     metric_data = prom.get_metric_range_data(
         metric_name=metric_name,
         start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
         end_time=dt.datetime.now(),
     )
-
     return metric_data
 
 
@@ -272,9 +265,10 @@ def deployment(name: str, port: int, docker_path: str) -> None:
     k8s_service(app_port=port, app_name=name)
 
 
-def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int) -> None:
+def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int, iterations: int) -> None:
     """
     Benchmark methods.
+    :param iterations: number of iterations
     :param name: name of ms
     :param route: API route
     :param testfile: test file
@@ -285,17 +279,57 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int)
     # init date
     date = dt.datetime.now()
     date = date.strftime("%Y%m%d-%H%M%S")
-    # benchmark
-    config_locust(appname=name, host=HOST, route=route, port=get_k8s_app_port(), testfile=testfile, date=date,
+    # create folder
+    folder_path = os.path.join(os.getcwd(), "data", "raw", date)
+    os.mkdir(folder_path)
+    # config
+    set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
+    config_locust(appname=name,
+                  host=HOST,
+                  route=route,
+                  port=get_k8s_app_port(),
+                  testfile=testfile,
+                  date=date,
                   users=users,
-                  spawn_rate=spawn_rate)
-    time.sleep(5)
-    start_locust()
-    get_prometheus_data(mode="raw")
-    set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=os.getenv("DATE"))
+                  spawn_rate=spawn_rate
+                  )
+    # benchmark
+    for i in range(0, iterations):
+        time.sleep(30)
+        start_locust(iteration=i, folder=folder_path)
+        get_prometheus_data(mode="raw", folder=folder_path, iteration=i)
+
+
+def set_prometheus_info() -> None:
+    """
+    Sets corresponding environment variable to NodePort of each Prometheus service instance.
+    :return: None
+    """
+    # init
+    config.load_kube_config()
+    v1 = client.CoreV1Api()
+
+    # iterate through default namespaces services
+    ret_default = v1.list_namespaced_service(namespace="default")
+    for service in ret_default.items:
+        if "prometheus-kube-prometheus-prometheus" in service.metadata.name:
+            # set env variable
+            set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="PROMETHEUS_RESSOURCES_HOST",
+                    value_to_set=f"http://localhost:{service.spec.ports[0].node_port}")
+            logging.info(f"PROMETHEUS_RESSOURCES_HOST: {os.getenv('PROMETHEUS_RESSOURCES_HOST')}")
+            break
+    # iterate through linkerd namespaces services
+    ret_linkerd = v1.list_namespaced_service(namespace="linkerd")
+    for service in ret_linkerd.items:
+        if "linkerd-prometheus" in service.metadata.name:
+            # set env variable
+            set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="PROMETHEUS_NETWORK_HOST",
+                    value_to_set=f"http://localhost:{service.spec.ports[0].node_port}")
+            logging.info(f"PROMETHEUS_NETWORK_HOST: {os.getenv('PROMETHEUS_NETWORK_HOST')}")
+            break
 
 
 if __name__ == '__main__':
     test_docker_path = os.path.join(os.getcwd(), "webservice", "Dockerfile")
     # deployment(name="webserver", port=5000, docker_path=test_docker_path)
-    benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10)
+    benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10, iterations=5)

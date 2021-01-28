@@ -34,7 +34,7 @@ class User(HttpUser):
         self.client.get("healthcheck")
 
 
-def start_locust():
+def start_locust(iteration: int, folder: str):
     gevent.monkey.patch_all()
     # setup Environment and Runner
     env = Environment(user_classes=[User])
@@ -42,8 +42,7 @@ def start_locust():
 
     # CSV writer
     load_dotenv(override=True)
-    date = str(os.getenv('DATE'))
-    stats_path = os.path.join(os.getcwd(), "data", "raw", f"{date}_locust")
+    stats_path = os.path.join(folder, f"locust_{iteration}")
     csv_writer = StatsCSVFileWriter(
         environment=env,
         base_filepath=stats_path,

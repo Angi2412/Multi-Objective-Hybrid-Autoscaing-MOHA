@@ -1,7 +1,9 @@
 # Copyright (c) 2020 Angelina Horn
 from gevent import monkey
 
+# monkey patch
 monkey.patch_all()
+
 import datetime as dt
 import logging
 import os
@@ -11,14 +13,12 @@ from pathlib import Path
 
 import docker
 from dotenv import load_dotenv, set_key
-from gevent import monkey
 from kubernetes import client, config
 from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 
 from benchmark import start_locust
 
-# deployment
-monkey.patch_all()
+# environment
 load_dotenv(override=True)
 NAMESPACE = os.getenv("NAMESPACE")
 DEPLOYMENT_NAME = os.getenv("DEPLOYMENT")
@@ -26,15 +26,15 @@ TARGET_PORT = os.getenv("PORT")
 ROUTE = os.getenv("ROUTE")
 HOST = os.getenv("HOST")
 HH = int(os.getenv("HH"))
-MM = int(os.getenv("MM"))
+MM = int(os.getenv("MM")) + 1
 
 # init logger
 logging.getLogger().setLevel(logging.INFO)
 
 
-def k8s_deployment(name: str, port: int, image: str) -> None:
+def k8s_deployment(name: str, port: int, image: str) -> client.V1Deployment:
     """
-    Creates a kubernetes deployment and pushes it into the cluster.
+    Creates a Kubernetes deployment with given specification.
     :param name: name of the deployment
     :param port: deployment port
     :param image: docker image
@@ -43,7 +43,6 @@ def k8s_deployment(name: str, port: int, image: str) -> None:
     # init API
     config.load_kube_config()
     apps_v1 = client.AppsV1Api()
-
     # create namespace
     os.system("kubectl create namespace sandbox")
     # Configure Pod template container
@@ -72,7 +71,18 @@ def k8s_deployment(name: str, port: int, image: str) -> None:
         kind="Deployment",
         metadata=client.V1ObjectMeta(name=DEPLOYMENT_NAME),
         spec=spec)
-    # Create deployment
+    return deployment
+
+
+def k8s_create_deployment(deployment: client.V1Deployment) -> None:
+    """
+    Deploys a namespaced deployment to the Kubernetes cluster.
+    :param deployment: Deployment body
+    :return: None
+    """
+    # init API
+    config.load_kube_config()
+    apps_v1 = client.AppsV1Api()
     try:
         api_response = apps_v1.create_namespaced_deployment(
             body=deployment,
@@ -82,7 +92,39 @@ def k8s_deployment(name: str, port: int, image: str) -> None:
         logging.info(f"Error while deployment: {e}")
 
 
-def k8s_service(app_port: int, app_name: str) -> None:
+def k8s_update_deployment(deployment: client.V1Deployment, cpu_limit: int, memory_limit: int,
+                          number_of_replicas: int) -> None:
+    """
+    Updates a given deployment with given values for replicas, cpu limit and replicas limit.
+    :param deployment: deployment body
+    :param cpu_limit: new cpu limit
+    :param memory_limit: new memory limit
+    :param number_of_replicas: new number of replicas
+    :return: None
+    """
+    # init API
+    config.load_kube_config()
+    apps_v1 = client.AppsV1Api()
+    # updates cpu and memory limits
+    new_resources = client.V1ResourceRequirements(
+        requests={"cpu": "100m", "memory": "200Mi"},
+        limits={"cpu": f"{cpu_limit}m", "memory": f"{memory_limit}Mi"}
+    )
+    deployment.spec.template.spec.containers[0].resources = new_resources
+    # updates number of replicas
+    deployment.spec.replicas = number_of_replicas
+    # updates the deployment
+    try:
+        api_response = apps_v1.patch_namespaced_deployment(
+            name=DEPLOYMENT_NAME,
+            namespace=NAMESPACE,
+            body=deployment)
+        print("Deployment updated. status='%s'" % str(api_response.status))
+    except Exception as e:
+        logging.info(f"Error while deployment: {e}")
+
+
+def k8s_create_service(app_port: int, app_name: str) -> None:
     """
     Creates and deploys a service to kubernetes.
     :param app_port: port of the app
@@ -93,30 +135,26 @@ def k8s_service(app_port: int, app_name: str) -> None:
     config.load_kube_config()
     api_instance = client.CoreV1Api()
     service = client.V1Service()  # V1Service
-
     # Creating Meta Data
     metadata = client.V1ObjectMeta()
     metadata.name = "sandbox-service"
-
     service.metadata = metadata
-
     # Creating spec
     spec = client.V1ServiceSpec(
         type="NodePort",
         ports=int(TARGET_PORT)
     )
-
     # Creating Port object
     port = client.V1ServicePort(
         protocol='TCP',
         target_port=int(TARGET_PORT),
         port=app_port
     )
-
+    # additional spec information
     spec.ports = [port]
     spec.selector = {"app": app_name}
-
     service.spec = spec
+    # deploys service
     try:
         api_response = api_instance.create_namespaced_service(
             body=service,
@@ -135,7 +173,6 @@ def get_k8s_app_port() -> int:
     # init
     config.load_kube_config()
     v1 = client.CoreV1Api()
-
     # iterate through namespaces services
     ret = v1.list_namespaced_service(namespace=NAMESPACE)
     for i in ret.items:
@@ -176,11 +213,11 @@ def build_docker_image(name: str, docker_path: str) -> str:
         logging.error(f"Could not build image: {e}")
 
 
-def config_locust(appname: str, host: str, route: str, port: int, testfile: str, date: str, users: int,
+def config_locust(app_name: str, host: str, route: str, port: int, testfile: str, date: str, users: int,
                   spawn_rate: int) -> None:
     """
     Configures locust by setting environment variables.
-    :param appname: name of the microservice
+    :param app_name: name of the microservice
     :param spawn_rate: benchmark spawn rate
     :param users: benchmark users
     :param date: timestamp
@@ -208,35 +245,41 @@ def get_prometheus_data(mode: str, folder: str, iteration: int) -> None:
     """
     # metrics to export
     resource_metrics = [
-        "container_memory_usage_bytes",
         "kube_pod_container_resource_requests_memory_bytes",
         "kube_pod_container_resource_limits_memory_bytes",
-        "container_cpu_usage_seconds_total",
         "kube_pod_container_resource_limits_cpu_cores",
         "kube_pod_container_resource_requests_cpu_cores",
         "container_cpu_cfs_throttled_seconds_total",
         "kube_deployment_spec_replicas"
     ]
-    network_metrics = ["request_total", "response_latency_ms_bucket"]
+    custom_metrics = ["container_memory_usage_bytes", "container_cpu_usage_seconds_total"]
+    network_metrics = ["response_latency_ms_sum", "response_latency_ms_count"]
     # get resource metric data resources
-    resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode="RESOURCES")
+    resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode="RESOURCES", custom=False)
     for x in range(1, len(resource_metrics)):
         resource_metrics_data = resource_metrics_data + get_prometheus_metric(metric_name=resource_metrics[x],
-                                                                              mode="RESOURCES")
+                                                                              mode="RESOURCES", custom=False)
+    # get custom resource metric data resources
+    custom_metrics_data = get_prometheus_metric(metric_name=custom_metrics[0],
+                                                mode="RESOURCES", custom=True) + get_prometheus_metric(
+        metric_name=custom_metrics[1],
+        mode="RESOURCES", custom=True)
     # get network metric data
     network_metrics_data = get_prometheus_metric(metric_name=network_metrics[0],
-                                                 mode="NETWORK") + get_prometheus_metric(metric_name=network_metrics[1],
-                                                                                         mode="NETWORK")
+                                                 mode="NETWORK", custom=False) + get_prometheus_metric(
+        metric_name=network_metrics[1],
+        mode="NETWORK", custom=False)
     # convert to dataframe
-    metrics_data = resource_metrics_data + network_metrics_data
+    metrics_data = resource_metrics_data + network_metrics_data + custom_metrics_data
     metric_df = MetricRangeDataFrame(metrics_data)
     # write to csv file
     metric_df.to_csv(rf"{folder}\metrics_{iteration}.csv")
 
 
-def get_prometheus_metric(metric_name: str, mode: str) -> list:
+def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
     """
     Gets a given metric from prometheus in a given timeframe.
+    :param custom: if custom query should be used
     :param mode: which prometheus to use
     :param metric_name: name of the metric
     :return: metric
@@ -244,15 +287,22 @@ def get_prometheus_metric(metric_name: str, mode: str) -> list:
     # init
     prom = PrometheusConnect(url=os.getenv(f'PROMETHEUS_{mode}_HOST'), disable_ssl=True)
     # get data
-    metric_data = prom.get_metric_range_data(
-        metric_name=metric_name,
-        start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
-        end_time=dt.datetime.now(),
-    )
+    if custom:
+        metric_data = prom.custom_query_range(
+            query="rate(container_cpu_usage_seconds_total{namespace='sandbox'}[1m])",
+            start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
+            end_time=dt.datetime.now(),
+            step="61")
+    else:
+        metric_data = prom.get_metric_range_data(
+            metric_name=metric_name,
+            start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
+            end_time=dt.datetime.now(),
+        )
     return metric_data
 
 
-def deployment(name: str, port: int, docker_path: str) -> None:
+def create_deployment(name: str, port: int, docker_path: str) -> None:
     """
     Deployment methods.
     :param name: ms name
@@ -261,8 +311,11 @@ def deployment(name: str, port: int, docker_path: str) -> None:
     :return: None
     """
     image = build_docker_image(name=name, docker_path=docker_path)
-    k8s_deployment(name=name, port=port, image=image)
-    k8s_service(app_port=port, app_name=name)
+    time.sleep(120)
+    k8s_create_deployment(k8s_deployment(name=name, port=port, image=image))
+    time.sleep(60)
+    k8s_create_service(app_port=port, app_name=name)
+    time.sleep(60)
 
 
 def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int, iterations: int) -> None:
@@ -284,6 +337,7 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int,
     os.mkdir(folder_path)
     # config
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
+    set_prometheus_info()
     config_locust(appname=name,
                   host=HOST,
                   route=route,
@@ -294,10 +348,13 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int,
                   spawn_rate=spawn_rate
                   )
     # benchmark
+    logging.info("Starting Benchmark.")
     for i in range(0, iterations):
-        time.sleep(30)
+        logging.info(f"Starting iteration no. {i}.")
         start_locust(iteration=i, folder=folder_path)
         get_prometheus_data(mode="raw", folder=folder_path, iteration=i)
+        time.sleep(180)
+    logging.info("Finished Benchmark.")
 
 
 def set_prometheus_info() -> None:
@@ -308,15 +365,14 @@ def set_prometheus_info() -> None:
     # init
     config.load_kube_config()
     v1 = client.CoreV1Api()
-
     # iterate through default namespaces services
     ret_default = v1.list_namespaced_service(namespace="default")
     for service in ret_default.items:
         if "prometheus-kube-prometheus-prometheus" in service.metadata.name:
             # set env variable
-            set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="PROMETHEUS_RESSOURCES_HOST",
+            set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="PROMETHEUS_RESOURCES_HOST",
                     value_to_set=f"http://localhost:{service.spec.ports[0].node_port}")
-            logging.info(f"PROMETHEUS_RESSOURCES_HOST: {os.getenv('PROMETHEUS_RESSOURCES_HOST')}")
+            logging.info(f"PROMETHEUS_RESOURCES_HOST: {os.getenv('PROMETHEUS_RESOURCES_HOST')}")
             break
     # iterate through linkerd namespaces services
     ret_linkerd = v1.list_namespaced_service(namespace="linkerd")
@@ -333,3 +389,4 @@ if __name__ == '__main__':
     test_docker_path = os.path.join(os.getcwd(), "webservice", "Dockerfile")
     # deployment(name="webserver", port=5000, docker_path=test_docker_path)
     benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10, iterations=5)
+    # print(get_prometheus_metric_custom("container_cpu_usage_seconds_total"))

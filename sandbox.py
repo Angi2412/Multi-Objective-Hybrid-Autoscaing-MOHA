@@ -18,6 +18,8 @@ from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 
 from benchmark import start_locust
 
+import numpy as np
+
 # environment
 load_dotenv(override=True)
 NAMESPACE = os.getenv("NAMESPACE")
@@ -27,7 +29,6 @@ ROUTE = os.getenv("ROUTE")
 HOST = os.getenv("HOST")
 HH = int(os.getenv("HH"))
 MM = int(os.getenv("MM")) + 1
-
 # init logger
 logging.getLogger().setLevel(logging.INFO)
 
@@ -38,13 +39,8 @@ def k8s_deployment(name: str, port: int, image: str) -> client.V1Deployment:
     :param name: name of the deployment
     :param port: deployment port
     :param image: docker image
-    :return: None
+    :return: deployment body
     """
-    # init API
-    config.load_kube_config()
-    apps_v1 = client.AppsV1Api()
-    # create namespace
-    os.system("kubectl create namespace sandbox")
     # Configure Pod template container
     container = client.V1Container(
         name=name,
@@ -107,7 +103,7 @@ def k8s_update_deployment(deployment: client.V1Deployment, cpu_limit: int, memor
     apps_v1 = client.AppsV1Api()
     # updates cpu and memory limits
     new_resources = client.V1ResourceRequirements(
-        requests={"cpu": "100m", "memory": "200Mi"},
+        requests={"cpu": "100m", "memory": "100Mi"},
         limits={"cpu": f"{cpu_limit}m", "memory": f"{memory_limit}Mi"}
     )
     deployment.spec.template.spec.containers[0].resources = new_resources
@@ -207,13 +203,14 @@ def build_docker_image(name: str, docker_path: str) -> str:
             docker_client = docker.APIClient(base_url='unix://var/run/docker.sock')
         # build image
         build = docker_client.build(path=str(directory_path), tag=name, dockerfile=docker_path, rm=True)
+        logging.info(list(build))
         logging.info(f"Build image with tag: {image_name}")
         return image_name
     except Exception as e:
         logging.error(f"Could not build image: {e}")
 
 
-def config_locust(app_name: str, host: str, route: str, port: int, testfile: str, date: str, users: int,
+def config_locust(app_name: str, host: str, route: str, node_port: int, testfile: str, date: str, users: int,
                   spawn_rate: int) -> None:
     """
     Configures locust by setting environment variables.
@@ -223,7 +220,7 @@ def config_locust(app_name: str, host: str, route: str, port: int, testfile: str
     :param date: timestamp
     :param host: ms host
     :param route: ms route
-    :param port: ms port
+    :param node_port: ms port
     :param testfile: ms testfile
     :return: None
     """
@@ -235,12 +232,11 @@ def config_locust(app_name: str, host: str, route: str, port: int, testfile: str
         set_key(dotenv_path=env_file, key_to_set=key, value_to_set=value)
 
 
-def get_prometheus_data(mode: str, folder: str, iteration: int) -> None:
+def get_prometheus_data(folder: str, iteration: int) -> None:
     """
     Exports metric data from prometheus to a csv file.
     :param folder: save folder
     :param iteration: number of current iteration
-    :param mode: where to save
     :return:
     """
     # metrics to export
@@ -310,18 +306,18 @@ def create_deployment(name: str, port: int, docker_path: str) -> None:
     :param docker_path: ms docker file
     :return: None
     """
+    # create namespace
+    os.system("kubectl create namespace sandbox")
     image = build_docker_image(name=name, docker_path=docker_path)
-    time.sleep(120)
     k8s_create_deployment(k8s_deployment(name=name, port=port, image=image))
     time.sleep(60)
     k8s_create_service(app_port=port, app_name=name)
     time.sleep(60)
 
 
-def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int, iterations: int) -> None:
+def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int) -> None:
     """
     Benchmark methods.
-    :param iterations: number of iterations
     :param name: name of ms
     :param route: API route
     :param testfile: test file
@@ -338,22 +334,38 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int,
     # config
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
     set_prometheus_info()
-    config_locust(appname=name,
+    config_locust(app_name=name,
                   host=HOST,
                   route=route,
-                  port=get_k8s_app_port(),
+                  node_port=get_k8s_app_port(),
                   testfile=testfile,
                   date=date,
                   users=users,
                   spawn_rate=spawn_rate
                   )
+    # get variation
+    variation = parameter_variation(cpu_limit=int(os.getenv("cpu_limit")),
+                                    memory_limit=int(os.getenv("memory_limit")),
+                                    pods_limit=int(os.getenv("pods_limit")))
+    c_max = variation.shape[0]
+    m_max = variation.shape[1]
+    p_max = variation.shape[2]
+    i = 1
     # benchmark
     logging.info("Starting Benchmark.")
-    for i in range(0, iterations):
-        logging.info(f"Starting iteration no. {i}.")
-        start_locust(iteration=i, folder=folder_path)
-        get_prometheus_data(mode="raw", folder=folder_path, iteration=i)
-        time.sleep(180)
+    for c in range(0, c_max):
+        for m in range(0, m_max):
+            for p in range(0, p_max):
+                v = variation[c, m, p]
+                logging.info(f"Starting iteration {i} - cpu: {v[0]}m memory: {v[1]}Mi pod:{v[2]}")
+                k8s_update_deployment(deployment=k8s_deployment(name=os.getenv("APP_NAME"), port=int(os.getenv("PORT")),
+                                                                image=os.getenv("IMAGE")), cpu_limit=int(v[0]),
+                                      memory_limit=int(v[1]), number_of_replicas=int(v[2]))
+                time.sleep(60)
+                start_locust(iteration=i, folder=folder_path)
+                get_prometheus_data(folder=folder_path, iteration=i)
+                time.sleep(120)
+                i = i + 1
     logging.info("Finished Benchmark.")
 
 
@@ -385,8 +397,29 @@ def set_prometheus_info() -> None:
             break
 
 
+def parameter_variation(cpu_limit: int, memory_limit: int, pods_limit: int) -> np.array:
+    """
+    Calculates a matrix mit all combination of the parameters.
+    :return: parameter variation matrix
+    """
+    # init parameters: (start, end, step)
+    cpu = np.arange(200, cpu_limit, 200)
+    memory = np.arange(200, memory_limit, 200)
+    pods = np.arange(1, pods_limit, 1)
+    # init matrix
+    variation_matrix = np.zeros((cpu.size, memory.size, pods.size),
+                                dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32)])
+    # fill matrix
+    for c in range(0, cpu.size):
+        for m in range(0, memory.size):
+            for p in range(0, pods.size):
+                variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p])
+    return variation_matrix
+
+
 if __name__ == '__main__':
     test_docker_path = os.path.join(os.getcwd(), "webservice", "Dockerfile")
-    # deployment(name="webserver", port=5000, docker_path=test_docker_path)
-    benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10, iterations=5)
+    # create_deployment(name="webserver", port=5000, docker_path=test_docker_path)
+    benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10)
     # print(get_prometheus_metric_custom("container_cpu_usage_seconds_total"))
+    # parameter_variation()

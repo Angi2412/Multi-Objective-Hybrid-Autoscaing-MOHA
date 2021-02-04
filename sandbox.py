@@ -16,7 +16,7 @@ from dotenv import load_dotenv, set_key
 from kubernetes import client, config
 from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 
-from benchmark import start_locust
+from locust_loadtest import start_locust
 
 import numpy as np
 
@@ -361,10 +361,9 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int)
                 k8s_update_deployment(deployment=k8s_deployment(name=os.getenv("APP_NAME"), port=int(os.getenv("PORT")),
                                                                 image=os.getenv("IMAGE")), cpu_limit=int(v[0]),
                                       memory_limit=int(v[1]), number_of_replicas=int(v[2]))
-                time.sleep(60)
+                time.sleep(30)
                 start_locust(iteration=i, folder=folder_path)
                 get_prometheus_data(folder=folder_path, iteration=i)
-                time.sleep(120)
                 i = i + 1
     logging.info("Finished Benchmark.")
 
@@ -418,8 +417,8 @@ def parameter_variation(cpu_limit: int, memory_limit: int, pods_limit: int) -> n
 
 
 if __name__ == '__main__':
-    test_docker_path = os.path.join(os.getcwd(), "webservice", "Dockerfile")
+    test_docker_path = os.path.join(os.getcwd(), "k8s/webservice", "Dockerfile")
     # create_deployment(name="webserver", port=5000, docker_path=test_docker_path)
-    benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10)
+    # benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10)
     # print(get_prometheus_metric_custom("container_cpu_usage_seconds_total"))
     # parameter_variation()

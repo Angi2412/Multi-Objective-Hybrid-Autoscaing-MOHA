@@ -5,7 +5,7 @@ extrap
 locust
 PySimpleGUI
 docker
-numpy==1.19.3
+numpy==1.20.0
 python-dotenv
 requests
 gevent

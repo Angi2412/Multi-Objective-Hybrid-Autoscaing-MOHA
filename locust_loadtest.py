@@ -16,7 +16,7 @@ setup_logging("INFO", None)
 class User(HttpUser):
     # init
     load_dotenv(override=True)
-    host = f"http://{os.getenv('HOST')}:{os.getenv('PORT')}/"
+    host = f"http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}/"
     route = os.getenv("ROUTE")
     testfile_path = os.path.join(os.getcwd(), "data", "loadtest", f"{os.getenv('TESTFILE')}.txt")
 

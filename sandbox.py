@@ -19,6 +19,7 @@ from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 from locust_loadtest import start_locust
 
 import numpy as np
+import pandas as pd
 
 # environment
 load_dotenv(override=True)
@@ -115,7 +116,7 @@ def k8s_update_deployment(deployment: client.V1Deployment, cpu_limit: int, memor
             name=DEPLOYMENT_NAME,
             namespace=NAMESPACE,
             body=deployment)
-        print("Deployment updated. status='%s'" % str(api_response.status))
+        print("Deployment updated.")
     except Exception as e:
         logging.info(f"Error while deployment: {e}")
 
@@ -172,7 +173,6 @@ def get_k8s_app_port() -> int:
     # iterate through namespaces services
     ret = v1.list_namespaced_service(namespace=NAMESPACE)
     for i in ret.items:
-        logging.info(i.metadata.name)
         if os.getenv("SERVICE") in i.metadata.name:
             return int(i.spec.ports[0].node_port)
 
@@ -211,9 +211,12 @@ def build_docker_image(name: str, docker_path: str) -> str:
 
 
 def config_locust(app_name: str, host: str, route: str, node_port: int, testfile: str, date: str, users: int,
-                  spawn_rate: int) -> None:
+                  spawn_rate: int, cpu_limit: int, memory_limit: int, pods_limit: int) -> None:
     """
     Configures locust by setting environment variables.
+    :param pods_limit: pods limit
+    :param memory_limit: memory limit
+    :param cpu_limit: cpu limit
     :param app_name: name of the microservice
     :param spawn_rate: benchmark spawn rate
     :param users: benchmark users
@@ -266,10 +269,12 @@ def get_prometheus_data(folder: str, iteration: int) -> None:
         metric_name=network_metrics[1],
         mode="NETWORK", custom=False)
     # convert to dataframe
-    metrics_data = resource_metrics_data + network_metrics_data + custom_metrics_data
+    metrics_data = resource_metrics_data + network_metrics_data
     metric_df = MetricRangeDataFrame(metrics_data)
+    custom_metrics_df = MetricRangeDataFrame(custom_metrics_data)
     # write to csv file
     metric_df.to_csv(rf"{folder}\metrics_{iteration}.csv")
+    custom_metrics_df.to_csv(rf"{folder}\custom_metrics_{iteration}.csv")
 
 
 def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
@@ -285,7 +290,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
     # get data
     if custom:
         metric_data = prom.custom_query_range(
-            query="rate(container_cpu_usage_seconds_total{namespace='sandbox'}[1m])",
+            query=f"rate({metric_name}" + "{" + f"namespace='{os.getenv('NAMESPACE')}', container='{os.getenv('app_name')}'" + "}[1m])",
             start_time=(dt.datetime.now() - dt.timedelta(hours=HH, minutes=MM)),
             end_time=dt.datetime.now(),
             step="61")
@@ -315,9 +320,13 @@ def create_deployment(name: str, port: int, docker_path: str) -> None:
     time.sleep(60)
 
 
-def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int) -> None:
+def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int, cpu_limit: int,
+              memory_limit: int, pods_limit: int) -> None:
     """
     Benchmark methods.
+    :param cpu_limit: cpu limit
+    :param pods_limit: pods limit
+    :param memory_limit: memory limit
     :param name: name of ms
     :param route: API route
     :param testfile: test file
@@ -341,12 +350,15 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int)
                   testfile=testfile,
                   date=date,
                   users=users,
-                  spawn_rate=spawn_rate
+                  spawn_rate=spawn_rate,
+                  cpu_limit=cpu_limit,
+                  memory_limit=memory_limit,
+                  pods_limit=pods_limit
                   )
     # get variation
-    variation = parameter_variation(cpu_limit=int(os.getenv("cpu_limit")),
-                                    memory_limit=int(os.getenv("memory_limit")),
-                                    pods_limit=int(os.getenv("pods_limit")))
+    variation = parameter_variation(cpu_limit=cpu_limit,
+                                    memory_limit=memory_limit,
+                                    pods_limit=pods_limit)
     c_max = variation.shape[0]
     m_max = variation.shape[1]
     p_max = variation.shape[2]
@@ -357,7 +369,8 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int)
         for m in range(0, m_max):
             for p in range(0, p_max):
                 v = variation[c, m, p]
-                logging.info(f"Starting iteration {i} - cpu: {v[0]}m memory: {v[1]}Mi pod:{v[2]}")
+                logging.info(
+                    f"Starting iteration {i}/{c_max * m_max * p_max} - cpu: {v[0]}m memory: {v[1]}Mi pod:{v[2]}:")
                 k8s_update_deployment(deployment=k8s_deployment(name=os.getenv("APP_NAME"), port=int(os.getenv("PORT")),
                                                                 image=os.getenv("IMAGE")), cpu_limit=int(v[0]),
                                       memory_limit=int(v[1]), number_of_replicas=int(v[2]))
@@ -405,20 +418,33 @@ def parameter_variation(cpu_limit: int, memory_limit: int, pods_limit: int) -> n
     cpu = np.arange(200, cpu_limit, 200)
     memory = np.arange(200, memory_limit, 200)
     pods = np.arange(1, pods_limit, 1)
+    iterations = np.arange(1, (cpu.size * memory.size * pods.size) + 1, 1).tolist()
+    # init dataframe
+    df = pd.DataFrame(index=iterations, columns=["CPU", "Memory", "Pods"])
+    csv_path = os.path.join(os.getcwd(), "data", "raw", os.getenv("LAST_DATA"), "variation_matrix.csv")
+
     # init matrix
     variation_matrix = np.zeros((cpu.size, memory.size, pods.size),
                                 dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32)])
     # fill matrix
+    i = 1
     for c in range(0, cpu.size):
         for m in range(0, memory.size):
             for p in range(0, pods.size):
                 variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p])
+                # fill dataframe
+                df.at[i, 'CPU'] = cpu[c]
+                df.at[i, 'Memory'] = memory[m]
+                df.at[i, 'Pods'] = pods[p]
+                i = i + 1
+    # save dataframe to csv
+    df.to_csv(csv_path)
     return variation_matrix
 
 
 if __name__ == '__main__':
     test_docker_path = os.path.join(os.getcwd(), "k8s/webservice", "Dockerfile")
     # create_deployment(name="webserver", port=5000, docker_path=test_docker_path)
-    # benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10)
-    # print(get_prometheus_metric_custom("container_cpu_usage_seconds_total"))
-    # parameter_variation()
+    for i in range(0, 5):
+        benchmark(name="webserver", route="square", testfile="test", users=1, spawn_rate=10, cpu_limit=1200,
+                  memory_limit=1200, pods_limit=6)

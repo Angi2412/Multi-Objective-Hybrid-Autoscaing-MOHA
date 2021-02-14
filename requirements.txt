@@ -5,10 +5,12 @@ extrap
 locust
 PySimpleGUI
 docker
-numpy==1.20.0
+numpy
 python-dotenv
 requests
 gevent
 pandas
 seaborn
 matplotlib
+pyyaml
+pytest

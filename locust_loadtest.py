@@ -47,11 +47,8 @@ def start_locust(iteration: int, folder: str):
         environment=env,
         base_filepath=stats_path,
         full_history=True,
-        percentiles_to_report=[90.0, 95.0]
+        percentiles_to_report=[90.0, 50.0]
     )
-
-    # start a WebUI instance
-    env.create_web_ui(host="127.0.0.1", port=8089, stats_csv_writer=csv_writer)
 
     # start a greenlet that save current stats to history
     gevent.spawn(stats_history, env.runner)
@@ -68,6 +65,3 @@ def start_locust(iteration: int, folder: str):
 
     # wait for the greenlets
     env.runner.greenlet.join()
-
-    # stop the web server for good measures
-    env.web_ui.stop()

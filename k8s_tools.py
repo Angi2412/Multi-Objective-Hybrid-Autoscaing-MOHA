@@ -1,4 +1,7 @@
 # Copyright (c) 2020 Angelina Horn
+from gevent import monkey
+
+monkey.patch_all()
 # imports
 import logging
 import os
@@ -143,6 +146,23 @@ def k8s_create_deployment(deployment: client.V1Deployment) -> None:
         logging.info(f"Error while deployment: {e}")
 
 
+def k8s_update_all_deployments_in_namespace(cpu_limit: int, memory_limit: int,
+                                            number_of_replicas: int) -> None:
+    not_scalable = ["db", "redis", "mysql", "rabbitmq", "mq"]
+    # init API
+    config.load_kube_config()
+    apps_v1 = client.AppsV1Api()
+    # read deployment
+    counter = 0
+    ret = apps_v1.list_namespaced_deployment(namespace=os.getenv("NAMESPACE"))
+    for i in ret.items:
+        counter = counter + 1
+        logging.info(f"Updating deployments in namespace: {counter}/{len(ret.items)}")
+        if not any(ext in i.metadata.name for ext in not_scalable):
+            k8s_update_deployment(deployment_name=i.metadata.name, cpu_limit=cpu_limit, memory_limit=memory_limit,
+                                  number_of_replicas=number_of_replicas)
+
+
 def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: int,
                           number_of_replicas: int) -> None:
     """
@@ -160,7 +180,7 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
     deployment = apps_v1.read_namespaced_deployment(name=deployment_name, namespace=os.getenv("NAMESPACE"))
     # updates cpu and memory limits
     new_resources = client.V1ResourceRequirements(
-        requests={"cpu": "100m", "memory": "100Mi"},
+        requests={"cpu": "100m", "memory": "50Mi"},
         limits={"cpu": f"{cpu_limit}m", "memory": f"{memory_limit}Mi"}
     )
     deployment.spec.template.spec.containers[0].resources = new_resources
@@ -303,7 +323,6 @@ def set_prometheus_info() -> None:
             # set env variable
             set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="PROMETHEUS_RESOURCES_HOST",
                     value_to_set=f"http://localhost:{service.spec.ports[0].node_port}")
-            logging.info(f"PROMETHEUS_RESOURCES_HOST: {os.getenv('PROMETHEUS_RESOURCES_HOST')}")
             break
     # iterate through linkerd namespaces services
     ret_linkerd = v1.list_namespaced_service(namespace="linkerd")
@@ -312,10 +331,7 @@ def set_prometheus_info() -> None:
             # set env variable
             set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="PROMETHEUS_NETWORK_HOST",
                     value_to_set=f"http://localhost:{service.spec.ports[0].node_port}")
-            logging.info(f"PROMETHEUS_NETWORK_HOST: {os.getenv('PROMETHEUS_NETWORK_HOST')}")
             break
-
-
-if __name__ == '__main__':
-    sandbox.config_env(app_name="robot-shop", namespace="robot-shop")
-    k8s_create_deployment_with_helm()
+    load_dotenv(override=True)
+    logging.info(f"PROMETHEUS_RESOURCES_HOST: {os.getenv('PROMETHEUS_RESOURCES_HOST')}")
+    logging.info(f"PROMETHEUS_NETWORK_HOST: {os.getenv('PROMETHEUS_NETWORK_HOST')}")

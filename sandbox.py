@@ -1,5 +1,7 @@
 # Copyright (c) 2020 Angelina Horn
+from gevent import monkey
 
+monkey.patch_all()
 # imports
 import datetime as dt
 import logging
@@ -31,9 +33,9 @@ def config_env(**kwargs) -> None:
     """
     arguments = locals()
     env_file = os.path.join(os.getcwd(), ".env")
-    for i in arguments:
+    for i in arguments["kwargs"].keys():
         key = str(i).upper()
-        value = str(arguments[i])
+        value = str(arguments["kwargs"][i])
         set_key(dotenv_path=env_file, key_to_set=key, value_to_set=value)
 
 
@@ -42,7 +44,7 @@ def get_prometheus_data(folder: str, iteration: int) -> None:
     Exports metric data from prometheus to a csv file.
     :param folder: save folder
     :param iteration: number of current iteration
-    :return:
+    :return: None
     """
     # metrics to export
     resource_metrics = [
@@ -93,7 +95,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
     # get data
     if custom:
         metric_data = prom.custom_query_range(
-            query=f"rate({metric_name}" + "{" + f"namespace='{os.getenv('NAMESPACE')}', container='{os.getenv('app_name')}'" + "}[1m])",
+            query=f"rate({metric_name}" + "{" + f"namespace='{os.getenv('NAMESPACE')}'" + "}[1m])",
             start_time=start_time,
             end_time=dt.datetime.now(),
             step="61")
@@ -106,7 +108,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
     return metric_data
 
 
-def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int, cpu_limit: int,
+def benchmark(name: str, users: int, spawn_rate: int, cpu_limit: int,
               memory_limit: int, pods_limit: int) -> None:
     """
     Benchmark methods.
@@ -114,8 +116,6 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int,
     :param pods_limit: pods limit
     :param memory_limit: memory limit
     :param name: name of ms
-    :param route: API route
-    :param testfile: test file
     :param users: number of users
     :param spawn_rate: spawn rate
     :return: None
@@ -129,18 +129,16 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int,
     # config
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
     k8s.set_prometheus_info()
-    config_locust(app_name=name,
-                  host=os.getenv("HOST"),
-                  route=route,
-                  node_port=k8s.get_k8s_app_port(),
-                  testfile=testfile,
-                  date=date,
-                  users=users,
-                  spawn_rate=spawn_rate,
-                  cpu_limit=cpu_limit,
-                  memory_limit=memory_limit,
-                  pods_limit=pods_limit
-                  )
+    config_env(app_name=name,
+               host=os.getenv("HOST"),
+               node_port=k8s.k8s_get_app_port(),
+               date=date,
+               users=users,
+               spawn_rate=spawn_rate,
+               cpu_limit=cpu_limit,
+               memory_limit=memory_limit,
+               pods_limit=pods_limit
+               )
     # read new environment data
     load_dotenv(override=True)
     # get variation
@@ -156,11 +154,9 @@ def benchmark(name: str, route: str, testfile: str, users: int, spawn_rate: int,
             for p in range(0, p_max):
                 v = variation[c, m, p]
                 logging.info(
-                    f"Iteration {iteration}/{c_max * m_max * p_max} - cpu: {v[0]}m memory: {v[1]}Mi #pods:{v[2]}")
-                k8s.k8s_update_deployment(
-                    deployment=k8s.k8s_deployment(name=os.getenv("APP_NAME"), port=int(os.getenv("PORT")),
-                                                  image=os.getenv("IMAGE")), cpu_limit=int(v[0]),
-                    memory_limit=int(v[1]), number_of_replicas=int(v[2]))
+                    f"Iteration {iteration}/{c_max * m_max * p_max} run{j}/{5} - cpu: {v[0]}m memory: {v[1]}Mi #pods:{v[2]}")
+                k8s.k8s_update_all_deployments_in_namespace(cpu_limit=int(v[0]), memory_limit=int(v[1]),
+                                                            number_of_replicas=int(v[2]))
                 time.sleep(int(os.getenv("SLEEP_TIME")))
                 start_locust(iteration=iteration, folder=folder_path)
                 get_prometheus_data(folder=folder_path, iteration=iteration)
@@ -198,3 +194,8 @@ def parameter_variation(cpu_limit: int, memory_limit: int, pods_limit: int) -> n
     # save dataframe to csv
     df.to_csv(csv_path)
     return variation_matrix
+
+
+if __name__ == '__main__':
+    for j in range(0, 5):
+        benchmark(name="robot-shop", users=100, spawn_rate=50, cpu_limit=1200, memory_limit=1200, pods_limit=6)

@@ -5,43 +5,22 @@ import os
 
 import gevent
 from dotenv import load_dotenv
-from locust import HttpUser, task
 from locust.env import Environment
 from locust.log import setup_logging
 from locust.stats import stats_history, StatsCSVFileWriter
+from data.loadtest.robotshop import UserBehavior
 
+# init logger
 setup_logging("INFO", None)
 
 
-class User(HttpUser):
-    # init
-    load_dotenv(override=True)
-    host = f"http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}/"
-    route = os.getenv("ROUTE")
-    testfile_path = os.path.join(os.getcwd(), "data", "loadtest", f"{os.getenv('TESTFILE')}.txt")
-
-    @task
-    def my_task(self):
-        # read testfile as list
-        testfile = open(self.testfile_path, "r")
-        test_input = testfile.readlines()
-        # call route for every test point
-        for i in test_input:
-            self.client.get(f"{self.route}/{int(i)}")
-
-    @task
-    def healthcheck(self):
-        self.client.get("healthcheck")
-
-
 def start_locust(iteration: int, folder: str):
-    gevent.monkey.patch_all()
+    load_dotenv(override=True)
     # setup Environment and Runner
-    env = Environment(user_classes=[User])
+    env = Environment(user_classes=[UserBehavior], host=f"http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}/")
     env.create_local_runner()
 
     # CSV writer
-    load_dotenv(override=True)
     stats_path = os.path.join(folder, f"locust_{iteration}")
     csv_writer = StatsCSVFileWriter(
         environment=env,

@@ -9,6 +9,8 @@ import seaborn as sns
 import logging
 import re
 from sandbox import parameter_variation
+import numpy as np
+import matplotlib.pyplot as plt
 
 # init
 load_dotenv()
@@ -120,41 +122,53 @@ def filter_data(directory: str) -> pd.DataFrame:
     normal, custom, locust = get_data(directory)
     variation_path = os.path.join(os.getcwd(), "data", "raw", directory, "variation_matrix.csv")
     # filter by namespace
-    filtered_data = pd.concat(objs=[normal[normal.container.eq(os.getenv("APP_NAME"))]])
-    filtered_custom_data = pd.concat(objs=[custom[custom.container.eq(os.getenv("APP_NAME"))]])
+    filtered_data = pd.concat(objs=[normal[normal.namespace.eq(os.getenv("NAMESPACE"))]])
+    filtered_custom_data = pd.concat(objs=[custom[custom.namespace.eq(os.getenv("NAMESPACE"))]])
+    filtered_custom_data = pd.concat(objs=[custom[custom.container.ne("POD")]])
+    # read variation matrix
     variation = pd.read_csv(filepath_or_buffer=variation_path, delimiter=',')
     variation.index = variation["Unnamed: 0"]
     # create pivot table
-    filtered_data = pd.pivot_table(filtered_data, index=["Iteration"], columns=["__name__"],
+    filtered_data = pd.pivot_table(filtered_data, index=["Iteration", "pod"], columns=["__name__"],
                                    values="value").reset_index()
-
-    filtered_data = filtered_data.groupby("Iteration").mean()
     filtered_custom_data['cpu'] = filtered_custom_data['cpu'].fillna("memory")
     filtered_custom_data['cpu'] = filtered_custom_data['cpu'].replace("total", "cpu")
-    filtered_custom_data = pd.pivot_table(filtered_custom_data, index=["Iteration"], columns=["cpu"],
+    filtered_custom_data = pd.pivot_table(filtered_custom_data, index=["Iteration", "pod"], columns=["cpu"],
                                           values="value").reset_index()
-    filtered_custom_data = filtered_custom_data.groupby("Iteration").mean()
+    # split plot name
+    filtered_data["pod"] = filtered_data["pod"].str.split("-", n=1, expand=True)
+    filtered_data = filtered_data.groupby(["Iteration", "pod"]).mean()
+    filtered_data = filtered_data.reset_index()
+    filtered_custom_data["pod"] = filtered_custom_data["pod"].str.split("-", n=1, expand=True)
+    filtered_custom_data = filtered_custom_data.groupby(["Iteration", "pod"]).mean()
+    filtered_custom_data = filtered_custom_data.reset_index()
+    # locust data
     locust = locust.loc[locust['Name'] == "Aggregated"]
     locust.index = locust["Iteration"]
     # fill result
-    result["CPU usage [%]"] = filtered_custom_data['cpu'] / filtered_data[
-        "kube_pod_container_resource_limits_cpu_cores"] * 100
-    result["Memory usage [%]"] = filtered_custom_data['memory'] / filtered_data[
-        "kube_pod_container_resource_limits_memory_bytes"] * 100
-    result["Average response time [ms]"] = locust["Average Response Time"]
-    result["Failures [%]"] = locust["Failure Count"] / locust["Request Count"] * 100
-    result["Number of pods"] = variation["Pods"]
-    result["CPU limit"] = filtered_data["kube_pod_container_resource_limits_cpu_cores"] * 1000
-    result["Memory limit"] = filtered_data["kube_pod_container_resource_limits_memory_bytes"] / 1048576
-    result["Given CPU limit"] = variation["CPU"]
-    result["Given memory limit"] = variation["Memory"]
-    # save data
-    save_data(result, directory)
+    tables = list()
+    for p in filtered_data['pod'].tolist():
+        logging.info(p)
+        tmp = filtered_data[filtered_data.pod == p]
+        custom_tmp = filtered_custom_data[filtered_custom_data.pod == p]
+        result["CPU usage [%]"] = custom_tmp['cpu'] / tmp[
+            "kube_pod_container_resource_limits_cpu_cores"] * 100
+        result["Memory usage [%]"] = custom_tmp['memory'] / tmp[
+            "kube_pod_container_resource_limits_memory_bytes"] * 100
+        result["Average response time [ms]"] = locust["Average Response Time"]
+        result["Failures [%]"] = locust["Failure Count"] / locust["Request Count"] * 100
+        result["Number of pods"] = variation["Pods"]
+        result["CPU limit"] = tmp["kube_pod_container_resource_limits_cpu_cores"] * 1000
+        result["Memory limit"] = tmp["kube_pod_container_resource_limits_memory_bytes"] / 1048576
+        # result["Given CPU limit"] = variation["CPU"]
+        result["Given memory limit"] = variation["Memory"]
+        save_data(result, directory, p, "filtered")
+        result = result.reset_index()
     return result
 
 
-def save_data(data: pd.DataFrame, directory: str) -> None:
-    save_path = os.path.join(os.getcwd(), "data", "filtered", f"{directory}_filtered.csv")
+def save_data(data: pd.DataFrame, directory: str, pod: str, mode: str) -> None:
+    save_path = os.path.join(os.getcwd(), "data", mode, f"{directory}_{pod}.csv")
     if not os.path.exists(save_path):
         data.to_csv(path_or_buf=save_path)
     else:
@@ -167,7 +181,7 @@ def plot_filtered_data() -> None:
     :return: None
     """
     # init
-    data = filter_data()
+    data = filter_data(directory=os.getenv("LAST_DATA"))
     # create directory
     dir_path = os.path.join(os.getcwd(), "data", "plots", f"{os.getenv('LAST_DATA')}")
     os.mkdir(dir_path)
@@ -226,7 +240,7 @@ def format_for_extra_p() -> None:
             # write data
             # for every datapoint
             for i in range(0, (filtered_data[0].index.max() + 1)):
-                logging.info(f"format data: {i+1}/{(filtered_data[0].index.max() + 1)}")
+                logging.info(f"format data: {i + 1}/{(filtered_data[0].index.max() + 1)}")
                 file.write("DATA ")
                 # for test purposes
                 for f in filtered_data:
@@ -235,5 +249,31 @@ def format_for_extra_p() -> None:
                 file.write("\n")
 
 
+def correlation_coefficient_matrix(df: pd.DataFrame, directory: str) -> None:
+    """
+    Calculates and plots the correlation coefficient matrix for a given dataframe.
+    :param directory: save label
+    :param df: given dataframe
+    :return: None
+    """
+    corr = df.corr(method="pearson")
+    save_data(corr, os.getenv("LAST_DATA"), "correlation")
+    # plot correlation
+
+    # Generate a mask for the upper triangle
+    mask = np.triu(np.ones_like(corr, dtype=bool))
+
+    # Set up the matplotlib figure
+    f, ax = plt.subplots(figsize=(11, 9))
+
+    # Generate a custom diverging colormap
+    cmap = sns.color_palette("vlag", as_cmap=True)
+
+    # Draw the heatmap with the mask and correct aspect ratio
+    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
+                square=True, linewidths=.5, cbar_kws={"shrink": .5})
+    plt.show()
+
+
 if __name__ == '__main__':
-    filter_all_data()
+    filter_data("20210215-082010")

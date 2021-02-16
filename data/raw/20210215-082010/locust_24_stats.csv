@@ -1,0 +1,4 @@
+Type,Name,Request Count,Failure Count,Median Response Time,Average Response Time,Min Response Time,Max Response Time,Average Content Size,Requests/s,Failures/s,9000%,5000%
+GET,//,100,0,0,5.610000000087894,0,16.000000000531145,2586.0,6.112364187726915,0.0,16,16
+POST,//api/user/login,95,0,15,11.494736842130232,0,125.0,92.0,5.80674597834057,0.0,120,120
+,Aggregated,195,0,0,8.476923076980315,0,125.0,1370.974358974359,11.919110166067485,0.0,120,120

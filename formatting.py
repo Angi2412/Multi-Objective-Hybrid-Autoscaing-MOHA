@@ -8,9 +8,10 @@ from dotenv import load_dotenv
 import seaborn as sns
 import logging
 import re
-from sandbox import parameter_variation
+from benchmark import parameter_variation
 import numpy as np
 import matplotlib.pyplot as plt
+from functools import reduce
 
 # init
 load_dotenv()
@@ -94,7 +95,7 @@ def get_filtered_data() -> list:
     # get data from each run
     for (dir_path, dir_names, filenames) in os.walk(base_path):
         for c_file in filenames:
-            if "gitkeep" not in c_file:
+            if str(c_file).endswith(".csv"):
                 c_date = int(str(c_file).replace('-', "").replace("_filtered.csv", "").strip())
                 if last_date >= c_date >= first_date:
                     files.append(c_file)
@@ -112,63 +113,73 @@ def filter_all_data() -> None:
         i = i + 1
 
 
+def get_variation_matrices(directory: str) -> pd.DataFrame:
+    """
+    Reads all variation matrices of a directory and puts them in a list.
+    :param directory: current directory
+    :return: list of variation matrices
+    """
+    dir_path = os.path.join(os.getcwd(), "data", "raw", directory)
+    variations = list()
+    for (dir_path, dir_names, filenames) in os.walk(dir_path):
+        for file in filenames:
+            if "variation" in file:
+                name = str(file).split("_")[0]
+                file_path = os.path.join(dir_path, file)
+                tmp = pd.read_csv(filepath_or_buffer=file_path, delimiter=',')
+                tmp.insert(0, 'pod', name)
+                tmp.rename(columns={"Unnamed: 0": "Iteration"}, inplace=True)
+                tmp.reset_index()
+                variations.append(tmp)
+    res = pd.concat(variations)
+    return res
+
+
 def filter_data(directory: str) -> pd.DataFrame:
     """
     Filters data from prometheus.
     :return: filtered data
     """
-    result = pd.DataFrame(
-        columns=["CPU usage [%]", "Memory usage [%]", "Average response time [ms]", "Failures [%]"])
     normal, custom, locust = get_data(directory)
-    variation_path = os.path.join(os.getcwd(), "data", "raw", directory, "variation_matrix.csv")
     # filter by namespace
     filtered_data = pd.concat(objs=[normal[normal.namespace.eq(os.getenv("NAMESPACE"))]])
-    filtered_custom_data = pd.concat(objs=[custom[custom.namespace.eq(os.getenv("NAMESPACE"))]])
-    filtered_custom_data = pd.concat(objs=[custom[custom.container.ne("POD")]])
-    # read variation matrix
-    variation = pd.read_csv(filepath_or_buffer=variation_path, delimiter=',')
-    variation.index = variation["Unnamed: 0"]
-    # create pivot table
+    # read variation matrices
+    variations = get_variation_matrices(directory)
+    # filter pod name
+    filtered_data["pod"] = filtered_data["pod"].str.split("-", n=1, expand=True)
+    custom["pod"] = custom["pod"].str.split("-", n=1, expand=True)
+    # create pivot tables
     filtered_data = pd.pivot_table(filtered_data, index=["Iteration", "pod"], columns=["__name__"],
                                    values="value").reset_index()
-    filtered_custom_data['cpu'] = filtered_custom_data['cpu'].fillna("memory")
-    filtered_custom_data['cpu'] = filtered_custom_data['cpu'].replace("total", "cpu")
-    filtered_custom_data = pd.pivot_table(filtered_custom_data, index=["Iteration", "pod"], columns=["cpu"],
+    filtered_custom_data = pd.pivot_table(custom, index=["Iteration", "pod"], columns=["metric"],
                                           values="value").reset_index()
-    # split plot name
-    filtered_data["pod"] = filtered_data["pod"].str.split("-", n=1, expand=True)
+    # calculate mean values
     filtered_data = filtered_data.groupby(["Iteration", "pod"]).mean()
-    filtered_data = filtered_data.reset_index()
-    filtered_custom_data["pod"] = filtered_custom_data["pod"].str.split("-", n=1, expand=True)
     filtered_custom_data = filtered_custom_data.groupby(["Iteration", "pod"]).mean()
     filtered_custom_data = filtered_custom_data.reset_index()
-    # locust data
-    locust = locust.loc[locust['Name'] == "Aggregated"]
-    locust.index = locust["Iteration"]
+    filtered_data = filtered_data.reset_index()
     # fill result
-    tables = list()
-    for p in filtered_data['pod'].tolist():
-        logging.info(p)
-        tmp = filtered_data[filtered_data.pod == p]
-        custom_tmp = filtered_custom_data[filtered_custom_data.pod == p]
-        result["CPU usage [%]"] = custom_tmp['cpu'] / tmp[
-            "kube_pod_container_resource_limits_cpu_cores"] * 100
-        result["Memory usage [%]"] = custom_tmp['memory'] / tmp[
-            "kube_pod_container_resource_limits_memory_bytes"] * 100
-        result["Average response time [ms]"] = locust["Average Response Time"]
-        result["Failures [%]"] = locust["Failure Count"] / locust["Request Count"] * 100
-        result["Number of pods"] = variation["Pods"]
-        result["CPU limit"] = tmp["kube_pod_container_resource_limits_cpu_cores"] * 1000
-        result["Memory limit"] = tmp["kube_pod_container_resource_limits_memory_bytes"] / 1048576
-        # result["Given CPU limit"] = variation["CPU"]
-        result["Given memory limit"] = variation["Memory"]
-        save_data(result, directory, p, "filtered")
-        result = result.reset_index()
-    return result
+    res_data = pd.merge(filtered_data, filtered_custom_data, how='left', on=["Iteration", "pod"])
+    res_data = pd.merge(res_data, variations, how='left', on=["Iteration", "pod"])
+    # calc average response time
+    res_data["average response time"] = res_data["response_latency_ms_sum"] / res_data["response_latency_ms_count"]
+    # erase stuff
+    res_data = res_data[res_data['pod'].ne("prometheus")]
+    res_data.drop(columns=["kube_deployment_spec_replicas", "kube_pod_container_resource_limits_cpu_cores",
+                           "kube_pod_container_resource_limits_memory_bytes",
+                           "kube_pod_container_resource_requests_cpu_cores",
+                           "kube_pod_container_resource_requests_memory_bytes", "response_latency_ms_count",
+                           "response_latency_ms_sum"], inplace=True)
+    res_data.rename(
+        columns={"cpu": "cpu usage", "memory": "memory usage", "CPU": "cpu limit", "Memory": "memory limit",
+                 "Pods": "number of pods", "container_cpu_cfs_throttled_seconds_total": "cpu throttled total"},
+        inplace=True)
+    save_data(res_data, directory, "filtered")
+    return res_data
 
 
-def save_data(data: pd.DataFrame, directory: str, pod: str, mode: str) -> None:
-    save_path = os.path.join(os.getcwd(), "data", mode, f"{directory}_{pod}.csv")
+def save_data(data: pd.DataFrame, directory: str, mode: str) -> None:
+    save_path = os.path.join(os.getcwd(), "data", mode, f"{directory}_filtered.csv")
     if not os.path.exists(save_path):
         data.to_csv(path_or_buf=save_path)
     else:
@@ -187,9 +198,9 @@ def plot_filtered_data() -> None:
     os.mkdir(dir_path)
     # create and save plots
     for metric in data:
-        plt = sns.lineplot(data=data, x=data.index, y=metric)
-        plt.figure.savefig(os.path.join(dir_path, f"{metric}.png"))
-        plt.figure.clf()
+        line_plot = sns.lineplot(data=data, x=data["Iteration"], y=metric, hue="pod")
+        line_plot.figure.savefig(os.path.join(dir_path, f"{metric}.png"))
+        line_plot.figure.clf()
     # make scatter plot
     g = sns.PairGrid(data)
     g.map(sns.scatterplot)
@@ -259,16 +270,12 @@ def correlation_coefficient_matrix(df: pd.DataFrame, directory: str) -> None:
     corr = df.corr(method="pearson")
     save_data(corr, os.getenv("LAST_DATA"), "correlation")
     # plot correlation
-
     # Generate a mask for the upper triangle
     mask = np.triu(np.ones_like(corr, dtype=bool))
-
     # Set up the matplotlib figure
     f, ax = plt.subplots(figsize=(11, 9))
-
     # Generate a custom diverging colormap
     cmap = sns.color_palette("vlag", as_cmap=True)
-
     # Draw the heatmap with the mask and correct aspect ratio
     sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5})
@@ -276,4 +283,4 @@ def correlation_coefficient_matrix(df: pd.DataFrame, directory: str) -> None:
 
 
 if __name__ == '__main__':
-    filter_data("20210215-082010")
+    plot_filtered_data()

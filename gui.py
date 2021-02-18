@@ -7,7 +7,7 @@ from pathlib import Path
 
 import PySimpleGUI as sg
 
-from sandbox import create_deployment, benchmark
+from benchmark import create_deployment, benchmark
 
 sg.theme('Reddit')
 

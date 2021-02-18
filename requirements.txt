@@ -14,3 +14,5 @@ seaborn
 matplotlib
 pyyaml
 pytest
+Flask
+Faker

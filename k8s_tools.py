@@ -13,13 +13,12 @@ import docker
 import yaml
 from dotenv import load_dotenv, set_key
 from kubernetes import client, config, utils
-import sandbox
 
 # environment
 load_dotenv(override=True)
 
 # init logger
-logging.getLogger().setLevel(logging.DEBUG)
+logging.getLogger().setLevel(logging.INFO)
 
 
 def k8s_create_deployment_with_helm() -> None:
@@ -147,26 +146,42 @@ def k8s_create_deployment(deployment: client.V1Deployment) -> None:
 
 
 def k8s_update_all_deployments_in_namespace(cpu_limit: int, memory_limit: int,
-                                            number_of_replicas: int) -> None:
-    not_scalable = ["db", "redis", "mysql", "rabbitmq", "mq"]
+                                            number_of_replicas: int, delete: bool) -> None:
+    """
+    Updates all deployments in a given namespace with given values.
+    :param cpu_limit: limit of cpu
+    :param memory_limit: limit of memory
+    :param number_of_replicas: limit of number of replicas
+    :param delete: update method
+    :return: None
+    """
+    not_scalable = ["mysql", "mongodb", "redis", "rabbitmq"]
     # init API
     config.load_kube_config()
     apps_v1 = client.AppsV1Api()
+    core_v1 = client.CoreV1Api()
     # read deployment
     counter = 0
     ret = apps_v1.list_namespaced_deployment(namespace=os.getenv("NAMESPACE"))
+    # for every pod in namespace
     for i in ret.items:
         counter = counter + 1
-        logging.info(f"Updating deployments in namespace: {counter}/{len(ret.items)}")
+        logging.info(f"Updating deployments in namespace: {counter}/{len(ret.items) - len(not_scalable)}")
+        # update deployment
         if not any(ext in i.metadata.name for ext in not_scalable):
             k8s_update_deployment(deployment_name=i.metadata.name, cpu_limit=cpu_limit, memory_limit=memory_limit,
-                                  number_of_replicas=number_of_replicas)
+                                  number_of_replicas=number_of_replicas, replace=True)
+        else:
+            # keep number of replicas for not scalable pods
+            k8s_update_deployment(deployment_name=i.metadata.name, cpu_limit=cpu_limit, memory_limit=memory_limit,
+                                  number_of_replicas=1, replace=True)
 
 
 def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: int,
-                          number_of_replicas: int) -> None:
+                          number_of_replicas: int, replace: bool) -> client.V1Deployment:
     """
     Updates a given deployment with given values for replicas, cpu limit and replicas limit.
+    :param replace: if the deployment should be replaced or patched
     :param deployment_name: name of deployment
     :param cpu_limit: new cpu limit
     :param memory_limit: new memory limit
@@ -186,15 +201,26 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
     deployment.spec.template.spec.containers[0].resources = new_resources
     # updates number of replicas
     deployment.spec.replicas = number_of_replicas
-    # updates the deployment
-    try:
-        api_response = apps_v1.patch_namespaced_deployment(
-            name=deployment_name,
-            namespace=os.getenv("NAMESPACE"),
-            body=deployment)
-        print(f"Deployment updated of {deployment_name}.")
-    except Exception as e:
-        logging.info(f"Error while deployment: {e}")
+    if not replace:
+        # updates the deployment
+        try:
+            api_response = apps_v1.patch_namespaced_deployment(
+                name=deployment_name,
+                namespace=os.getenv("NAMESPACE"),
+                body=deployment)
+            print(f"Deployment updated of {deployment_name}.")
+        except Exception as e:
+            logging.info(f"Error while deployment: {e}")
+    else:
+        try:
+            api_response = apps_v1.replace_namespaced_deployment(
+                name=deployment_name,
+                namespace=os.getenv("NAMESPACE"),
+                body=deployment)
+            print(f"Deployment updated of {deployment_name}.")
+        except Exception as e:
+            logging.info(f"Error while deployment: {e}")
+    return deployment
 
 
 def k8s_create_service(app_port: int, app_name: str) -> None:
@@ -248,11 +274,13 @@ def k8s_delete_namespace() -> None:
     v1 = client.CoreV1Api()
     try:
         resp = v1.list_namespace()
-        if os.getenv("NAMESPACE") in resp.items:
-            api_response = v1.delete_namespace(os.getenv("NAMESPACE"))
-            print(api_response)
-        else:
-            logging.warning(f"Could not delete namespace: {os.getenv('NAMESPACE')} because is does not exist.")
+        for n in resp.items:
+            if os.getenv("NAMESPACE") in n.metadata.name:
+                api_response = v1.delete_namespace(os.getenv("NAMESPACE"))
+                time.sleep(60)
+                logging.info("Deleted namespace " + os.getenv("NAMESPACE"))
+                return
+        logging.warning(f"Could not delete namespace: {os.getenv('NAMESPACE')} because is does not exist.")
     except client.exceptions.ApiException as e:
         print("Exception when calling CoreV1Api->delete_namespaced_pod: %s\n" % e)
 
@@ -268,11 +296,30 @@ def k8s_get_app_port() -> int:
     # iterate through namespaces services
     ret = v1.list_namespaced_service(namespace=os.getenv("NAMESPACE"))
     for i in ret.items:
-        if os.getenv("APP_NAME") in i.metadata.name:
+        if os.getenv("UI") in i.metadata.name:
             # checks if node port is not NoneType
             if i.spec.ports[0].node_port:
                 logging.debug(f"NodePort for service {i.metadata.name} is {i.spec.ports[0].node_port}")
                 return int(i.spec.ports[0].node_port)
+
+
+def k8s_create_robotshop() -> None:
+    """
+    Create robot-shop deployment from helm.
+    :return: None
+    """
+    work_directory = os.getcwd()
+    # Create namespace
+    os.system(f"kubectl create namespace {os.getenv('NAMESPACE')}")
+    time.sleep(30)
+    # create deployment
+    robot_shop_dir = os.path.join(os.getcwd(), "k8s", "robotshop", "K8s", "helm")
+    os.chdir(robot_shop_dir)
+    os.system("helm install robot-shop --namespace robot-shop .")
+    logging.info("Creating robot-shop: waiting 5 minutes...")
+    time.sleep(300)
+    os.chdir(work_directory)
+    logging.info("Created robot-shop.")
 
 
 def build_docker_image(name: str, docker_path: str) -> str:
@@ -335,3 +382,25 @@ def set_prometheus_info() -> None:
     load_dotenv(override=True)
     logging.info(f"PROMETHEUS_RESOURCES_HOST: {os.getenv('PROMETHEUS_RESOURCES_HOST')}")
     logging.info(f"PROMETHEUS_NETWORK_HOST: {os.getenv('PROMETHEUS_NETWORK_HOST')}")
+
+
+def get_resource_requests() -> dict:
+    """
+    Gets the resource request for every deployment in a given namespace.
+    :return: resource requests
+    """
+    # init API
+    config.load_kube_config()
+    apps_v1 = client.AppsV1Api()
+    resource_requests = dict()
+    # read deployment
+    ret = apps_v1.list_namespaced_deployment(namespace=os.getenv("NAMESPACE"))
+    for i in ret.items:
+        deployment = apps_v1.read_namespaced_deployment(name=i.metadata.name, namespace=os.getenv("NAMESPACE"))
+        resources = deployment.spec.template.spec.containers[0].resources.requests
+        resource_requests[i.metadata.name] = resources
+    return resource_requests
+
+
+if __name__ == '__main__':
+    k8s_delete_namespace()

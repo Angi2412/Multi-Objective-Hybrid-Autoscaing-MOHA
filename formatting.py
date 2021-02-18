@@ -11,7 +11,6 @@ import re
 from benchmark import parameter_variation
 import numpy as np
 import matplotlib.pyplot as plt
-from functools import reduce
 
 # init
 load_dotenv()
@@ -20,6 +19,10 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def get_all_data() -> list:
+    """
+    Gets all metric tables between two dates.
+    :return: list of metric data
+    """
     # init
     all_data = list()
     for d in get_directories():
@@ -60,6 +63,14 @@ def get_data(directory: str) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
 
 
 def get_data_helper(data: pd.DataFrame, file: str, iteration: int, directory: str) -> pd.DataFrame:
+    """
+    Connects two dataframes.
+    :param data: given dataframe
+    :param file: data frame in file
+    :param iteration: number of iteration
+    :param directory: date
+    :return: connected data frame
+    """
     data_path = os.path.join(os.getcwd(), "data", "raw", directory)
     # concat metrics
     tmp_data = pd.read_csv(filepath_or_buffer=os.path.join(data_path, file), delimiter=',')
@@ -72,6 +83,10 @@ def get_data_helper(data: pd.DataFrame, file: str, iteration: int, directory: st
 
 
 def get_directories() -> list:
+    """
+    Gets all directory names between the first and last data date.
+    :return: list of directory names
+    """
     load_dotenv()
     first_date = int(str(os.getenv("FIRST_DATA")).replace('-', "").strip())
     last_date = int(str(os.getenv("LAST_DATA")).replace('-', "").strip())
@@ -86,7 +101,25 @@ def get_directories() -> list:
     return dirs
 
 
-def get_filtered_data() -> list:
+def get_filtered_data(directory: str) -> pd.DataFrame:
+    """
+    Returns a data frame of a given filtered data.
+    :param directory: date
+    :return: data frame of filtered data
+    """
+    base_path = os.path.join(os.getcwd(), "data", "filtered")
+    for (dir_path, dir_names, filenames) in os.walk(base_path):
+        for c_file in filenames:
+            if directory in c_file:
+                df = pd.read_csv(os.path.join(base_path, c_file))
+                return df
+
+
+def get_all_filtered_data() -> list:
+    """
+    Reads all filtered data between two dates.
+    :return: list of filtered data
+    """
     load_dotenv()
     first_date = int(str(os.getenv("FIRST_DATA")).replace('-', "").strip())
     last_date = int(str(os.getenv("LAST_DATA")).replace('-', "").strip())
@@ -103,6 +136,10 @@ def get_filtered_data() -> list:
 
 
 def filter_all_data() -> None:
+    """
+    Filters all data between two dates.
+    :return: None
+    """
     # init
     i = 1
     dirs = get_directories()
@@ -117,20 +154,26 @@ def get_variation_matrices(directory: str) -> pd.DataFrame:
     """
     Reads all variation matrices of a directory and puts them in a list.
     :param directory: current directory
-    :return: list of variation matrices
+    :return: variation matrix
     """
     dir_path = os.path.join(os.getcwd(), "data", "raw", directory)
     variations = list()
+    # find variation files
     for (dir_path, dir_names, filenames) in os.walk(dir_path):
         for file in filenames:
             if "variation" in file:
+                # filter name
                 name = str(file).split("_")[0]
+                # read variation file
                 file_path = os.path.join(dir_path, file)
                 tmp = pd.read_csv(filepath_or_buffer=file_path, delimiter=',')
+                # edit table
                 tmp.insert(0, 'pod', name)
                 tmp.rename(columns={"Unnamed: 0": "Iteration"}, inplace=True)
                 tmp.reset_index()
+                # add to variations
                 variations.append(tmp)
+    # merge into one table
     res = pd.concat(variations)
     return res
 
@@ -141,11 +184,11 @@ def filter_data(directory: str) -> pd.DataFrame:
     :return: filtered data
     """
     normal, custom, locust = get_data(directory)
-    # filter by namespace
+    # filter for namespace
     filtered_data = pd.concat(objs=[normal[normal.namespace.eq(os.getenv("NAMESPACE"))]])
     # read variation matrices
     variations = get_variation_matrices(directory)
-    # filter pod name
+    # filter for pod name
     filtered_data["pod"] = filtered_data["pod"].str.split("-", n=1, expand=True)
     custom["pod"] = custom["pod"].str.split("-", n=1, expand=True)
     # create pivot tables
@@ -158,10 +201,10 @@ def filter_data(directory: str) -> pd.DataFrame:
     filtered_custom_data = filtered_custom_data.groupby(["Iteration", "pod"]).mean()
     filtered_custom_data = filtered_custom_data.reset_index()
     filtered_data = filtered_data.reset_index()
-    # fill result
+    # merge all tables
     res_data = pd.merge(filtered_data, filtered_custom_data, how='left', on=["Iteration", "pod"])
     res_data = pd.merge(res_data, variations, how='left', on=["Iteration", "pod"])
-    # calc average response time
+    # calculate average response time
     res_data["average response time"] = res_data["response_latency_ms_sum"] / res_data["response_latency_ms_count"]
     # erase stuff
     res_data = res_data[res_data['pod'].ne("prometheus")]
@@ -179,26 +222,40 @@ def filter_data(directory: str) -> pd.DataFrame:
 
 
 def save_data(data: pd.DataFrame, directory: str, mode: str) -> None:
-    save_path = os.path.join(os.getcwd(), "data", mode, f"{directory}_filtered.csv")
+    """
+    Saves a given data frame in a given folder.
+    :param data: data frame
+    :param directory: name of file
+    :param mode: name of directory
+    :return: None
+    """
+    save_path = os.path.join(os.getcwd(), "data", mode, f"{directory}.csv")
     if not os.path.exists(save_path):
         data.to_csv(path_or_buf=save_path)
     else:
         logging.warning("Filtered data already exists.")
 
 
-def plot_filtered_data() -> None:
+def plot_filtered_data(directory: str) -> None:
     """
     Plots a given metric from filtered data from prometheus.
     :return: None
     """
     # init
-    data = filter_data(directory=os.getenv("LAST_DATA"))
+    data = get_filtered_data(directory)
+    data = data.dropna()
+
     # create directory
     dir_path = os.path.join(os.getcwd(), "data", "plots", f"{os.getenv('LAST_DATA')}")
     os.mkdir(dir_path)
+    x_axis = ["cpu limit", "memory limit", "number of pods", "cpu usage", "memory usage"]
     # create and save plots
-    for metric in data:
-        line_plot = sns.lineplot(data=data, x=data["Iteration"], y=metric, hue="pod")
+    for metric in x_axis:
+        if metric == "number of pods":
+            line_plot = sns.lineplot(data=data, x=metric, y="average response time", hue="pod")
+        else:
+            data_one = data.loc[(data['number of pods'] == 1) & (data["average response time"].ne(np.nan))]
+            line_plot = sns.lineplot(data=data_one, x=metric, y="average response time", hue="pod")
         line_plot.figure.savefig(os.path.join(dir_path, f"{metric}.png"))
         line_plot.figure.clf()
     # make scatter plot
@@ -209,6 +266,10 @@ def plot_filtered_data() -> None:
 
 
 def format_for_extra_p() -> None:
+    """
+    Formats a given benchmark for extra-p.
+    :return: None
+    """
     # init
     filtered_base_path = os.path.join(os.getcwd(), "data", "filtered")
     save_path = os.path.join(os.getcwd(), "data", "formatted", os.getenv('LAST_DATA'))
@@ -283,4 +344,4 @@ def correlation_coefficient_matrix(df: pd.DataFrame, directory: str) -> None:
 
 
 if __name__ == '__main__':
-    plot_filtered_data()
+    plot_filtered_data("20210217-223253")

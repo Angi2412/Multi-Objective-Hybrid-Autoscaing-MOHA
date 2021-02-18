@@ -1,3 +1,0 @@
-Iteration,CPU usage [%],Memory usage [%],Average response time [ms],Failures [%],Number of pods,CPU limit,Memory limit,Given CPU limit,Given memory limit
-1,0.0,0.0,531.1804733727714,35.798816568047336,1,200.0,100.0,200,200
-2,0.0,0.0,10.560810810801255,33.33333333333333,2,200.0,100.0,200,200

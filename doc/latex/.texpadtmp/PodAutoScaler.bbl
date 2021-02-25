@@ -1,0 +1,539 @@
+% $ biblatex auxiliary file $
+% $ biblatex bbl format version 3.1 $
+% Do not modify the above lines!
+%
+% This is an auxiliary file used by the 'biblatex' package.
+% This file may safely be deleted. It will be recreated as
+% required.
+%
+\begingroup
+\makeatletter
+\@ifundefined{ver@biblatex.sty}
+  {\@latex@error
+     {Missing 'biblatex' package}
+     {The bibliography requires the 'biblatex' package.}
+      \aftergroup\endinput}
+  {}
+\endgroup
+
+\datalist[entry]{none/global//global/global}
+  \entry{alshuqayran2016systematic}{inproceedings}{}
+    \name{author}{3}{}{%
+      {{hash=AN}{%
+         family={Alshuqayran},
+         familyi={A\bibinitperiod},
+         given={Nuha},
+         giveni={N\bibinitperiod},
+      }}%
+      {{hash=AN}{%
+         family={Ali},
+         familyi={A\bibinitperiod},
+         given={Nour},
+         giveni={N\bibinitperiod},
+      }}%
+      {{hash=ER}{%
+         family={Evans},
+         familyi={E\bibinitperiod},
+         given={Roger},
+         giveni={R\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {IEEE}%
+    }
+    \strng{namehash}{ANANER1}
+    \strng{fullhash}{ANANER1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{2016 IEEE 9th International Conference on
+  Service-Oriented Computing and Applications (SOCA)}
+    \field{pages}{44\bibrangedash 51}
+    \field{title}{A systematic mapping study in microservice architecture}
+    \field{year}{2016}
+  \endentry
+
+  \entry{villamizar2015evaluating}{inproceedings}{}
+    \name{author}{7}{}{%
+      {{hash=VM}{%
+         family={Villamizar},
+         familyi={V\bibinitperiod},
+         given={Mario},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=GO}{%
+         family={Garc{\'e}s},
+         familyi={G\bibinitperiod},
+         given={Oscar},
+         giveni={O\bibinitperiod},
+      }}%
+      {{hash=CH}{%
+         family={Castro},
+         familyi={C\bibinitperiod},
+         given={Harold},
+         giveni={H\bibinitperiod},
+      }}%
+      {{hash=VM}{%
+         family={Verano},
+         familyi={V\bibinitperiod},
+         given={Mauricio},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=SL}{%
+         family={Salamanca},
+         familyi={S\bibinitperiod},
+         given={Lorena},
+         giveni={L\bibinitperiod},
+      }}%
+      {{hash=CR}{%
+         family={Casallas},
+         familyi={C\bibinitperiod},
+         given={Rubby},
+         giveni={R\bibinitperiod},
+      }}%
+      {{hash=GS}{%
+         family={Gil},
+         familyi={G\bibinitperiod},
+         given={Santiago},
+         giveni={S\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {IEEE}%
+    }
+    \strng{namehash}{VMGOCH+1}
+    \strng{fullhash}{VMGOCHVMSLCRGS1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{2015 10th Computing Colombian Conference (10CCC)}
+    \field{pages}{583\bibrangedash 590}
+    \field{title}{Evaluating the monolithic and the microservice architecture
+  pattern to deploy web applications in the cloud}
+    \field{year}{2015}
+  \endentry
+
+  \entry{rossi2019horizontal}{inproceedings}{}
+    \name{author}{3}{}{%
+      {{hash=RF}{%
+         family={Rossi},
+         familyi={R\bibinitperiod},
+         given={Fabiana},
+         giveni={F\bibinitperiod},
+      }}%
+      {{hash=NM}{%
+         family={Nardelli},
+         familyi={N\bibinitperiod},
+         given={Matteo},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=CV}{%
+         family={Cardellini},
+         familyi={C\bibinitperiod},
+         given={Valeria},
+         giveni={V\bibinitperiod},
+      }}%
+    }
+    \list{organization}{1}{%
+      {IEEE}%
+    }
+    \strng{namehash}{RFNMCV1}
+    \strng{fullhash}{RFNMCV1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{2019 IEEE 12th International Conference on Cloud
+  Computing (CLOUD)}
+    \field{pages}{329\bibrangedash 338}
+    \field{title}{Horizontal and vertical scaling of container-based
+  applications using reinforcement learning}
+    \field{year}{2019}
+  \endentry
+
+  \entry{lewis2012microservices}{inproceedings}{}
+    \name{author}{1}{}{%
+      {{hash=LJ}{%
+         family={Lewis},
+         familyi={L\bibinitperiod},
+         given={James},
+         giveni={J\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{LJ1}
+    \strng{fullhash}{LJ1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{Proceedings of the 33rd Degree Conference for Java
+  Masters}
+    \field{title}{Microservices-java, the unix way}
+    \field{year}{2012}
+  \endentry
+
+  \entry{dragoni2017microservices}{incollection}{}
+    \name{author}{7}{}{%
+      {{hash=DN}{%
+         family={Dragoni},
+         familyi={D\bibinitperiod},
+         given={Nicola},
+         giveni={N\bibinitperiod},
+      }}%
+      {{hash=GS}{%
+         family={Giallorenzo},
+         familyi={G\bibinitperiod},
+         given={Saverio},
+         giveni={S\bibinitperiod},
+      }}%
+      {{hash=LAL}{%
+         family={Lafuente},
+         familyi={L\bibinitperiod},
+         given={Alberto\bibnamedelima Lluch},
+         giveni={A\bibinitperiod\bibinitdelim L\bibinitperiod},
+      }}%
+      {{hash=MM}{%
+         family={Mazzara},
+         familyi={M\bibinitperiod},
+         given={Manuel},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=MF}{%
+         family={Montesi},
+         familyi={M\bibinitperiod},
+         given={Fabrizio},
+         giveni={F\bibinitperiod},
+      }}%
+      {{hash=MR}{%
+         family={Mustafin},
+         familyi={M\bibinitperiod},
+         given={Ruslan},
+         giveni={R\bibinitperiod},
+      }}%
+      {{hash=SL}{%
+         family={Safina},
+         familyi={S\bibinitperiod},
+         given={Larisa},
+         giveni={L\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Springer}%
+    }
+    \strng{namehash}{DNGSLAL+1}
+    \strng{fullhash}{DNGSLALMMMFMRSL1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{Present and ulterior software engineering}
+    \field{pages}{195\bibrangedash 216}
+    \field{title}{Microservices: yesterday, today, and tomorrow}
+    \field{year}{2017}
+  \endentry
+
+  \entry{merkel2014docker}{article}{}
+    \name{author}{1}{}{%
+      {{hash=MD}{%
+         family={Merkel},
+         familyi={M\bibinitperiod},
+         given={Dirk},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{MD1}
+    \strng{fullhash}{MD1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{239}
+    \field{pages}{2}
+    \field{title}{Docker: lightweight linux containers for consistent
+  development and deployment}
+    \field{volume}{2014}
+    \field{journaltitle}{Linux journal}
+    \field{year}{2014}
+  \endentry
+
+  \entry{namiot2014micro}{article}{}
+    \name{author}{2}{}{%
+      {{hash=ND}{%
+         family={Namiot},
+         familyi={N\bibinitperiod},
+         given={Dmitry},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=SSM}{%
+         family={Sneps-Sneppe},
+         familyi={S\bibinithyphendelim S\bibinitperiod},
+         given={Manfred},
+         giveni={M\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{NDSSM1}
+    \strng{fullhash}{NDSSM1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{9}
+    \field{pages}{24\bibrangedash 27}
+    \field{title}{On micro-services architecture}
+    \field{volume}{2}
+    \field{journaltitle}{International Journal of Open Information
+  Technologies}
+    \field{year}{2014}
+  \endentry
+
+  \entry{googletrends2020}{online}{}
+    \list{organization}{1}{%
+      {Google LLC}%
+    }
+    \field{labeltitlesource}{title}
+    \field{title}{Google Trends}
+    \verb{url}
+    \verb https://trends.google.com
+    \endverb
+    \field{month}{10}
+    \field{year}{2020}
+  \endentry
+
+  \entry{kubernetesdoc2020}{online}{}
+    \list{organization}{1}{%
+      {Kubernetes}%
+    }
+    \field{labeltitlesource}{title}
+    \field{title}{Kubernetes Documentation}
+    \verb{url}
+    \verb https://kubernetes.io/docs/
+    \endverb
+    \field{month}{11}
+    \field{year}{2020}
+  \endentry
+
+  \entry{qu2018auto}{article}{}
+    \name{author}{3}{}{%
+      {{hash=QC}{%
+         family={Qu},
+         familyi={Q\bibinitperiod},
+         given={Chenhao},
+         giveni={C\bibinitperiod},
+      }}%
+      {{hash=CRN}{%
+         family={Calheiros},
+         familyi={C\bibinitperiod},
+         given={Rodrigo\bibnamedelima N},
+         giveni={R\bibinitperiod\bibinitdelim N\bibinitperiod},
+      }}%
+      {{hash=BR}{%
+         family={Buyya},
+         familyi={B\bibinitperiod},
+         given={Rajkumar},
+         giveni={R\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {ACM New York, NY, USA}%
+    }
+    \strng{namehash}{QCCRNBR1}
+    \strng{fullhash}{QCCRNBR1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{4}
+    \field{pages}{1\bibrangedash 33}
+    \field{title}{Auto-scaling web applications in clouds: A taxonomy and
+  survey}
+    \field{volume}{51}
+    \field{journaltitle}{ACM Computing Surveys (CSUR)}
+    \field{year}{2018}
+  \endentry
+
+  \entry{midigudla2019performance}{misc}{}
+    \name{author}{1}{}{%
+      {{hash=MD}{%
+         family={Midigudla},
+         familyi={M\bibinitperiod},
+         given={Dhananjay},
+         giveni={D\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{MD2}
+    \strng{fullhash}{MD2}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Performance Analysis of the Impact of Vertical Scaling on
+  Application Containerized with Docker: Kubernetes on Amazon Web Services-EC2}
+    \field{year}{2019}
+  \endentry
+
+  \entry{montgomery2021introduction}{book}{}
+    \name{author}{3}{}{%
+      {{hash=MD}{%
+         family={Montgomery},
+         familyi={M\bibinitperiod},
+         given={D.C.},
+         giveni={D\bibinitperiod},
+      }}%
+      {{hash=PE}{%
+         family={Peck},
+         familyi={P\bibinitperiod},
+         given={E.A.},
+         giveni={E\bibinitperiod},
+      }}%
+      {{hash=VG}{%
+         family={Vining},
+         familyi={V\bibinitperiod},
+         given={G.G.},
+         giveni={G\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Wiley}%
+    }
+    \strng{namehash}{MDPEVG1}
+    \strng{fullhash}{MDPEVG1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{isbn}{9781119578741}
+    \field{series}{Wiley Series in Probability and Statistics}
+    \field{title}{Introduction to Linear Regression Analysis}
+    \verb{url}
+    \verb https://books.google.de/books?id=N8EZEAAAQBAJ
+    \endverb
+    \field{year}{2021}
+  \endentry
+
+  \entry{slides_on_linear_regression}{misc}{}
+    \name{author}{1}{}{%
+      {{hash=KPDK}{%
+         family={Kersting},
+         familyi={K\bibinitperiod},
+         given={Prof. Dr.\bibnamedelima Kristian},
+         giveni={P\bibinitperiod\bibinitdelim D\bibinitperiod\bibinitdelim
+  K\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{KPDK1}
+    \strng{fullhash}{KPDK1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{note}{Accessed: {2021–02-10}}
+    \field{title}{Statistical Machine Learning, Lecture 06: Probability Density
+  Estimation}
+    \verb{url}
+    \verb https://www.ml.informatik.tu-darmstadt.de/lectures/sml2020sose/slides
+    \verb /lecture_06_Probability_density_estimation.pdf
+    \endverb
+    \field{year}{2020}
+  \endentry
+
+  \entry{noauthor_linear_nodate}{online}{}
+    \field{labeltitlesource}{title}
+    \field{title}{Linear Regression}
+    \verb{url}
+    \verb http://www.stat.yale.edu/Courses/1997-98/101/linreg.htm
+    \endverb
+    \verb{file}
+    \verb Linear Regression:/Users/angi/Zotero/storage/T2L6H7WY/linreg.html:tex
+    \verb t/html
+    \endverb
+    \field{urlday}{10}
+    \field{urlmonth}{02}
+    \field{urlyear}{2021}
+  \endentry
+
+  \entry{vapnik1995t}{article}{}
+    \name{author}{1}{}{%
+      {{hash=VVN}{%
+         family={Vapnik},
+         familyi={V\bibinitperiod},
+         given={Valdimir\bibnamedelima N},
+         giveni={V\bibinitperiod\bibinitdelim N\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{VVN1}
+    \strng{fullhash}{VVN1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{The Nature of Statistical Learning Theory}
+    \field{journaltitle}{New York: Springer Verlag}
+    \field{year}{1995}
+  \endentry
+
+  \entry{awad2015efficient}{book}{}
+    \name{author}{2}{}{%
+      {{hash=AM}{%
+         family={Awad},
+         familyi={A\bibinitperiod},
+         given={Mariette},
+         giveni={M\bibinitperiod},
+      }}%
+      {{hash=KR}{%
+         family={Khanna},
+         familyi={K\bibinitperiod},
+         given={Rahul},
+         giveni={R\bibinitperiod},
+      }}%
+    }
+    \list{publisher}{1}{%
+      {Springer Nature}%
+    }
+    \strng{namehash}{AMKR1}
+    \strng{fullhash}{AMKR1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{title}{Efficient learning machines: theories, concepts, and
+  applications for engineers and system designers}
+    \field{year}{2015}
+  \endentry
+
+  \entry{lin2017research}{inproceedings}{}
+    \name{author}{4}{}{%
+      {{hash=LY}{%
+         family={Lin},
+         familyi={L\bibinitperiod},
+         given={Yuan},
+         giveni={Y\bibinitperiod},
+      }}%
+      {{hash=YH}{%
+         family={Yu},
+         familyi={Y\bibinitperiod},
+         given={Hongzhi},
+         giveni={H\bibinitperiod},
+      }}%
+      {{hash=WF}{%
+         family={Wan},
+         familyi={W\bibinitperiod},
+         given={Fucheng},
+         giveni={F\bibinitperiod},
+      }}%
+      {{hash=XT}{%
+         family={Xu},
+         familyi={X\bibinitperiod},
+         given={Tao},
+         giveni={T\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{LYYHWF+1}
+    \strng{fullhash}{LYYHWFXT1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{booktitle}{IOP Conference Series: Materials Science and Engineering}
+    \field{pages}{1\bibrangedash 5}
+    \field{title}{Research on classification of Chinese text data based on SVM}
+    \field{year}{2017}
+  \endentry
+
+  \entry{gunn1998support}{article}{}
+    \true{moreauthor}
+    \true{morelabelname}
+    \name{author}{1}{}{%
+      {{hash=GSR}{%
+         family={Gunn},
+         familyi={G\bibinitperiod},
+         given={Steve\bibnamedelima R},
+         giveni={S\bibinitperiod\bibinitdelim R\bibinitperiod},
+      }}%
+    }
+    \strng{namehash}{GSR+1}
+    \strng{fullhash}{GSR+1}
+    \field{labelnamesource}{author}
+    \field{labeltitlesource}{title}
+    \field{number}{1}
+    \field{pages}{5\bibrangedash 16}
+    \field{title}{Support vector machines for classification and regression}
+    \field{volume}{14}
+    \field{journaltitle}{ISIS technical report}
+    \field{year}{1998}
+  \endentry
+\enddatalist
+\endinput

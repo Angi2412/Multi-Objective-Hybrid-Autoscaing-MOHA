@@ -16,7 +16,7 @@ import json
 
 from dotenv import load_dotenv, set_key
 
-from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
+from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame, MetricSnapshotDataFrame
 
 import numpy as np
 import pandas as pd
@@ -85,6 +85,49 @@ def get_prometheus_data(folder: str, iteration: int) -> None:
     # write to csv file
     metric_df.to_csv(rf"{folder}\metrics_{iteration}.csv")
     custom_metrics_df.to_csv(rf"{folder}\custom_metrics_{iteration}.csv")
+
+
+def get_status(pod: str) -> (list, list):
+    # init
+    prom_res = PrometheusConnect(url=os.getenv(f'PROMETHEUS_RESOURCES_HOST'), disable_ssl=True)
+    prom_net = PrometheusConnect(url=os.getenv(f'PROMETHEUS_NETWORK_HOST'), disable_ssl=True)
+    # custom queries
+    cpu_usage = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[5m])) by (pod, ' \
+                'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
+                'container!=""}/container_spec_cpu_period{namespace="teastore", container!=""}) by (pod, ' \
+                'container) )*100'
+    memory_usage = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",pod=~".*" }[' \
+                   '5m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
+
+    # target metrics
+    cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage))
+    cpu_usage_data["pod"] = cpu_usage_data["pod"].str.split("-", n=2).str[1]
+    memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage))
+    memory_usage_data["pod"] = memory_usage_data["pod"].str.split("-", n=2).str[1]
+    average_response_time_data = MetricSnapshotDataFrame(
+        prom_net.get_current_metric_value("response_latency_ms_sum") / prom_net.get_current_metric_value(
+            "response_latency_ms_count"))
+    average_response_time_data["pod"] = average_response_time_data["pod"].str.split("-", n=2).str[1]
+    # filter
+    cpu_usage = cpu_usage_data.loc[(cpu_usage_data['pod'] == pod)].at[0, 'value']
+    memory_usage = memory_usage_data.loc[(memory_usage_data['pod'] == pod)].at[0, 'value']
+    average_response_time = average_response_time_data.loc[(average_response_time_data['pod'] == pod)].at[0, 'value']
+    targets = [cpu_usage, memory_usage, average_response_time]
+    # parameter metrics
+    cpu_limit_data = MetricSnapshotDataFrame(
+        prom_res.get_current_metric_value("kube_pod_container_resource_limits_cpu_cores"))
+    cpu_limit_data["pod"] = cpu_limit_data["pod"].str.split("-", n=2).str[1]
+    memory_limit_data = MetricSnapshotDataFrame(
+        prom_res.get_current_metric_value("kube_pod_container_resource_limits_memory_bytes"))
+    memory_limit_data["pod"] = memory_limit_data["pod"].str.split("-", n=2).str[1]
+    number_of_pods_data = MetricSnapshotDataFrame(prom_res.get_current_metric_value("kube_deployment_spec_replicas"))
+    number_of_pods_data["pod"] = number_of_pods_data["pod"].str.split("-", n=2).str[1]
+    # filter
+    cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)].at[0, 'value']
+    memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)].at[0, 'value']
+    number_of_pods = number_of_pods_data.loc[(number_of_pods_data['pod'] == pod)].at[0, 'value']
+    parameters = [cpu_limit, memory_limit, number_of_pods]
+    return parameters, targets
 
 
 def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
@@ -303,7 +346,7 @@ def start_locust(iteration: int, folder: str, history: bool) -> None:
     env.runner.greenlet.join()
 
 
-def get_persistenece_data():
+def get_persistence_data() -> None:
     base_path = os.path.join(os.getcwd(), "data", "loadtest")
     persistence_url = "http://localhost:30090/tools.descartes.teastore.persistence/rest"
     # get category ids
@@ -334,4 +377,4 @@ def start_run(runs: int):
 
 
 if __name__ == '__main__':
-    start_run(3)
+    get_status("webui")

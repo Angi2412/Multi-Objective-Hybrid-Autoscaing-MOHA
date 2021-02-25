@@ -95,9 +95,10 @@ def get_directories() -> list:
     # get data from each run
     for (dir_path, dir_names, filenames) in os.walk(base_path):
         for c_dir in dir_names:
-            c_date = int(str(c_dir).replace('-', "").strip())
-            if last_date >= c_date >= first_date:
-                dirs.append(c_dir)
+            if "dataset" not in c_dir:
+                c_date = int(str(c_dir).replace('-', "").strip())
+                if last_date >= c_date >= first_date:
+                    dirs.append(c_dir)
     return dirs
 
 
@@ -129,9 +130,9 @@ def get_all_filtered_data() -> list:
     for (dir_path, dir_names, filenames) in os.walk(base_path):
         for c_file in filenames:
             if str(c_file).endswith(".csv"):
-                c_date = int(str(c_file).replace('-', "").replace("_filtered.csv", "").strip())
+                c_date = int(str(c_file).replace('-', "").replace(".csv", "").strip())
                 if last_date >= c_date >= first_date:
-                    files.append(c_file)
+                    files.append(pd.read_csv(os.path.join(base_path, c_file)))
     return files
 
 
@@ -163,7 +164,7 @@ def get_variation_matrices(directory: str) -> pd.DataFrame:
         for file in filenames:
             if "variation" in file:
                 # filter name
-                name = str(file).split("_")[0]
+                name = str(file).split("-")[1].split("_")[0]
                 # read variation file
                 file_path = os.path.join(dir_path, file)
                 tmp = pd.read_csv(filepath_or_buffer=file_path, delimiter=',')
@@ -189,8 +190,8 @@ def filter_data(directory: str) -> pd.DataFrame:
     # read variation matrices
     variations = get_variation_matrices(directory)
     # filter for pod name
-    filtered_data["pod"] = filtered_data["pod"].str.split("-", n=1, expand=True)
-    custom["pod"] = custom["pod"].str.split("-", n=1, expand=True)
+    filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
+    custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
     # create pivot tables
     filtered_data = pd.pivot_table(filtered_data, index=["Iteration", "pod"], columns=["__name__"],
                                    values="value").reset_index()
@@ -217,6 +218,7 @@ def filter_data(directory: str) -> pd.DataFrame:
         columns={"cpu": "cpu usage", "memory": "memory usage", "CPU": "cpu limit", "Memory": "memory limit",
                  "Pods": "number of pods", "container_cpu_cfs_throttled_seconds_total": "cpu throttled total"},
         inplace=True)
+    res_data = res_data[res_data['pod'] != "kube"]
     save_data(res_data, directory, "filtered")
     return res_data
 
@@ -236,33 +238,35 @@ def save_data(data: pd.DataFrame, directory: str, mode: str) -> None:
         logging.warning("Filtered data already exists.")
 
 
-def plot_filtered_data(directory: str) -> None:
+def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
     """
     Plots a given metric from filtered data from prometheus.
     :return: None
     """
-    # init
-    data = get_filtered_data(directory)
-    data = data.dropna()
-
     # create directory
-    dir_path = os.path.join(os.getcwd(), "data", "plots", f"{os.getenv('LAST_DATA')}")
+    dir_path = os.path.join(os.getcwd(), "data", "plots", f"{name}")
     os.mkdir(dir_path)
-    x_axis = ["cpu limit", "memory limit", "number of pods", "cpu usage", "memory usage"]
+    # init x- and y-axis
+    x_axis = ["cpu limit", "memory limit", "number of pods"]
+    y_axis = ["cpu usage", "memory usage", "average response time"]
     # create and save plots
-    for metric in x_axis:
-        if metric == "number of pods":
-            line_plot = sns.lineplot(data=data, x=metric, y="average response time", hue="pod")
-        else:
-            data_one = data.loc[(data['number of pods'] == 1) & (data["average response time"].ne(np.nan))]
-            line_plot = sns.lineplot(data=data_one, x=metric, y="average response time", hue="pod")
-        line_plot.figure.savefig(os.path.join(dir_path, f"{metric}.png"))
-        line_plot.figure.clf()
+    plot = None
+    for y in y_axis:
+        for x in x_axis:
+            if x == "number of pods":
+                data_pods = data.loc[(data['memory limit'] == 300) & (data['cpu limit'] == 300)]
+                plot = sns.lineplot(data=data_pods, x=x, y=y)
+            elif x == "memory limit":
+                data_memory = data.loc[(data['cpu limit'] == 300) & (data['number of pods'] == 1)]
+                plot = sns.lineplot(data=data_memory, x=x, y=y)
+            elif x == "cpu limit":
+                data_cpu = data.loc[(data['memory limit'] == 300) & (data['number of pods'] == 1)]
+                plot = sns.lineplot(data=data_cpu, x=x, y=y)
+            # save plot
+            plot.figure.savefig(os.path.join(dir_path, f"{x}_{y}.png"))
+            plot.figure.clf()
     # make scatter plot
-    g = sns.PairGrid(data)
-    g.map(sns.scatterplot)
-    g.savefig(os.path.join(dir_path, f"scatterplot.png"))
-    g.fig.clf()
+    #
 
 
 def format_for_extra_p() -> None:
@@ -285,7 +289,7 @@ def format_for_extra_p() -> None:
     metrics = ["Average response time [ms]", "Failures [%]", "Memory usage [%]", "CPU usage [%]"]
     # get all filtered data
     filtered_data = list()
-    for f in get_filtered_data():
+    for f in get_all_filtered_data():
         filtered_data.append(pd.read_csv(os.path.join(filtered_base_path, f)))
     # write in txt file
     for metric in metrics:
@@ -328,6 +332,7 @@ def correlation_coefficient_matrix(df: pd.DataFrame, directory: str) -> None:
     :param df: given dataframe
     :return: None
     """
+    df.dropna()
     corr = df.corr(method="pearson")
     save_data(corr, os.getenv("LAST_DATA"), "correlation")
     # plot correlation
@@ -343,5 +348,38 @@ def correlation_coefficient_matrix(df: pd.DataFrame, directory: str) -> None:
     plt.show()
 
 
+def combine_runs():
+    data = get_directories()
+    data_path = os.path.join(os.getcwd(), "data", "filtered")
+    tmp = list()
+    for i, file in enumerate(data):
+        tmp_data = pd.read_csv(filepath_or_buffer=os.path.join(data_path, f"{file}.csv"), delimiter=',')
+        tmp_data.insert(0, 'run', i + 1)
+        tmp_data = tmp_data.loc[(tmp_data['pod'] == "webui")]
+        tmp.append(tmp_data)
+    result = pd.concat(tmp)
+    save_data(result, os.getenv("LAST_DATA"), "combined")
+
+
+def filter_run():
+    path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
+    data = pd.read_csv(path, delimiter=",")
+    data = data.groupby(["Iteration", "pod"]).mean()
+    save_data(data, f"{os.getenv('LAST_DATA')}_mean", "combined")
+
+
+def plot_run():
+    path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}_mean.csv")
+    data = pd.read_csv(path, delimiter=",")
+    plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined_mean")
+
+
+def plot_all_data():
+    for i, file in enumerate(get_all_filtered_data()):
+        d = file.loc[(file['pod'] == "webui")].reset_index().drop(columns=["index", "Unnamed: 0"])
+        plot_filtered_data(d, str(i))
+
+
+
 if __name__ == '__main__':
-    plot_filtered_data("20210217-223253")
+    plot_run()

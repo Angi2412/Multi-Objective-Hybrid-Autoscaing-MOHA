@@ -5,14 +5,14 @@ monkey.patch_all()
 
 import gevent
 from locust.env import Environment
-from locust.log import setup_logging
 from locust.stats import stats_history, StatsCSVFileWriter
-from data.loadtest.robotshop import UserBehavior
+from data.loadtest.teastore import UserBehavior
 # imports
 import datetime as dt
 import logging
 import os
 import time
+import json
 
 from dotenv import load_dotenv, set_key
 
@@ -21,6 +21,7 @@ from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame
 import numpy as np
 import pandas as pd
 import k8s_tools as k8s
+import requests
 
 # environment
 load_dotenv(override=True)
@@ -98,11 +99,11 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
     prom = PrometheusConnect(url=os.getenv(f'PROMETHEUS_{mode}_HOST'), disable_ssl=True)
     start_time = (dt.datetime.now() - dt.timedelta(hours=int(os.getenv("HH")), minutes=int(os.getenv("MM"))))
     # custom queries
-    cpu_usage = '(sum(rate(container_cpu_usage_seconds_total{namespace="robot-shop", container!=""}[5m])) by (pod, ' \
-                'container) /sum(container_spec_cpu_quota{namespace="robot-shop", ' \
-                'container!=""}/container_spec_cpu_period{namespace="robot-shop", container!=""}) by (pod, ' \
+    cpu_usage = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[5m])) by (pod, ' \
+                'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
+                'container!=""}/container_spec_cpu_period{namespace="teastore", container!=""}) by (pod, ' \
                 'container) )*100'
-    memory_usage = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="robot-shop",pod=~".*" }[' \
+    memory_usage = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",pod=~".*" }[' \
                    '5m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
     query = None
     # get data
@@ -128,9 +129,11 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
 
 
 def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
-              step: int, pods_limit: int) -> None:
+              step: int, pods_limit: int, run: int, run_max: int) -> None:
     """
     Benchmark methods.
+    :param run_max: number of runs
+    :param run: current run
     :param expressions: number of expressions per parameter
     :param pods_limit: pods limit
     :param step: size of step
@@ -139,13 +142,13 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     :param spawn_rate: spawn rate
     :return: None
     """
-    # create deployment
-    k8s.k8s_create_robotshop()
     # init date
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     # create folder
     folder_path = os.path.join(os.getcwd(), "data", "raw", date)
     os.mkdir(folder_path)
+    # create deployment
+    k8s.k8s_create_teastore()
     # config
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
     k8s.set_prometheus_info()
@@ -155,7 +158,6 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                date=date,
                users=users,
                spawn_rate=spawn_rate,
-               pods_limit=pods_limit
                )
     # read new environment data
     load_dotenv(override=True)
@@ -164,29 +166,30 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     variations = parameter_variation_namespace(pods_limit, expressions, step)
     c_max, m_max, p_max = variations[os.getenv("UI")].shape
     iteration = 1
-    not_scalable = ["mysql", "mongodb", "redis", "rabbitmq"]
+    scale_only = "webui"
     # benchmark
     logging.info("Starting Benchmark.")
     for c in range(0, c_max):
         for m in range(0, m_max):
             for p in range(0, p_max):
                 logging.info(
-                    f"Iteration: {iteration}/{c_max * m_max * p_max} run: {j} / {5}")
-                if iteration != 1:
-                    # for every pod in deployment
-                    for pod in variations.keys():
-                        # check that pod is scalable
-                        if not any(ext in pod for ext in not_scalable):
-                            # get parameter variation
-                            v = variations[pod][c, m, p]
-                            logging.info(f"{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}")
-                            # update resources of pod
-                            k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
-                                                      memory_limit=int(v[1]),
-                                                      number_of_replicas=int(v[2]), replace=True)
+                    f"Iteration: {iteration}/{c_max * m_max * p_max} run: {run}/ {run_max}")
+
+                # for every pod in deployment
+                for pod in variations.keys():
+                    # check that pod is scalable
+                    if scale_only in pod:
+                        # get parameter variation
+                        v = variations[pod][c, m, p]
+                        logging.info(f"{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}")
+                        # update resources of pod
+                        k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
+                                                  memory_limit=int(v[1]),
+                                                  number_of_replicas=int(v[2]), replace=True)
                     # wait for deployment
-                    logging.info(f"Waiting {int(os.getenv('SLEEP_TIME')) / 60} minutes...")
-                    time.sleep(int(os.getenv("SLEEP_TIME")))
+                    time.sleep(120)
+                    while not k8s.check_teastore_health():
+                        time.sleep(10)
                 # start load test
                 logging.info("Start Locust.")
                 start_locust(iteration=iteration, folder=folder_path, history=False)
@@ -209,23 +212,24 @@ def parameter_variation_namespace(pods_limit: int, expressions: int, step: int) 
     resource_requests = k8s.get_resource_requests()
     variation = dict()
     for p in resource_requests.keys():
-        logging.debug("Pod: " + p)
-        # cpu
-        p_cpu_request = int(resource_requests[p]["cpu"].split("m")[0]) + step
-        p_cpu_limit = p_cpu_request + ((expressions + 1) * step)
-        logging.debug(f"cpu request: {p_cpu_request}m - cpu limit: {p_cpu_limit}m")
-        # memory
-        p_memory_request = int(resource_requests[p]["memory"].split("Mi")[0]) + step
-        p_memory_limit = p_memory_request + ((expressions + 1) * step)
-        logging.debug(f"memory request: {p_memory_request}Mi - memory limit: {p_memory_limit}Mi")
-        # parameter variation matrix
-        variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
-                                           p_memory_limit, pods_limit, step)
+        if p == os.getenv("SCALE_POD"):
+            logging.debug("Pod: " + p)
+            # cpu
+            p_cpu_request = int(resource_requests[p]["cpu"].split("m")[0]) + 100
+            p_cpu_limit = p_cpu_request + (expressions * step)
+            logging.debug(f"cpu request: {p_cpu_request}m - cpu limit: {p_cpu_limit}m")
+            # memory
+            p_memory_request = int(resource_requests[p]["memory"].split("Mi")[0]) + 100
+            p_memory_limit = p_memory_request + (expressions * step)
+            logging.debug(f"memory request: {p_memory_request}Mi - memory limit: {p_memory_limit}Mi")
+            # parameter variation matrix
+            variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
+                                               p_memory_limit, pods_limit, step, invert=True)
     return variation
 
 
 def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int,
-                        pods_limit: int, step: int) -> np.array:
+                        pods_limit: int, step: int, invert: bool) -> np.array:
     """
     Calculates a matrix mit all combination of the parameters.
     :return: parameter variation matrix
@@ -234,7 +238,12 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     cpu = np.arange(cpu_request, cpu_limit, step, np.int32)
     memory = np.arange(memory_request, memory_limit, step, np.int32)
     pods = np.arange(1, pods_limit + 1, 1, np.int32)
+    if invert:
+        cpu = np.flip(cpu)
+        memory = np.flip(memory)
+        pods = np.flip(pods)
     iterations = np.arange(1, (cpu.size * memory.size * pods.size) + 1, 1).tolist()
+
     # init dataframe
     df = pd.DataFrame(index=iterations, columns=["CPU", "Memory", "Pods"])
     csv_path = os.path.join(os.getcwd(), "data", "raw", os.getenv("LAST_DATA"), f"{pod}_variation.csv")
@@ -269,7 +278,8 @@ def start_locust(iteration: int, folder: str, history: bool) -> None:
     """
     load_dotenv(override=True)
     # setup Environment and Runner
-    env = Environment(user_classes=[UserBehavior], host=f"http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}/")
+    env = Environment(user_classes=[UserBehavior],
+                      host=f"http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}/{os.getenv('ROUTE')}")
     env.create_local_runner()
     # CSV writer
     stats_path = os.path.join(folder, f"locust_{iteration}")
@@ -293,8 +303,35 @@ def start_locust(iteration: int, folder: str, history: bool) -> None:
     env.runner.greenlet.join()
 
 
+def get_persistenece_data():
+    base_path = os.path.join(os.getcwd(), "data", "loadtest")
+    persistence_url = "http://localhost:30090/tools.descartes.teastore.persistence/rest"
+    # get category ids
+    categories_request = requests.get(persistence_url + "/categories").json()
+    tmp_categories = list()
+    for c in categories_request:
+        tmp_categories.append(c["id"])
+    with open(os.path.join(base_path, "categories.json"), 'x') as outfile:
+        json.dump(tmp_categories, outfile)
+    # get product ids
+    products_request = requests.get(persistence_url + "/products").json()
+    tmp_products = list()
+    for p in products_request:
+        tmp_products.append(p["id"])
+    with open(os.path.join(base_path, "products.json"), 'x') as outfile:
+        json.dump(tmp_products, outfile)
+    # get users
+    users = requests.get(persistence_url + "/users").json()
+    with open(os.path.join(base_path, "users.json"), 'x') as outfile:
+        json.dump(users, outfile)
+
+
+def start_run(runs: int):
+    date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
+    for i in range(1, runs + 1):
+        benchmark(name="teastore", users=100, spawn_rate=5, expressions=1, step=50, pods_limit=5, run=i, run_max=runs)
+
+
 if __name__ == '__main__':
-    start_date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
-    set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=start_date)
-    for j in range(0, 5):
-        benchmark(name="robot-shop", users=50, spawn_rate=5, expressions=5, step=50, pods_limit=5)
+    start_run(3)

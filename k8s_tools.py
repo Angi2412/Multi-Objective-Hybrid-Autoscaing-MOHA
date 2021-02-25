@@ -13,12 +13,32 @@ import docker
 import yaml
 from dotenv import load_dotenv, set_key
 from kubernetes import client, config, utils
+import requests
 
 # environment
 load_dotenv(override=True)
 
 # init logger
 logging.getLogger().setLevel(logging.INFO)
+
+
+def k8s_create_teastore():
+    # create deployment
+    work_directory = os.getcwd()
+    os.system(f"kubectl create namespace teastore")
+    time.sleep(10)
+    try:
+        teastore_path = os.path.join(os.getcwd(), "k8s", "TeaStore", "examples", "kubernetes")
+        os.chdir(teastore_path)
+        os.system(f"kubectl create -f teastore-clusterip-linkerd.yaml -n teastore")
+        os.chdir(work_directory)
+        # wait until deployment is ready
+        time.sleep(int(os.getenv("SLEEP_TIME")))
+        while not check_teastore_health():
+            time.sleep(10)
+    except Exception as err:
+        logging.error(f"Error while deploying teastore: {err}")
+        k8s_delete_namespace()
 
 
 def k8s_create_deployment_with_helm() -> None:
@@ -43,9 +63,9 @@ def k8s_create_deployment_from_file(yaml_file: str) -> None:
     k8s_client = client.ApiClient()
     # create namespace
     os.system(f"kubectl create namespace {os.getenv('NAMESPACE')}")
+    time.sleep(10)
     # create deployment from file
-    yaml_file_path = os.path.join(os.getcwd(), "k8s", f"{yaml_file}.yaml")
-    utils.create_from_yaml(k8s_client, yaml_file_path, True, os.getenv("NAMESPACE"))
+    utils.create_from_yaml(k8s_client, yaml_file, True, os.getenv("NAMESPACE"))
 
 
 def k8s_update_deployment_from_file(yaml_file: str, cpu_limit: int, memory_limit: int, number_of_replicas: int) -> None:
@@ -195,7 +215,7 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
     deployment = apps_v1.read_namespaced_deployment(name=deployment_name, namespace=os.getenv("NAMESPACE"))
     # updates cpu and memory limits
     new_resources = client.V1ResourceRequirements(
-        requests={"cpu": "100m", "memory": "50Mi"},
+        requests={"cpu": "200m", "memory": "200Mi"},
         limits={"cpu": f"{cpu_limit}m", "memory": f"{memory_limit}Mi"}
     )
     deployment.spec.template.spec.containers[0].resources = new_resources
@@ -208,60 +228,33 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
                 name=deployment_name,
                 namespace=os.getenv("NAMESPACE"),
                 body=deployment)
-            print(f"Deployment updated of {deployment_name}.")
-        except Exception as e:
-            logging.info(f"Error while deployment: {e}")
+            logging.info(f"Deployment updated of {deployment_name}.")
+            logging.debug(f"f Deployment update: {api_response.status}")
+        except Exception as err:
+            logging.info(f"Error while deployment: {err}")
     else:
         try:
             api_response = apps_v1.replace_namespaced_deployment(
                 name=deployment_name,
                 namespace=os.getenv("NAMESPACE"),
                 body=deployment)
-            print(f"Deployment updated of {deployment_name}.")
-        except Exception as e:
-            logging.info(f"Error while deployment: {e}")
+            logging.info(f"Deployment updated of {deployment_name}.")
+            logging.debug(f"f Deployment update: {api_response.status}")
+        except Exception as err:
+            logging.info(f"Error while deployment: {err}")
     return deployment
 
 
-def k8s_create_service(app_port: int, app_name: str) -> None:
-    """
-    Creates and deploys a service to kubernetes.
-    :param app_port: port of the app
-    :param app_name: name of the app
-    :return: None
-    """
-    # Create Service
-    config.load_kube_config()
-    api_instance = client.CoreV1Api()
-    service = client.V1Service()  # V1Service
-    # Creating Meta Data
-    metadata = client.V1ObjectMeta()
-    metadata.name = "sandbox-service"
-    service.metadata = metadata
-    # Creating spec
-    spec = client.V1ServiceSpec(
-        type="NodePort",
-        ports=int(os.getenv("APP_PORT"))
-    )
-    # Creating Port object
-    port = client.V1ServicePort(
-        protocol='TCP',
-        target_port=int(os.getenv("APP_PORT")),
-        port=app_port
-    )
-    # additional spec information
-    spec.ports = [port]
-    spec.selector = {"app": app_name}
-    service.spec = spec
-    # deploys service
+def check_teastore_health() -> bool:
     try:
-        api_response = api_instance.create_namespaced_service(
-            body=service,
-            namespace=os.getenv("NAMESPACE")
-        )
-        logging.info(f"Successfully deployed service: {api_response.status}")
-    except Exception as e:
-        logging.error("Error while deploying service: %s\n" % e)
+        health = requests.get(
+            f"http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}/{os.getenv('ROUTE')}/rest/ready/isready")
+        if health.ok:
+            return bool(health.json())
+        else:
+            return False
+    except requests.exceptions.ConnectionError:
+        return False
 
 
 def k8s_delete_namespace() -> None:
@@ -277,7 +270,7 @@ def k8s_delete_namespace() -> None:
         for n in resp.items:
             if os.getenv("NAMESPACE") in n.metadata.name:
                 api_response = v1.delete_namespace(os.getenv("NAMESPACE"))
-                time.sleep(60)
+                time.sleep(180)
                 logging.info("Deleted namespace " + os.getenv("NAMESPACE"))
                 return
         logging.warning(f"Could not delete namespace: {os.getenv('NAMESPACE')} because is does not exist.")
@@ -401,6 +394,5 @@ def get_resource_requests() -> dict:
         resource_requests[i.metadata.name] = resources
     return resource_requests
 
-
 if __name__ == '__main__':
-    k8s_delete_namespace()
+    k8s_create_teastore()

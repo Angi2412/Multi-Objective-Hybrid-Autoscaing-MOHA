@@ -7,28 +7,22 @@ from pathlib import Path
 
 import PySimpleGUI as sg
 
-from benchmark import create_deployment, benchmark
+from benchmark import start_run
 
 sg.theme('Reddit')
 
 layout = [
-    [sg.Text('Microservice configuration')],
-    [sg.Text('Name:', size=(15, 1)), sg.InputText()],
-    [sg.Text('Port:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=0000, size=(4, 1))],
-    [sg.Text('Dockerfile:', size=(15, 1)), sg.In(size=(35, 1)), sg.FileBrowse()],
-    [sg.Text('API information')],
-    [sg.Text('Route:', size=(15, 1)), sg.InputText()],
-    [sg.Text('Testfile:', size=(15, 1)), sg.In(size=(35, 1)),
-     sg.FileBrowse(file_types=(("Text Files", "*.txt"),),
-                   initial_folder=os.path.join(os.getcwd(), "data", "loadtest"))],
     [sg.Text('Benchmark')],
-    [sg.Text('Users:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=1, size=(4, 1))],
+    [sg.Text('Users:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=100, size=(4, 1))],
     [sg.Text('Spawn rate:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=10, size=(4, 1))],
+    [sg.Text('Number of runs:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=5, size=(4, 1))],
+    [sg.Text('Expressions:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=5, size=(4, 1))],
+    [sg.Text('Step:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=50, size=(4, 1))],
+    [sg.Text('Pod limit:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=5, size=(4, 1))],
     [sg.Submit(), sg.Cancel()]
 ]
 
 window = sg.Window('PodAutoScaler', layout)
 event, values = window.read()
-# deployment(name=values[0], port=int(values[1]), docker_path=values[2])
-benchmark(route=values[3], testfile=Path(values[4]).name, users=int(values[5]), spawn_rate=int(values[6]))
+start_run("teastore", values[0], values[1], values[2], values[3], values[4], values[5])
 window.close()

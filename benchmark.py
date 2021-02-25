@@ -369,12 +369,8 @@ def get_persistence_data() -> None:
         json.dump(users, outfile)
 
 
-def start_run(runs: int):
+def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: int, pods_limit: int, runs: int):
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
-        benchmark(name="teastore", users=100, spawn_rate=5, expressions=1, step=50, pods_limit=5, run=i, run_max=runs)
-
-
-if __name__ == '__main__':
-    get_status("webui")
+        benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs)

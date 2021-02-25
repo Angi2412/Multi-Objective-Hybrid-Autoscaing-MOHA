@@ -148,7 +148,7 @@ def load_model(name: str) -> numpy_pickle:
     return load(save_path)
 
 
-def get_best_parameters(models: list, cpu_limit: int, memory_limit: int, number_of_pods: int, window: int, step: int):
+def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, window: int):
     """
     Chooses the best values for the parameters in a given window for a given status.
     :param models: prediction models
@@ -156,10 +156,11 @@ def get_best_parameters(models: list, cpu_limit: int, memory_limit: int, number_
     :param memory_limit: current memory limit
     :param number_of_pods: current number of pods
     :param window: size of window
-    :param step: step size
     :return: pes parameters
     """
     # init arrays
+    step = os.getenv("STEP")
+    models = get_models()
     predict_window = np.empty(window * 2, dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32)])
     predictions = np.empty((len(models), window*2))
     prediction_array = np.zeros(window * 2, dtype=[('cpu', np.int32), ('memory', np.int32), ('art', np.int32)])

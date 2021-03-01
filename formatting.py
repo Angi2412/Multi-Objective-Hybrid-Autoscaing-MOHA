@@ -254,14 +254,14 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
     for y in y_axis:
         for x in x_axis:
             if x == "number of pods":
-                data_pods = data.loc[(data['memory limit'] == 300) & (data['cpu limit'] == 300)]
+                data_pods = data.loc[(data['memory limit'] == data['memory limit'].min()) & (data['cpu limit'] == data['cpu limit'].min())]
                 plot = sns.lineplot(data=data_pods, x=x, y=y)
             elif x == "memory limit":
-                data_memory = data.loc[(data['cpu limit'] == 300) & (data['number of pods'] == 1)]
-                plot = sns.lineplot(data=data_memory, x=x, y=y)
+                data_memory = data.loc[(data['cpu limit'] == data['cpu limit'].min())]
+                plot = sns.lineplot(data=data_memory, x=x, y=y, hue="number of pods")
             elif x == "cpu limit":
-                data_cpu = data.loc[(data['memory limit'] == 300) & (data['number of pods'] == 1)]
-                plot = sns.lineplot(data=data_cpu, x=x, y=y)
+                data_cpu = data.loc[(data['memory limit'] == data['memory limit'].min())]
+                plot = sns.lineplot(data=data_cpu, x=x, y=y, hue="number of pods")
             # save plot
             plot.figure.savefig(os.path.join(dir_path, f"{x}_{y}.png"))
             plot.figure.clf()
@@ -369,9 +369,9 @@ def filter_run():
 
 
 def plot_run():
-    path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}_mean.csv")
+    path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
     data = pd.read_csv(path, delimiter=",")
-    plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined_mean")
+    plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined")
 
 
 def plot_all_data():
@@ -382,4 +382,5 @@ def plot_all_data():
 
 
 if __name__ == '__main__':
-    plot_run()
+    filter_all_data()
+    plot_all_data()

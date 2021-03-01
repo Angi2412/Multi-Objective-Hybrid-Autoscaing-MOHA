@@ -1,5 +1,8 @@
 # Copyright (c) 2020 Angelina Horn
+
 from gevent import monkey
+
+from data.loadtest.loadshapes import DoubleWave
 
 monkey.patch_all()
 
@@ -129,9 +132,10 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
 
 
 def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
-              step: int, pods_limit: int, run: int, run_max: int) -> None:
+              step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool) -> None:
     """
     Benchmark methods.
+    :param custom_shape: if using custom load shape
     :param run_max: number of runs
     :param run: current run
     :param expressions: number of expressions per parameter
@@ -174,7 +178,6 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
             for p in range(0, p_max):
                 logging.info(
                     f"Iteration: {iteration}/{c_max * m_max * p_max} run: {run}/ {run_max}")
-
                 # for every pod in deployment
                 for pod in variations.keys():
                     # check that pod is scalable
@@ -192,7 +195,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                         time.sleep(10)
                 # start load test
                 logging.info("Start Locust.")
-                start_locust(iteration=iteration, folder=folder_path, history=False)
+                start_locust(iteration=iteration, folder=folder_path, history=True, custom_shape=custom_shape)
                 # get prometheus data
                 get_prometheus_data(folder=folder_path, iteration=iteration)
                 iteration = iteration + 1
@@ -215,16 +218,16 @@ def parameter_variation_namespace(pods_limit: int, expressions: int, step: int) 
         if p == os.getenv("SCALE_POD"):
             logging.debug("Pod: " + p)
             # cpu
-            p_cpu_request = int(resource_requests[p]["cpu"].split("m")[0]) + 100
+            p_cpu_request = int(resource_requests[p]["cpu"].split("m")[0])
             p_cpu_limit = p_cpu_request + (expressions * step)
             logging.debug(f"cpu request: {p_cpu_request}m - cpu limit: {p_cpu_limit}m")
             # memory
-            p_memory_request = int(resource_requests[p]["memory"].split("Mi")[0]) + 100
+            p_memory_request = int(resource_requests[p]["memory"].split("Mi")[0])
             p_memory_limit = p_memory_request + (expressions * step)
             logging.debug(f"memory request: {p_memory_request}Mi - memory limit: {p_memory_limit}Mi")
             # parameter variation matrix
             variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
-                                               p_memory_limit, pods_limit, step, invert=True)
+                                               p_memory_limit, pods_limit, step, invert=False)
     return variation
 
 
@@ -268,9 +271,10 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     return variation_matrix
 
 
-def start_locust(iteration: int, folder: str, history: bool) -> None:
+def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool) -> None:
     """
     Start a locust load test.
+    :param custom_shape: use custom load shape
     :param iteration: number of current iteration
     :param folder: name of folder
     :param history: enables stats
@@ -278,7 +282,8 @@ def start_locust(iteration: int, folder: str, history: bool) -> None:
     """
     load_dotenv(override=True)
     # setup Environment and Runner
-    env = Environment(user_classes=[UserBehavior],
+
+    env = Environment(user_classes=[UserBehavior], shape_class=DoubleWave(),
                       host=f"http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}/{os.getenv('ROUTE')}")
     env.create_local_runner()
     # CSV writer
@@ -295,7 +300,10 @@ def start_locust(iteration: int, folder: str, history: bool) -> None:
         # spawn csv writer
         gevent.spawn(csv_writer)
     # start the test
-    env.runner.start(user_count=int(os.getenv("USERS")), spawn_rate=int(os.getenv("SPAWN_RATE")))
+    if custom_shape:
+        env.runner.start_shape()
+    else:
+        env.runner.start(user_count=int(os.getenv("USERS")), spawn_rate=int(os.getenv("SPAWN_RATE")))
     # stop the runner in a given time
     time_in_seconds = (int(os.getenv("HH")) * 60 * 60) + (int(os.getenv("MM")) * 60)
     gevent.spawn_later(time_in_seconds, lambda: env.runner.quit())
@@ -330,8 +338,8 @@ def start_run(runs: int):
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
-        benchmark(name="teastore", users=100, spawn_rate=5, expressions=1, step=50, pods_limit=5, run=i, run_max=runs)
+        benchmark(name="teastore", users=300, spawn_rate=2, expressions=1, step=50, pods_limit=1, run=i, run_max=runs)
 
 
 if __name__ == '__main__':
-    start_run(3)
+    start_run(1)

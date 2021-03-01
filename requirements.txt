@@ -16,3 +16,5 @@ pyyaml
 pytest
 Flask
 Faker
+scikit-criteria
+joblib

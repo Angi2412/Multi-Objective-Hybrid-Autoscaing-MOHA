@@ -1,0 +1,92 @@
+\boolfalse {citerequest}\boolfalse {citetracker}\boolfalse {pagetracker}\boolfalse {backtracker}\relax 
+\babel@toc {english}{}
+\babel@toc {ngerman}{}
+\babel@toc {english}{}
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {1}Introduction}{5}{chapter.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.1}Motivation}{5}{section.1.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {1.2}Objective}{6}{section.1.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {2}Background}{7}{chapter.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.1}Microservices}{7}{section.2.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.2}Kubernetes}{9}{section.2.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.3}Autoscaling}{12}{section.2.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline MAPE loop}{12}{paragraph*.7}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Scaling methods}{12}{paragraph*.11}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Scaling indicators}{12}{paragraph*.13}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Resource estimation}{13}{paragraph*.15}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Scaling timing}{13}{paragraph*.17}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {2.4}Machine Learning}{13}{section.2.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.4.1}Linear Regression}{13}{subsection.2.4.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Least-Squares estimation}{14}{paragraph*.19}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Maximum-likelihood estimation}{14}{paragraph*.21}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.4.2}Support Vector Machines}{15}{subsection.2.4.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {2.4.3}Neural Networks}{15}{subsection.2.4.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {3}Related Work}{17}{chapter.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {4}Method}{18}{chapter.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.1}Overview}{18}{section.4.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.2}Environment Setup}{18}{section.4.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.2.1}Kubernetes}{18}{subsection.4.2.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Linkerd}{18}{paragraph*.25}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Prometheus}{18}{paragraph*.27}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.2.2}Python}{18}{subsection.4.2.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline K8s tools}{18}{paragraph*.29}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Benchmark}{18}{paragraph*.31}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Formatting}{18}{paragraph*.33}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.2.3}Microservice}{18}{subsection.4.2.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {paragraph}{\nonumberline Robot shop}{18}{paragraph*.35}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.3}Implementation}{19}{section.4.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.3.1}GUI}{19}{subsection.4.3.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.3.2}Benchmark}{19}{subsection.4.3.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.3.3}Machine Learning Model}{19}{subsection.4.3.3}%
+\defcounter {refsection}{0}\relax 
+\contentsline {subsection}{\numberline {4.3.4}Control Script}{19}{subsection.4.3.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {4.4}Experimentation Methodology}{19}{section.4.4}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {5}Evaluation}{20}{chapter.5}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {5.1}Results}{20}{section.5.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {5.2}Analysis}{20}{section.5.2}%
+\defcounter {refsection}{0}\relax 
+\contentsline {chapter}{\numberline {6}Conclusion}{21}{chapter.6}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {6.1}Summary}{21}{section.6.1}%
+\defcounter {refsection}{0}\relax 
+\contentsline {section}{\numberline {6.2}Outlook}{21}{section.6.2}%
+\defcounter {refsection}{0}\relax 
+\providecommand \tocbasic@end@toc@file {}\tocbasic@end@toc@file 

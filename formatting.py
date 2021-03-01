@@ -380,7 +380,6 @@ def plot_all_data():
         plot_filtered_data(d, str(i))
 
 
-
 if __name__ == '__main__':
     filter_all_data()
     plot_all_data()

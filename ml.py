@@ -151,7 +151,6 @@ def load_model(name: str) -> numpy_pickle:
 def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, window: int):
     """
     Chooses the best values for the parameters in a given window for a given status.
-    :param models: prediction models
     :param cpu_limit: current cpu limit
     :param memory_limit: current memory limit
     :param number_of_pods: current number of pods
@@ -240,8 +239,3 @@ def train_for_all_targets(date: str, kind: str) -> None:
             logging.warning("There is no model type: " + kind)
             return
     logging.info("All models are trained.")
-
-
-if __name__ == '__main__':
-    models = get_models()
-    print(get_best_parameters(models, 200, 350, 3, 2, 50))

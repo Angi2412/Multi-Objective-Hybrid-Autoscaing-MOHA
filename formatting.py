@@ -348,7 +348,11 @@ def correlation_coefficient_matrix(df: pd.DataFrame, directory: str) -> None:
     plt.show()
 
 
-def combine_runs():
+def combine_runs() -> None:
+    """
+    Combines data from all runs.
+    :return: None
+    """
     data = get_directories()
     data_path = os.path.join(os.getcwd(), "data", "filtered")
     tmp = list()
@@ -361,23 +365,49 @@ def combine_runs():
     save_data(result, os.getenv("LAST_DATA"), "combined")
 
 
-def filter_run():
+def filter_run() -> None:
+    """
+    Filters all data from a run.
+    :return: None
+    """
     path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
     data = pd.read_csv(path, delimiter=",")
     data = data.groupby(["Iteration", "pod"]).mean()
     save_data(data, f"{os.getenv('LAST_DATA')}_mean", "combined")
 
 
-def plot_run():
+def plot_run() -> None:
+    """
+    Plots all data from a run.
+    :return: None
+    """
     path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}_mean.csv")
     data = pd.read_csv(path, delimiter=",")
     plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined_mean")
 
 
 def plot_all_data():
+    """
+    Plots data from all runs.
+    :return: None
+    """
     for i, file in enumerate(get_all_filtered_data()):
         d = file.loc[(file['pod'] == "webui")].reset_index().drop(columns=["index", "Unnamed: 0"])
         plot_filtered_data(d, str(i))
+
+
+def plot_variation_matrix(df: pd.DataFrame) -> None:
+    """
+    Makes a 3D surface plot of the given variation matrix.
+    :param df: variation matrix
+    :return: None
+    """
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+    surf = ax.plot_trisurf(df['CPU'], df['Memory'], df['Pods'], cmap=plt.cm.viridis, linewidth=0.2)
+    fig.colorbar(surf, shrink=0.5, aspect=5)
+    ax.view_init(30, 45)
+    plt.show()
 
 
 if __name__ == '__main__':

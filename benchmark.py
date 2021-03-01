@@ -347,6 +347,10 @@ def start_locust(iteration: int, folder: str, history: bool) -> None:
 
 
 def get_persistence_data() -> None:
+    """
+    Gets persistence data from the TeaStore.
+    :return: None
+    """
     base_path = os.path.join(os.getcwd(), "data", "loadtest")
     persistence_url = "http://localhost:30090/tools.descartes.teastore.persistence/rest"
     # get category ids
@@ -374,3 +378,4 @@ def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: in
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
         benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs)
+

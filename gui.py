@@ -2,8 +2,6 @@
 from gevent import monkey
 
 monkey.patch_all()
-import os
-from pathlib import Path
 
 import PySimpleGUI as sg
 
@@ -19,10 +17,11 @@ layout = [
     [sg.Text('Expressions:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=5, size=(4, 1))],
     [sg.Text('Step:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=50, size=(4, 1))],
     [sg.Text('Pod limit:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=5, size=(4, 1))],
+    [sg.Checkbox('Custom shape')],
     [sg.Submit(), sg.Cancel()]
 ]
 
 window = sg.Window('PodAutoScaler', layout)
 event, values = window.read()
-start_run("teastore", values[0], values[1], values[2], values[3], values[4], values[5])
+start_run("teastore", values[0], values[1], values[2], values[3], values[4], values[5], values[6])
 window.close()

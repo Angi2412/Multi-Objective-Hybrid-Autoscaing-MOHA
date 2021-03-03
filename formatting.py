@@ -8,7 +8,6 @@ from dotenv import load_dotenv
 import seaborn as sns
 import logging
 import re
-from benchmark import parameter_variation
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -151,14 +150,13 @@ def filter_all_data() -> None:
         i = i + 1
 
 
-def get_variation_matrices(directory: str) -> pd.DataFrame:
+def get_variation_matrix(directory: str) -> np.array:
     """
     Reads all variation matrices of a directory and puts them in a list.
     :param directory: current directory
     :return: variation matrix
     """
     dir_path = os.path.join(os.getcwd(), "data", "raw", directory)
-    variations = list()
     # find variation files
     for (dir_path, dir_names, filenames) in os.walk(dir_path):
         for file in filenames:
@@ -167,16 +165,12 @@ def get_variation_matrices(directory: str) -> pd.DataFrame:
                 name = str(file).split("-")[1].split("_")[0]
                 # read variation file
                 file_path = os.path.join(dir_path, file)
-                tmp = pd.read_csv(filepath_or_buffer=file_path, delimiter=',')
+                res = pd.read_csv(filepath_or_buffer=file_path, delimiter=',')
                 # edit table
-                tmp.insert(0, 'pod', name)
-                tmp.rename(columns={"Unnamed: 0": "Iteration"}, inplace=True)
-                tmp.reset_index()
-                # add to variations
-                variations.append(tmp)
-    # merge into one table
-    res = pd.concat(variations)
-    return res
+                res.insert(0, 'pod', name)
+                res.rename(columns={"Unnamed: 0": "Iteration"}, inplace=True)
+                res.reset_index()
+                return res
 
 
 def filter_data(directory: str) -> pd.DataFrame:
@@ -188,7 +182,7 @@ def filter_data(directory: str) -> pd.DataFrame:
     # filter for namespace
     filtered_data = pd.concat(objs=[normal[normal.namespace.eq(os.getenv("NAMESPACE"))]])
     # read variation matrices
-    variations = get_variation_matrices(directory)
+    variation = get_variation_matrix(directory)
     # filter for pod name
     filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
     custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
@@ -204,7 +198,7 @@ def filter_data(directory: str) -> pd.DataFrame:
     filtered_data = filtered_data.reset_index()
     # merge all tables
     res_data = pd.merge(filtered_data, filtered_custom_data, how='left', on=["Iteration", "pod"])
-    res_data = pd.merge(res_data, variations, how='left', on=["Iteration", "pod"])
+    res_data = pd.merge(res_data, variation, how='left', on=["Iteration", "pod"])
     # calculate average response time
     res_data["average response time"] = res_data["response_latency_ms_sum"] / res_data["response_latency_ms_count"]
     # erase stuff
@@ -219,6 +213,7 @@ def filter_data(directory: str) -> pd.DataFrame:
                  "Pods": "number of pods", "container_cpu_cfs_throttled_seconds_total": "cpu throttled total"},
         inplace=True)
     res_data = res_data[res_data['pod'] != "kube"]
+    res_data = res_data.loc[(res_data['pod'] == "webui")].reset_index().drop(columns=["index"])
     save_data(res_data, directory, "filtered")
     return res_data
 
@@ -254,7 +249,8 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
     for y in y_axis:
         for x in x_axis:
             if x == "number of pods":
-                data_pods = data.loc[(data['memory limit'] == data['memory limit'].min()) & (data['cpu limit'] == data['cpu limit'].min())]
+                data_pods = data.loc[(data['memory limit'] == data['memory limit'].min()) & (
+                        data['cpu limit'] == data['cpu limit'].min())]
                 plot = sns.lineplot(data=data_pods, x=x, y=y)
             elif x == "memory limit":
                 data_memory = data.loc[(data['cpu limit'] == data['cpu limit'].min())]
@@ -265,8 +261,6 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
             # save plot
             plot.figure.savefig(os.path.join(dir_path, f"{x}_{y}.png"))
             plot.figure.clf()
-    # make scatter plot
-    #
 
 
 def format_for_extra_p() -> None:
@@ -281,8 +275,7 @@ def format_for_extra_p() -> None:
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     # get variation matrix
-    variation = parameter_variation(cpu_limit=int(os.getenv("CPU_LIMIT")), memory_limit=int(os.getenv("MEMORY_LIMIT")),
-                                    pods_limit=int(os.getenv("PODS_LIMIT")))
+    variation = get_variation_matrix(os.getenv('LAST_DATA'))
     c_max, m_max, p_max = variation.shape
     # parameter and metrics
     parameter = ["CPU limit", "Memory limit", "Number of pods"]
@@ -325,10 +318,9 @@ def format_for_extra_p() -> None:
                 file.write("\n")
 
 
-def correlation_coefficient_matrix(df: pd.DataFrame, directory: str) -> None:
+def correlation_coefficient_matrix(df: pd.DataFrame) -> None:
     """
     Calculates and plots the correlation coefficient matrix for a given dataframe.
-    :param directory: save label
     :param df: given dataframe
     :return: None
     """
@@ -345,6 +337,7 @@ def correlation_coefficient_matrix(df: pd.DataFrame, directory: str) -> None:
     # Draw the heatmap with the mask and correct aspect ratio
     sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
                 square=True, linewidths=.5, cbar_kws={"shrink": .5})
+    f.savefig(os.path.join(os.getcwd(), "data", "correlation", f"{os.getenv('LAST_DATA')}.png"))
     plt.show()
 
 
@@ -376,14 +369,12 @@ def filter_run() -> None:
     save_data(data, f"{os.getenv('LAST_DATA')}_mean", "combined")
 
 
-
 def plot_run() -> None:
     """
     Plots all data from a run.
     :return: None
     """
     path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
-
     data = pd.read_csv(path, delimiter=",")
     plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined")
 
@@ -393,25 +384,58 @@ def plot_all_data():
     Plots data from all runs.
     :return: None
     """
+    directory = os.path.join(os.getcwd(), "data", "plots", os.getenv("LAST_DATA"))
+    # creates folder if does not exist
+    if not os.path.exists(directory):
+        os.mkdir(directory)
     for i, file in enumerate(get_all_filtered_data()):
-        d = file.loc[(file['pod'] == "webui")].reset_index().drop(columns=["index", "Unnamed: 0"])
-        plot_filtered_data(d, str(i))
+        plot_filtered_data(file, os.path.join(os.getenv("LAST_DATA"), str(i)))
 
 
-def plot_variation_matrix(df: pd.DataFrame) -> None:
+def plot_targets_4d(data: pd.DataFrame, name: str) -> None:
     """
-    Makes a 3D surface plot of the given variation matrix.
-    :param df: variation matrix
+    Plot all parameters and each target in a 4D plot.
+    :param data: dataset
+    :param name: save name
     :return: None
     """
-    fig = plt.figure()
-    ax = fig.gca(projection='3d')
-    surf = ax.plot_trisurf(df['CPU'], df['Memory'], df['Pods'], cmap=plt.cm.viridis, linewidth=0.2)
-    fig.colorbar(surf, shrink=0.5, aspect=5)
-    ax.view_init(30, 45)
-    plt.show()
+    targets = ["average response time", "cpu usage", "memory usage"]
+    for t in targets:
+        fig = plt.figure()
+        ax = fig.add_subplot(111, projection='3d')
+
+        x = data["cpu limit"]
+        y = data["memory limit"]
+        z = data["number of pods"]
+        c = data[t]
+
+        img = ax.scatter(x, y, z, c=c, cmap=plt.jet())
+        fig.colorbar(img)
+        plt.show()
+        # save figure
+        save_path = os.path.join(os.getcwd(), "data", "plots", name)
+        if not os.path.exists(save_path):
+            os.mkdir(save_path)
+        fig.savefig(os.path.join(save_path, f"{t}_3D.png"))
+        fig.clf()
 
 
-if __name__ == '__main__':
+def process_run() -> None:
+    """
+    Processes one single run.
+    :return: None
+    """
+    filter_data(os.getenv("LAST_DATA"))
+    plot_filtered_data(get_filtered_data(os.getenv("LAST_DATA")), os.getenv("LAST_DATA"))
+
+
+def process_all_runs() -> None:
+    """
+    Processes all runs between start- and last data.
+    :return: None
+    """
     filter_all_data()
     plot_all_data()
+    combine_runs()
+    filter_run()
+    plot_run()

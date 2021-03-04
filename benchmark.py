@@ -238,7 +238,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                         time.sleep(10)
                 # start load test
                 logging.info("Start Locust.")
-                start_locust(iteration=iteration, folder=folder_path, history=True, custom_shape=custom_shape)
+                start_locust(iteration=iteration, folder=folder_path, history=False, custom_shape=custom_shape)
                 # get prometheus data
                 get_prometheus_data(folder=folder_path, iteration=iteration)
                 iteration = iteration + 1
@@ -381,13 +381,13 @@ def get_persistence_data() -> None:
         json.dump(users, outfile)
 
 
-def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: int, pods_limit: int, runs: int):
+def start_run(runs: int, custom_shape: bool):
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
-        benchmark(name="teastore", users=300, spawn_rate=2, expressions=1, step=50, pods_limit=1, run=i, run_max=runs)
+        benchmark(name="teastore", users=300, spawn_rate=2, expressions=5, step=50, pods_limit=5, run=i, run_max=runs,
+                  custom_shape=custom_shape)
 
 
 if __name__ == '__main__':
-    start_run(1)
-
+    start_run(5, False)

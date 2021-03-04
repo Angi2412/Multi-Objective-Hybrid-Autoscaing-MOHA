@@ -9,16 +9,19 @@ from skcriteria import Data, MIN, MAX
 from skcriteria.madm.closeness import TOPSIS
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.model_selection import train_test_split
+from sklearn.experimental import enable_halving_search_cv
+from sklearn.model_selection import train_test_split, HalvingGridSearchCV
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import make_pipeline
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
+from time import time
 
 
-def linear_regression_model(X: np.array, y: np.array, name: str) -> None:
+def linear_regression_model(X: np.array, y: np.array, name: str, save: bool) -> None:
     """
     Linear Regression model with given data.
+    :param save: if should save
     :param name: name
     :param X: data
     :param y: targets
@@ -39,7 +42,9 @@ def linear_regression_model(X: np.array, y: np.array, name: str) -> None:
     # get metrics
     print("Linear Regression")
     get_metrics(y_test, y_pred)
-    save_model(regression, name)
+    # save model
+    if save:
+        save_model(regression, name)
 
 
 def get_metrics(test: np.array, pred: np.array) -> None:
@@ -55,9 +60,10 @@ def get_metrics(test: np.array, pred: np.array) -> None:
     print('Coefficient of determination: %.2f' % r2_score(test, pred))
 
 
-def svr_model(X: np.array, y: np.array, name: str) -> None:
+def svr_model(X: np.array, y: np.array, name: str, save: bool) -> None:
     """
     Several SVR models with different kernel functions from given data.
+    :param save: if should save
     :param name: name
     :param X: data
     :param y: targets
@@ -67,26 +73,29 @@ def svr_model(X: np.array, y: np.array, name: str) -> None:
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
 
     # SVRs with different kernels
-    svr_rbf = SVR(kernel='rbf', C=100, gamma='auto', epsilon=.1)
-    svr_lin = SVR(kernel='linear', C=100, gamma='auto', verbose=True)
-    svr_poly = SVR(kernel='poly', C=100, gamma='auto', degree=2, epsilon=.1,
-                   coef0=1, verbose=True)
-    svrs = [svr_rbf, svr_lin, svr_poly]
-    svr = None
-    for ix, svr in enumerate(svrs):
-        # Train the model using the training sets
-        svr.fit(X_train, y_train.ravel())
-        # Make predictions using the testing set
-        y_pred = svr.predict(X_test)
-        # print scores
-        print("SVR: " + str(ix))
-        get_metrics(y_test, y_pred)
-    save_model(svr, name)
+    params = {"gamma": np.logspace(-2, 2, 4),
+              "C": np.linspace(0.1, 1.0, 4), "degree": [3]}
+    print(f"X_train: {X_train.shape} - y_train: {y_train.shape}")
+    tic = time()
+    search = HalvingGridSearchCV(estimator=SVR(kernel="poly", cache_size=3000), param_grid=params,
+                                 random_state=np.random.RandomState(0), verbose=1)
+    search.fit(X_train, y_train.ravel())
+    gsh_time = time() - tic
+    print(f"Training time: {gsh_time}")
+    print(f"Best params: {search.best_params_}")
+    # Make predictions using the testing set
+    # y_pred = svr.predict(X_test)
+    # print scores
+    # print("SVR:")
+    # get_metrics(y_test, y_pred)
+    if save:
+        save_model(search, name)
 
 
-def neural_network_model(X: np.array, y: np.array, name: str) -> None:
+def neural_network_model(X: np.array, y: np.array, name: str, save: bool) -> None:
     """
     MLPRegressor neural network with given data.
+    :param save: should save
     :param name: name of model
     :param X: data
     :param y: target
@@ -106,21 +115,29 @@ def neural_network_model(X: np.array, y: np.array, name: str) -> None:
     print(mlp.score(X_test, y_test))
     get_metrics(y_test, y_pred)
     # save model
-    save_model(mlp, name)
+    if save:
+        save_model(mlp, name)
 
 
-def get_data(date: str, target: str) -> (np.array, np.array):
+def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
     """
     Gets filtered data and converts it to a numpy array.
+    :param combined: combined or filtered
     :param target: name of target
     :param date: name of filtered data
     :return: X, y
     """
-    filtered_path = os.path.join(os.getcwd(), "data", "filtered")
-    for root, dirs, files in os.walk(filtered_path):
+    # init path
+    path = None
+    if combined:
+        path = os.path.join(os.getcwd(), "data", "filtered")
+    else:
+        path = os.path.join(os.getcwd(), "data", "combined")
+    # get data
+    for root, dirs, files in os.walk(path):
         for file in files:
             if date in file:
-                data = pd.read_csv(os.path.join(filtered_path, file))
+                data = pd.read_csv(os.path.join(path, file))
                 data = data.dropna()
                 X = data[['cpu limit', 'memory limit', 'number of pods']].to_numpy()
                 y = data[[target]].to_numpy()
@@ -162,7 +179,7 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
     step = int(os.getenv("STEP"))
     models = get_models()
     predict_window = np.empty(window * 2, dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32)])
-    predictions = np.empty((len(models), window*2))
+    predictions = np.empty((len(models), window * 2))
     prediction_array = np.zeros(window * 2, dtype=[('cpu', np.int32), ('memory', np.int32), ('art', np.int32)])
     # get all possibilities in window
     for i in range(0, 2 * window):
@@ -229,14 +246,19 @@ def train_for_all_targets(date: str, kind: str) -> None:
     """
     targets = ["average response time", "cpu usage", "memory usage"]
     for t in targets:
-        X, y = get_data(date, t)
+        X, y = get_data(date, t, True)
         if kind == "neural":
-            neural_network_model(X, y, t)
+            neural_network_model(X, y, t, True)
         elif kind == "linear":
-            linear_regression_model(X, y, t)
+            linear_regression_model(X, y, t, True)
         elif kind == "svr":
-            svr_model(X, y, t)
+            svr_model(X, y, t, True)
         else:
             logging.warning("There is no model type: " + kind)
             return
     logging.info("All models are trained.")
+
+
+if __name__ == '__main__':
+    X, y = get_data("20210303-205345", "average response time", True)
+    svr_model(X, y, "20210303-205345_art", False)

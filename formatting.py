@@ -249,14 +249,14 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
     for y in y_axis:
         for x in x_axis:
             if x == "number of pods":
-                data_pods = data.loc[(data['memory limit'] == data['memory limit'].min()) & (
-                        data['cpu limit'] == data['cpu limit'].min())]
+                data_pods = data.loc[(data['memory limit'] == data['memory limit'].median()) & (
+                        data['cpu limit'] == data['cpu limit'].median())]
                 plot = sns.lineplot(data=data_pods, x=x, y=y)
             elif x == "memory limit":
-                data_memory = data.loc[(data['cpu limit'] == data['cpu limit'].min())]
+                data_memory = data.loc[(data['cpu limit'] == data['cpu limit'].median())]
                 plot = sns.lineplot(data=data_memory, x=x, y=y, hue="number of pods")
             elif x == "cpu limit":
-                data_cpu = data.loc[(data['memory limit'] == data['memory limit'].min())]
+                data_cpu = data.loc[(data['memory limit'] == data['memory limit'].median())]
                 plot = sns.lineplot(data=data_cpu, x=x, y=y, hue="number of pods")
             # save plot
             plot.figure.savefig(os.path.join(dir_path, f"{x}_{y}.png"))
@@ -336,7 +336,7 @@ def correlation_coefficient_matrix(df: pd.DataFrame) -> None:
     cmap = sns.color_palette("vlag", as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
     sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
-                square=True, linewidths=.5, cbar_kws={"shrink": .5})
+                square=True, linewidths=.5, cbar_kws={"shrink": .5}, annot=True, fmt='.1f')
     f.savefig(os.path.join(os.getcwd(), "data", "correlation", f"{os.getenv('LAST_DATA')}.png"))
     plt.show()
 
@@ -439,3 +439,9 @@ def process_all_runs() -> None:
     combine_runs()
     filter_run()
     plot_run()
+
+
+if __name__ == '__main__':
+    df = pd.read_csv(os.path.join(os.getcwd(), "data", "combined", "20210303-205345.csv"))
+    df = df[['cpu limit', 'memory limit', 'number of pods', "average response time", "cpu usage", "memory usage"]]
+    correlation_coefficient_matrix(df)

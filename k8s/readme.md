@@ -21,6 +21,11 @@
 3. Install [Prometheus](https://prometheus.io/) via [helm](https://helm.sh/) with modified values (including linkerd scrape config):
    
    ````cd k8s````
+   
+   ````helm repo add prometheus-community https://prometheus-community.github.io/helm-charts````
+   
+   ````helm repo update````
+   
    ```` helm install --values prometheus_values.yaml prometheus prometheus-community/kube-prometheus-stack````
 
 4. Change ClusterIP to NordPort for both Prometheus services:

@@ -33,6 +33,6 @@ class DoubleWave(LoadTestShape):
                     * math.e ** -(((run_time / (self.time_limit / 10 * 2 / 3)) - 10) ** 2)
                     + self.min_users
             )
-            return round(user_count), round(user_count)
+            return (round(user_count), round(user_count))
         else:
             return None

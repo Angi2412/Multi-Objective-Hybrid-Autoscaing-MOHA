@@ -238,7 +238,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                         time.sleep(10)
                 # start load test
                 logging.info("Start Locust.")
-                start_locust(iteration=iteration, folder=folder_path, history=True, custom_shape=custom_shape)
+                start_locust(iteration=iteration, folder=folder_path, history=False, custom_shape=custom_shape)
                 # get prometheus data
                 get_prometheus_data(folder=folder_path, iteration=iteration)
                 iteration = iteration + 1

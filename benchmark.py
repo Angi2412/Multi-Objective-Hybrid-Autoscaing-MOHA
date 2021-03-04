@@ -381,13 +381,14 @@ def get_persistence_data() -> None:
         json.dump(users, outfile)
 
 
-def start_run(runs: int, custom_shape: bool):
+def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: int, pods_limit: int, runs: int,
+              custom_shape: bool) -> None:
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
-        benchmark(name="teastore", users=300, spawn_rate=2, expressions=5, step=50, pods_limit=5, run=i, run_max=runs,
-                  custom_shape=custom_shape)
+        benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape)
 
 
 if __name__ == '__main__':
-    start_run(5, False)
+    start_run(name="teastore", users=300, spawn_rate=2, expressions=1, step=50, pods_limit=1, runs=5,
+              custom_shape=False)

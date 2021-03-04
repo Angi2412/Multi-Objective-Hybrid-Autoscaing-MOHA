@@ -67,11 +67,12 @@ def svr_model(X: np.array, y: np.array, name: str) -> None:
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
 
     # SVRs with different kernels
-    svr_rbf = SVR(kernel='rbf', C=100, gamma=0.1, epsilon=.1)
+    svr_rbf = SVR(kernel='rbf', C=100, gamma='auto', epsilon=.1)
     svr_lin = SVR(kernel='linear', C=100, gamma='auto', verbose=True)
     svr_poly = SVR(kernel='poly', C=100, gamma='auto', degree=2, epsilon=.1,
                    coef0=1, verbose=True)
     svrs = [svr_rbf, svr_lin, svr_poly]
+    svr = None
     for ix, svr in enumerate(svrs):
         # Train the model using the training sets
         svr.fit(X_train, y_train.ravel())
@@ -95,7 +96,7 @@ def neural_network_model(X: np.array, y: np.array, name: str) -> None:
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
     # train neural network
     mlp = make_pipeline(StandardScaler(),
-                        MLPRegressor(hidden_layer_sizes=(1000, 1000),
+                        MLPRegressor(hidden_layer_sizes=(1000, 1000), solver="lbfgs",
                                      tol=1e-2, max_iter=10000, random_state=0))
     mlp.fit(X, y.ravel())
     # make predictions using the testing set
@@ -158,7 +159,7 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
     :return: pes parameters
     """
     # init arrays
-    step = os.getenv("STEP")
+    step = int(os.getenv("STEP"))
     models = get_models()
     predict_window = np.empty(window * 2, dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32)])
     predictions = np.empty((len(models), window*2))

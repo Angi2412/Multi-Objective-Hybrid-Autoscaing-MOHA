@@ -244,23 +244,26 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
     # init x- and y-axis
     x_axis = ["cpu limit", "memory limit", "number of pods"]
     y_axis = ["cpu usage", "memory usage", "average response time"]
+    # functions
+    functions = [pd.DataFrame.min, pd.DataFrame.median, pd.DataFrame.max]
     # create and save plots
     plot = None
-    for y in y_axis:
-        for x in x_axis:
-            if x == "number of pods":
-                data_pods = data.loc[(data['memory limit'] == data['memory limit'].min()) & (
-                        data['cpu limit'] == data['cpu limit'].min())]
-                plot = sns.lineplot(data=data_pods, x=x, y=y)
-            elif x == "memory limit":
-                data_memory = data.loc[(data['cpu limit'] == data['cpu limit'].min())]
-                plot = sns.lineplot(data=data_memory, x=x, y=y, hue="number of pods")
-            elif x == "cpu limit":
-                data_cpu = data.loc[(data['memory limit'] == data['memory limit'].min())]
-                plot = sns.lineplot(data=data_cpu, x=x, y=y, hue="number of pods")
-            # save plot
-            plot.figure.savefig(os.path.join(dir_path, f"{x}_{y}.png"))
-            plot.figure.clf()
+    for i, fn in enumerate(functions):
+        for y in y_axis:
+            for x in x_axis:
+                if x == "number of pods":
+                    data_pods = data.loc[(data['memory limit'] == fn(data['memory limit'])) & (
+                            data['cpu limit'] == fn(data['cpu limit']))]
+                    plot = sns.lineplot(data=data_pods, x=x, y=y)
+                elif x == "memory limit":
+                    data_memory = data.loc[(data['cpu limit'] == fn(data['cpu limit']))]
+                    plot = sns.lineplot(data=data_memory, x=x, y=y, hue="number of pods")
+                elif x == "cpu limit":
+                    data_cpu = data.loc[(data['memory limit'] == fn(data['memory limit']))]
+                    plot = sns.lineplot(data=data_cpu, x=x, y=y, hue="number of pods")
+                # save plot
+                plot.figure.savefig(os.path.join(dir_path, f"{x}_{y}_{i}.png"))
+                plot.figure.clf()
 
 
 def format_for_extra_p() -> None:
@@ -333,10 +336,10 @@ def correlation_coefficient_matrix(df: pd.DataFrame) -> None:
     # Set up the matplotlib figure
     f, ax = plt.subplots(figsize=(11, 9))
     # Generate a custom diverging colormap
-    cmap = sns.color_palette("vlag", as_cmap=True)
+    cmap = sns.color_palette("coolwarm", as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
-    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0,
-                square=True, linewidths=.5, cbar_kws={"shrink": .5})
+    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5},
+                annot=True, fmt=".1f")
     f.savefig(os.path.join(os.getcwd(), "data", "correlation", f"{os.getenv('LAST_DATA')}.png"))
     plt.show()
 
@@ -374,9 +377,14 @@ def plot_run() -> None:
     Plots all data from a run.
     :return: None
     """
+    # plot combined run
     path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
     data = pd.read_csv(path, delimiter=",")
     plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined")
+    # plot mean run
+    path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}_mean.csv")
+    data = pd.read_csv(path, delimiter=",")
+    plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined_mean")
 
 
 def plot_all_data():

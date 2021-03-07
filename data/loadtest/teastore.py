@@ -1,5 +1,5 @@
 import logging
-from random import randint
+from random import randint, choice
 
 from locust import HttpUser, task
 
@@ -15,14 +15,17 @@ class UserBehavior(HttpUser):
         Simulates user behaviour.
         :return: None
         """
-        logging.info("Starting load.")
+        logging.info("Starting user.")
         self.visit_home()
         self.login()
         self.browse()
-        self.buy()
+        # 50/50 chance to buy
+        choice_buy = choice([True, False])
+        if choice_buy:
+            self.buy()
         self.visit_profile()
         self.logout()
-        logging.info("Completed load.")
+        logging.info("Completed user.")
 
     def visit_home(self) -> None:
         """

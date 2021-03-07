@@ -321,15 +321,19 @@ def format_for_extra_p() -> None:
                 file.write("\n")
 
 
-def correlation_coefficient_matrix(df: pd.DataFrame) -> None:
+def correlation_coefficient_matrix() -> None:
     """
     Calculates and plots the correlation coefficient matrix for a given dataframe.
-    :param df: given dataframe
     :return: None
     """
+    dir_path = os.path.join(os.getcwd(), "data", "correlation", os.getenv("LAST_DATA"))
+    if not os.path.exists(dir_path):
+        os.mkdir(dir_path)
+    df = pd.read_csv(os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv"))
+    df = df[["cpu limit", "memory limit", "number of pods", "cpu usage", "memory usage", "average response time"]]
     df.dropna()
     corr = df.corr(method="pearson")
-    save_data(corr, os.getenv("LAST_DATA"), "correlation")
+    save_data(corr, os.getenv("LAST_DATA"), os.path.join("correlation", os.getenv("LAST_DATA")))
     # plot correlation
     # Generate a mask for the upper triangle
     mask = np.triu(np.ones_like(corr, dtype=bool))
@@ -340,7 +344,7 @@ def correlation_coefficient_matrix(df: pd.DataFrame) -> None:
     # Draw the heatmap with the mask and correct aspect ratio
     sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5},
                 annot=True, fmt=".1f")
-    f.savefig(os.path.join(os.getcwd(), "data", "correlation", f"{os.getenv('LAST_DATA')}.png"))
+    f.savefig(os.path.join(dir_path, f"{os.getenv('LAST_DATA')}.png"))
     plt.show()
 
 
@@ -447,7 +451,9 @@ def process_all_runs() -> None:
     combine_runs()
     filter_run()
     plot_run()
+    format_for_extra_p()
+    correlation_coefficient_matrix()
 
 
 if __name__ == '__main__':
-    format_for_extra_p()
+    correlation_coefficient_matrix()

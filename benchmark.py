@@ -175,7 +175,8 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
 
 
 def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
-              step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool, history: bool) -> None:
+              step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool, history: bool,
+              sample: bool) -> None:
     """
     Benchmark methods.
     :param history: enable locust history
@@ -188,6 +189,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     :param name: name of ms
     :param users: number of users
     :param spawn_rate: spawn rate
+    :param sample: enable sample run
     :return: None
     """
     # init date
@@ -211,7 +213,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     load_dotenv(override=True)
 
     # get variation
-    variations = parameter_variation_namespace(pods_limit, expressions, step)
+    variations = parameter_variation_namespace(pods_limit, expressions, step, sample)
     c_max, m_max, p_max = variations[os.getenv("UI")].shape
     iteration = 1
     scale_only = "webui"
@@ -228,11 +230,12 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                     if scale_only in pod:
                         # get parameter variation
                         v = variations[pod][c, m, p]
-                        logging.info(f"{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}")
-                        # update resources of pod
-                        k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
-                                                  memory_limit=int(v[1]),
-                                                  number_of_replicas=int(v[2]), replace=True)
+                        if v[0] != 0 and v[1] != 0 and v[2] != 0:
+                            logging.info(f"{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}")
+                            # update resources of pod
+                            k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
+                                                      memory_limit=int(v[1]),
+                                                      number_of_replicas=int(v[2]), replace=True)
                     # wait for deployment
                     time.sleep(120)
                     while not k8s.check_teastore_health():
@@ -248,12 +251,13 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     logging.info("Finished Benchmark.")
 
 
-def parameter_variation_namespace(pods_limit: int, expressions: int, step: int) -> dict:
+def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, sample: bool) -> dict:
     """
     Generates the parameter variation matrix for every deployment in a namespace with given values.
     :param pods_limit: pod limit
     :param expressions: number of expressions
     :param step: size of step
+    :param sample: enable sample run
     :return: dict of parameter variation matrices
     """
     resource_requests = k8s.get_resource_requests()
@@ -271,12 +275,12 @@ def parameter_variation_namespace(pods_limit: int, expressions: int, step: int) 
             logging.debug(f"memory request: {p_memory_request}Mi - memory limit: {p_memory_limit}Mi")
             # parameter variation matrix
             variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
-                                               p_memory_limit, pods_limit, step, invert=False)
+                                               p_memory_limit, pods_limit, step, invert=False, sample=sample)
     return variation
 
 
 def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int,
-                        pods_limit: int, step: int, invert: bool) -> np.array:
+                        pods_limit: int, step: int, invert: bool, sample: bool) -> np.array:
     """
     Calculates a matrix mit all combination of the parameters.
     :return: parameter variation matrix
@@ -290,7 +294,10 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
         memory = np.flip(memory)
         pods = np.flip(pods)
     iterations = np.arange(1, (cpu.size * memory.size * pods.size) + 1, 1).tolist()
-
+    if sample:
+        cpu = cpu[(cpu == cpu.min()) | (cpu == np.median(cpu)) | (cpu == cpu.max())]
+        memory = memory[
+            (memory == memory.min()) | (memory == np.median(memory)) | (memory == memory.max())]
     # init dataframe
     df = pd.DataFrame(index=iterations, columns=["CPU", "Memory", "Pods"])
     csv_path = os.path.join(os.getcwd(), "data", "raw", os.getenv("LAST_DATA"), f"{pod}_variation.csv")
@@ -302,6 +309,10 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     for c in range(0, cpu.size):
         for m in range(0, memory.size):
             for p in range(0, pods.size):
+                if sample:
+                    if m != c:
+                        print("here")
+                        break
                 variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p])
                 # fill dataframe
                 df.at[i, 'CPU'] = cpu[c]
@@ -383,13 +394,13 @@ def get_persistence_data() -> None:
 
 
 def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: int, pods_limit: int, runs: int,
-              custom_shape: bool, history: bool) -> None:
+              custom_shape: bool, history: bool, sample: bool) -> None:
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
-        benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape, history)
+        benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape, history, sample)
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=300, spawn_rate=2, expressions=1, step=50, pods_limit=1, runs=1,
-              custom_shape=False, history=True)
+    start_run(name="teastore", users=100, spawn_rate=1, expressions=5, step=100, pods_limit=5, runs=1,
+              custom_shape=False, history=False, sample=True)

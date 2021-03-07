@@ -1,5 +1,6 @@
 import logging
 import os
+from time import time
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,12 +11,12 @@ from skcriteria.madm.closeness import TOPSIS
 from sklearn.linear_model import LinearRegression
 from sklearn.metrics import mean_squared_error, r2_score
 from sklearn.experimental import enable_halving_search_cv
-from sklearn.model_selection import train_test_split, HalvingGridSearchCV
+from sklearn.model_selection import train_test_split, HalvingGridSearchCV, StratifiedShuffleSplit, GridSearchCV
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import make_pipeline
+from sklearn.preprocessing import RobustScaler, MinMaxScaler
 from sklearn.preprocessing import StandardScaler
 from sklearn.svm import SVR
-from time import time
 
 
 def linear_regression_model(X: np.array, y: np.array, name: str, save: bool) -> None:
@@ -60,36 +61,41 @@ def get_metrics(test: np.array, pred: np.array) -> None:
     print('Coefficient of determination: %.2f' % r2_score(test, pred))
 
 
-def svr_model(X: np.array, y: np.array, name: str, save: bool) -> None:
+def svr_model(X: np.array, y: np.array, name: str, save: bool, search: bool) -> None:
     """
     Several SVR models with different kernel functions from given data.
     :param save: if should save
     :param name: name
     :param X: data
     :param y: targets
+    :param search: search for hyper parameter
     :return: None
     """
+    # scale dataset
+    scaling = MinMaxScaler()
+    X = scaling.fit_transform(X)
+    y = scaling.fit_transform(y)
     # split data in to train and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
-
-    # SVRs with different kernels
-    params = {"gamma": np.logspace(-2, 2, 4),
-              "C": np.linspace(0.1, 1.0, 4), "degree": [3]}
-    print(f"X_train: {X_train.shape} - y_train: {y_train.shape}")
-    tic = time()
-    search = HalvingGridSearchCV(estimator=SVR(kernel="poly", cache_size=3000), param_grid=params,
-                                 random_state=np.random.RandomState(0), verbose=1)
-    search.fit(X_train, y_train.ravel())
-    gsh_time = time() - tic
-    print(f"Training time: {gsh_time}")
-    print(f"Best params: {search.best_params_}")
-    # Make predictions using the testing set
-    # y_pred = svr.predict(X_test)
-    # print scores
-    # print("SVR:")
-    # get_metrics(y_test, y_pred)
-    if save:
-        save_model(search, name)
+    if search:
+        # SVRs with different kernels
+        params = {"C": np.logspace(-2, 10, 13, base=10), "gamma": np.logspace(1, 3, 13, base=10)}
+        tic = time()
+        search = GridSearchCV(estimator=SVR(kernel="rbf", cache_size=8000, epsilon=0.1), param_grid=params, verbose=1)
+        search.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(f"Training time: {gsh_time}")
+        print(f"Best params: {search.best_params_}")
+    else:
+        svr = SVR(kernel="rbf", C=8, gamma=8, cache_size=8000)
+        svr.fit(X_train, y_train.ravel())
+        # Make predictions using the testing set
+        y_pred = svr.predict(X_test)
+        # print scores
+        print("SVR:")
+        get_metrics(y_test, y_pred)
+        if save:
+            save_model(search, name)
 
 
 def neural_network_model(X: np.array, y: np.array, name: str, save: bool) -> None:
@@ -130,17 +136,18 @@ def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
     # init path
     path = None
     if combined:
-        path = os.path.join(os.getcwd(), "data", "filtered")
-    else:
         path = os.path.join(os.getcwd(), "data", "combined")
+    else:
+        path = os.path.join(os.getcwd(), "data", "filtered")
     # get data
     for root, dirs, files in os.walk(path):
         for file in files:
-            if date in file:
-                data = pd.read_csv(os.path.join(path, file))
-                data = data.dropna()
+            if date in file and "mean" not in file:
+                data = pd.read_csv(os.path.join(path, file), delimiter=",")
+                data = data.reset_index()
                 X = data[['cpu limit', 'memory limit', 'number of pods']].to_numpy()
                 y = data[[target]].to_numpy()
+                logging.info(f"X: {X.shape} - y: {y.shape}")
                 return X, y
     logging.warning(f"No filtered file with name {date} found.")
 
@@ -252,7 +259,7 @@ def train_for_all_targets(date: str, kind: str) -> None:
         elif kind == "linear":
             linear_regression_model(X, y, t, True)
         elif kind == "svr":
-            svr_model(X, y, t, True)
+            svr_model(X, y, t, True, False)
         else:
             logging.warning("There is no model type: " + kind)
             return
@@ -260,5 +267,5 @@ def train_for_all_targets(date: str, kind: str) -> None:
 
 
 if __name__ == '__main__':
-    X, y = get_data("20210303-205345", "average response time", True)
-    svr_model(X, y, "20210303-205345_art", False)
+    X, y = get_data("20210303-230654", "average response time", True)
+    svr_model(X, y, "20210303-230654_art", False, True)

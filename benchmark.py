@@ -175,9 +175,10 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
 
 
 def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
-              step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool) -> None:
+              step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool, history: bool) -> None:
     """
     Benchmark methods.
+    :param history: enable locust history
     :param custom_shape: if using custom load shape
     :param run_max: number of runs
     :param run: current run
@@ -238,7 +239,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                         time.sleep(10)
                 # start load test
                 logging.info("Start Locust.")
-                start_locust(iteration=iteration, folder=folder_path, history=False, custom_shape=custom_shape)
+                start_locust(iteration=iteration, folder=folder_path, history=history, custom_shape=custom_shape)
                 # get prometheus data
                 get_prometheus_data(folder=folder_path, iteration=iteration)
                 iteration = iteration + 1
@@ -382,13 +383,13 @@ def get_persistence_data() -> None:
 
 
 def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: int, pods_limit: int, runs: int,
-              custom_shape: bool) -> None:
+              custom_shape: bool, history: bool) -> None:
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
-        benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape)
+        benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape, history)
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=300, spawn_rate=2, expressions=1, step=50, pods_limit=1, runs=5,
-              custom_shape=False)
+    start_run(name="teastore", users=300, spawn_rate=2, expressions=1, step=50, pods_limit=1, runs=1,
+              custom_shape=False, history=True)

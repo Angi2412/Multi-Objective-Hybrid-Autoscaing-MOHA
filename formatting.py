@@ -279,14 +279,17 @@ def format_for_extra_p() -> None:
         os.mkdir(save_path)
     # get variation matrix
     variation = get_variation_matrix(os.getenv('LAST_DATA'))
-    c_max, m_max, p_max = variation.shape
+    print(variation.shape)
+    c_max = variation["CPU"].nunique()
+    m_max = variation["Memory"].nunique()
+    p_max = variation["Pods"].nunique()
     # parameter and metrics
-    parameter = ["CPU limit", "Memory limit", "Number of pods"]
-    metrics = ["Average response time [ms]", "Failures [%]", "Memory usage [%]", "CPU usage [%]"]
+    parameter = ["cpu limit", "memory limit", "number of pods"]
+    metrics = ["average response time", "cpu usage", "memory usage"]
     # get all filtered data
     filtered_data = list()
     for f in get_all_filtered_data():
-        filtered_data.append(pd.read_csv(os.path.join(filtered_base_path, f)))
+        filtered_data.append(f)
     # write in txt file
     for metric in metrics:
         m_name = (re.sub('[^a-zA-Z0-9 _]', '', metric)).rstrip().replace(' ', '_').lower()
@@ -297,15 +300,12 @@ def format_for_extra_p() -> None:
             file.write("\n")
             # write coordinates
             # for every iteration
-            for c in range(0, c_max):
-                for m in range(0, m_max):
-                    file.write("POINTS ")
-                    for p in range(0, p_max):
-                        file.write('( ')
-                        for v in variation[c, m, p]:
-                            file.write(f"{v} ")
-                        file.write(') ')
+            for i, v in enumerate(variation.index):
+                if i % m_max == 0:
                     file.write("\n")
+                    file.write("POINTS ")
+                row = variation.iloc[[i]]
+                file.write(f"( {row.iloc[0]['CPU']} {row.iloc[0]['Memory']} {row.iloc[0]['Pods']} )")
             file.write("\n")
             file.write("REGION Test\n")
             file.write(f"METRIC {m_name}\n")
@@ -447,3 +447,7 @@ def process_all_runs() -> None:
     combine_runs()
     filter_run()
     plot_run()
+
+
+if __name__ == '__main__':
+    format_for_extra_p()

@@ -393,6 +393,3 @@ def get_resource_requests() -> dict:
         resources = deployment.spec.template.spec.containers[0].resources.requests
         resource_requests[i.metadata.name] = resources
     return resource_requests
-
-if __name__ == '__main__':
-    k8s_create_teastore()

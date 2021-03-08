@@ -186,6 +186,9 @@ def filter_data(directory: str) -> pd.DataFrame:
     # filter for pod name
     filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
     custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
+    # only take latency where status code < 300
+    filtered_data = filtered_data.fillna(0)
+    filtered_data = filtered_data.loc[filtered_data['status_code'].astype('int') < 300]
     # create pivot tables
     filtered_data = pd.pivot_table(filtered_data, index=["Iteration", "pod"], columns=["__name__"],
                                    values="value").reset_index()

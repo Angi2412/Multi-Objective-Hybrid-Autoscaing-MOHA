@@ -186,26 +186,29 @@ def filter_data(directory: str) -> pd.DataFrame:
     # filter for pod name
     filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
     custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
-    # only take latency where status code < 300
-    filtered_data = filtered_data.fillna(0)
-    filtered_data = filtered_data.loc[filtered_data['status_code'].astype('int') < 300]
+    # filter only take latency where status code < 300
+    filtered_data['status_code'] = filtered_data['status_code'].fillna(0)
+    filtered_data = filtered_data.loc[filtered_data['status_code'].astype(int) < 300]
+    # filter only inbound requests
+    filtered_data['direction'] = filtered_data['direction'].fillna("none")
+    filtered_data = filtered_data.loc[(filtered_data['direction'] != "outbound")]
+    # count data points per iteration
+    filtered_data['datapoint'] = filtered_data.groupby(["Iteration"]).cumcount()+1
+    custom['datapoint'] = custom.groupby(["Iteration"]).cumcount() + 1
     # create pivot tables
-    filtered_data = pd.pivot_table(filtered_data, index=["Iteration", "pod"], columns=["__name__"],
+    filtered_data = pd.pivot_table(filtered_data, index=["Iteration", "pod", "datapoint"], columns=["__name__"],
                                    values="value").reset_index()
-    filtered_custom_data = pd.pivot_table(custom, index=["Iteration", "pod"], columns=["metric"],
+    filtered_custom_data = pd.pivot_table(custom, index=["Iteration", "pod", "datapoint"], columns=["metric"],
                                           values="value").reset_index()
     # calculate mean values
-    filtered_data = filtered_data.groupby(["Iteration", "pod"]).mean()
-    filtered_custom_data = filtered_custom_data.groupby(["Iteration", "pod"]).mean()
-    filtered_custom_data = filtered_custom_data.reset_index()
-    filtered_data = filtered_data.reset_index()
+    filtered_data = filtered_data.groupby(["Iteration", "pod"]).mean().reset_index()
+    filtered_custom_data = filtered_custom_data.groupby(["Iteration", "pod"]).mean().reset_index()
     # merge all tables
     res_data = pd.merge(filtered_data, filtered_custom_data, how='left', on=["Iteration", "pod"])
     res_data = pd.merge(res_data, variation, how='left', on=["Iteration", "pod"])
     # calculate average response time
     res_data["average response time"] = res_data["response_latency_ms_sum"] / res_data["response_latency_ms_count"]
     # erase stuff
-    res_data = res_data[res_data['pod'].ne("prometheus")]
     res_data.drop(columns=["kube_deployment_spec_replicas", "kube_pod_container_resource_limits_cpu_cores",
                            "kube_pod_container_resource_limits_memory_bytes",
                            "kube_pod_container_resource_requests_cpu_cores",
@@ -215,8 +218,9 @@ def filter_data(directory: str) -> pd.DataFrame:
         columns={"cpu": "cpu usage", "memory": "memory usage", "CPU": "cpu limit", "Memory": "memory limit",
                  "Pods": "number of pods", "container_cpu_cfs_throttled_seconds_total": "cpu throttled total"},
         inplace=True)
-    res_data = res_data[res_data['pod'] != "kube"]
-    res_data = res_data.loc[(res_data['pod'] == "webui")].reset_index().drop(columns=["index"])
+    # filter for webui pod
+    res_data = res_data.loc[(res_data['pod'] == "webui")]
+    res_data.reset_index(inplace=True)
     save_data(res_data, directory, "filtered")
     return res_data
 

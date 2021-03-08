@@ -456,4 +456,4 @@ def process_all_runs() -> None:
 
 
 if __name__ == '__main__':
-    correlation_coefficient_matrix()
+    process_run()

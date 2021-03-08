@@ -31,6 +31,7 @@ load_dotenv(override=True)
 
 # init logger
 logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(filename='benchmark.log', level=logging.INFO)
 
 
 def config_env(**kwargs) -> None:
@@ -209,14 +210,14 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                users=users,
                spawn_rate=spawn_rate,
                )
+    iteration = 1
+    scale_only = "webui"
     # read new environment data
     load_dotenv(override=True)
-
     # get variation
     variations = parameter_variation_namespace(pods_limit, expressions, step, sample)
     c_max, m_max, p_max = variations[os.getenv("UI")].shape
-    iteration = 1
-    scale_only = "webui"
+
     # benchmark
     logging.info("Starting Benchmark.")
     for c in range(0, c_max):
@@ -230,16 +231,18 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                     if scale_only in pod:
                         # get parameter variation
                         v = variations[pod][c, m, p]
-                        if v[0] != 0 and v[1] != 0 and v[2] != 0:
-                            logging.info(f"{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}")
-                            # update resources of pod
-                            k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
-                                                      memory_limit=int(v[1]),
-                                                      number_of_replicas=int(v[2]), replace=True)
-                    # wait for deployment
-                    time.sleep(120)
-                    while not k8s.check_teastore_health():
-                        time.sleep(10)
+                        # check if variation is empty
+                        if v[0] == 0 or v[1] == 0 or v[2] == 0:
+                            break
+                        logging.info(f"{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}")
+                        # update resources of pod
+                        k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
+                                                  memory_limit=int(v[1]),
+                                                  number_of_replicas=int(v[2]), replace=True)
+                        # wait for deployment
+                        time.sleep(90)
+                        while not k8s.check_teastore_health():
+                            time.sleep(10)
                 # start load test
                 logging.info("Start Locust.")
                 start_locust(iteration=iteration, folder=folder_path, history=history, custom_shape=custom_shape)
@@ -402,5 +405,5 @@ def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: in
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=100, spawn_rate=1, expressions=5, step=100, pods_limit=5, runs=1,
-              custom_shape=False, history=False, sample=True)
+    start_run(name="teastore", users=50, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
+              custom_shape=False, history=False, sample=False)

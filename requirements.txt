@@ -13,7 +13,6 @@ pandas
 seaborn
 matplotlib
 pyyaml
-pytest
 Flask
 scikit-criteria
 joblib

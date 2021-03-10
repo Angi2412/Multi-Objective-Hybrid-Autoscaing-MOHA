@@ -215,7 +215,7 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
     deployment = apps_v1.read_namespaced_deployment(name=deployment_name, namespace=os.getenv("NAMESPACE"))
     # updates cpu and memory limits
     new_resources = client.V1ResourceRequirements(
-        requests={"cpu": "60m", "memory": "200Mi"},
+        requests={"cpu": "200m", "memory": "500Mi"},
         limits={"cpu": f"{cpu_limit}m", "memory": f"{memory_limit}Mi"}
     )
     deployment.spec.template.spec.containers[0].resources = new_resources

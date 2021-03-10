@@ -9,7 +9,7 @@ monkey.patch_all()
 import gevent
 from locust.env import Environment
 from locust.stats import stats_history, StatsCSVFileWriter
-from data.loadtest.teastore import UserBehavior
+from data.loadtest.teastore_fast import UserBehavior
 # imports
 import datetime as dt
 import logging
@@ -31,7 +31,7 @@ load_dotenv(override=True)
 
 # init logger
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(filename='benchmark.log', level=logging.INFO)
+logging.basicConfig(filename='benchmark.log', level=logging.DEBUG)
 
 
 def config_env(**kwargs) -> None:
@@ -406,4 +406,4 @@ def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: in
 
 if __name__ == '__main__':
     start_run(name="teastore", users=50, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
-              custom_shape=False, history=False, sample=False)
+              custom_shape=False, history=True, sample=False)

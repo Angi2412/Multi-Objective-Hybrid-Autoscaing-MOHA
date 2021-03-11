@@ -186,9 +186,9 @@ def filter_data(directory: str) -> pd.DataFrame:
     # filter for pod name
     filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
     custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
-    # filter only take latency where status code < 300
+    # filter only take latency where status code < 400
     filtered_data['status_code'] = filtered_data['status_code'].fillna(0)
-    filtered_data = filtered_data.loc[filtered_data['status_code'].astype(int) < 300]
+    filtered_data = filtered_data.loc[filtered_data['status_code'].astype(int) < 400]
     # filter only inbound requests
     filtered_data['direction'] = filtered_data['direction'].fillna("none")
     filtered_data = filtered_data.loc[(filtered_data['direction'] != "outbound")]
@@ -463,4 +463,4 @@ def process_all_runs() -> None:
 
 
 if __name__ == '__main__':
-    process_run()
+    process_all_runs()

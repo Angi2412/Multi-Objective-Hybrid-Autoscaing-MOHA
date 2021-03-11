@@ -10,7 +10,7 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 class UserBehavior(FastHttpUser):
 
-    @task
+    @task(1)
     def load(self) -> None:
         """
         Simulates user behaviour.
@@ -26,7 +26,6 @@ class UserBehavior(FastHttpUser):
             self.buy()
         self.visit_profile()
         self.logout()
-        self.client.cookies.clear()
         logging.debug("Completed user.")
 
     def visit_home(self) -> None:
@@ -53,8 +52,8 @@ class UserBehavior(FastHttpUser):
         except Exception as err:
             logging.error(f"Could not load login page: {err}")
         # login
+        user = randint(1, 99)
         try:
-            user = randint(1, 99)
             self.client.post("/loginAction", params={"username": user, "password": "password"})
         except Exception as err:
             logging.error(
@@ -67,16 +66,16 @@ class UserBehavior(FastHttpUser):
         """
         # execute browsing action randomly between 2 and 5 times
         for i in range(1, randint(2, 5)):
+            category_id = randint(2, 6)
+            page = randint(1, 5)
             try:
-                category_id = randint(2, 6)
-                page = randint(1, 5)
                 self.client.get("/category", params={"page": page, "category": category_id})
                 logging.debug(f"Visited category {category_id} on page 1")
             except Exception as err:
                 logging.error(
                     f"Could not visit category {category_id} on page {page}: {err}")
+            product_id = randint(7, 506)
             try:
-                product_id = randint(7, 506)
                 self.client.get("/product", params={"id": product_id})
                 logging.debug(f"Visited product with id {product_id}.")
             except Exception as err:

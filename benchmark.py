@@ -198,8 +198,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     # create folder
     folder_path = os.path.join(os.getcwd(), "data", "raw", date)
     os.mkdir(folder_path)
-    # create deployment
-    k8s.k8s_create_teastore()
+
     # config
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
     k8s.set_prometheus_info()
@@ -249,8 +248,6 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                 # get prometheus data
                 get_prometheus_data(folder=folder_path, iteration=iteration)
                 iteration = iteration + 1
-    # delete namespace
-    k8s.k8s_delete_namespace()
     logging.info("Finished Benchmark.")
 
 
@@ -405,5 +402,9 @@ def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: in
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=50, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
-              custom_shape=False, history=True, sample=False)
+    # create deployment
+    k8s.k8s_create_teastore()
+    start_run(name="teastore", users=100, spawn_rate=1, expressions=5, step=100, pods_limit=5, runs=10,
+              custom_shape=False, history=False, sample=False)
+    # delete namespace
+    k8s.k8s_delete_namespace()

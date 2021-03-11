@@ -124,8 +124,8 @@ def k8s_deployment(name: str, port: int, image: str) -> client.V1Deployment:
         image=image,
         ports=[client.V1ContainerPort(container_port=port)],
         resources=client.V1ResourceRequirements(
-            requests={"cpu": "100m", "memory": "200Mi"},
-            limits={"cpu": "500m", "memory": "500Mi"}
+            requests={"cpu": "200m", "memory": "600Mi"},
+            limits={"cpu": "200m", "memory": "600Mi"}
         ),
         image_pull_policy="Never"
     )
@@ -215,7 +215,7 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
     deployment = apps_v1.read_namespaced_deployment(name=deployment_name, namespace=os.getenv("NAMESPACE"))
     # updates cpu and memory limits
     new_resources = client.V1ResourceRequirements(
-        requests={"cpu": "200m", "memory": "500Mi"},
+        requests={"cpu": "200m", "memory": "600Mi"},
         limits={"cpu": f"{cpu_limit}m", "memory": f"{memory_limit}Mi"}
     )
     deployment.spec.template.spec.containers[0].resources = new_resources

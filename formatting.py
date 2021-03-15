@@ -253,14 +253,15 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
     y_axis = ["cpu usage", "memory usage", "average response time"]
     # functions
     functions = [pd.DataFrame.min, pd.DataFrame.median, pd.DataFrame.max]
+    functions_reversed = list(reversed(functions))
     # create and save plots
     plot = None
-    for i, fn in enumerate(functions):
+    for (i, fn), fn_r in zip(enumerate(functions), functions_reversed):
         for y in y_axis:
             for x in x_axis:
                 if x == "number of pods":
                     data_pods = data.loc[(data['memory limit'] == fn(data['memory limit'])) & (
-                            data['cpu limit'] == fn(data['cpu limit']))]
+                            data['cpu limit'] == fn_r(data['cpu limit']))]
                     plot = sns.lineplot(data=data_pods, x=x, y=y)
                 elif x == "memory limit":
                     data_memory = data.loc[(data['cpu limit'] == fn(data['cpu limit']))]
@@ -269,7 +270,11 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
                     data_cpu = data.loc[(data['memory limit'] == fn(data['memory limit']))]
                     plot = sns.lineplot(data=data_cpu, x=x, y=y, hue="number of pods")
                 # save plot
-                plot.figure.savefig(os.path.join(dir_path, f"{x}_{y}_{i}.png"))
+                if x == "number of pods":
+                    name = f"{x}_{y}_{str(fn.__name__)}_{str(fn_r.__name__)}.png"
+                else:
+                    name = f"{x}_{y}_{i}.png"
+                plot.figure.savefig(os.path.join(dir_path, name))
                 plot.figure.clf()
 
 

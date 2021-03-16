@@ -193,7 +193,7 @@ def filter_data(directory: str) -> pd.DataFrame:
     filtered_data['direction'] = filtered_data['direction'].fillna("none")
     filtered_data = filtered_data.loc[(filtered_data['direction'] != "outbound")]
     # count data points per iteration
-    filtered_data['datapoint'] = filtered_data.groupby(["Iteration"]).cumcount()+1
+    filtered_data['datapoint'] = filtered_data.groupby(["Iteration"]).cumcount() + 1
     custom['datapoint'] = custom.groupby(["Iteration"]).cumcount() + 1
     # create pivot tables
     filtered_data = pd.pivot_table(filtered_data, index=["Iteration", "pod", "datapoint"], columns=["__name__"],
@@ -284,7 +284,6 @@ def format_for_extra_p() -> None:
     :return: None
     """
     # init
-    filtered_base_path = os.path.join(os.getcwd(), "data", "filtered")
     save_path = os.path.join(os.getcwd(), "data", "formatted", os.getenv('LAST_DATA'))
     # create directory if not existing
     if not os.path.exists(save_path):
@@ -292,9 +291,7 @@ def format_for_extra_p() -> None:
     # get variation matrix
     variation = get_variation_matrix(os.getenv('LAST_DATA'))
     print(variation.shape)
-    c_max = variation["CPU"].nunique()
     m_max = variation["Memory"].nunique()
-    p_max = variation["Pods"].nunique()
     # parameter and metrics
     parameter = ["cpu limit", "memory limit", "number of pods"]
     metrics = ["average response time", "cpu usage", "memory usage"]
@@ -317,7 +314,7 @@ def format_for_extra_p() -> None:
                     file.write("\n")
                     file.write("POINTS ")
                 row = variation.iloc[[i]]
-                file.write(f"( {row.iloc[0]['CPU']} {row.iloc[0]['Memory']} {row.iloc[0]['Pods']} )")
+                file.write(f"( {row.iloc[0]['CPU']} {row.iloc[0]['Memory']} {row.iloc[0]['Pods']} ) ")
             file.write("\n")
             file.write("REGION Test\n")
             file.write(f"METRIC {m_name}\n")
@@ -375,6 +372,22 @@ def combine_runs() -> None:
         tmp.append(tmp_data)
     result = pd.concat(tmp)
     save_data(result, os.getenv("LAST_DATA"), "combined")
+
+
+def combine_data(data: list, name: str) -> None:
+    """
+    Combines data from all runs.
+    :return: None
+    """
+    data_path = os.path.join(os.getcwd(), "data", "filtered")
+    tmp = list()
+    for i, file in enumerate(data):
+        tmp_data = pd.read_csv(filepath_or_buffer=os.path.join(data_path, f"{file}.csv"), delimiter=',')
+        tmp_data.insert(0, 'run', i + 1)
+        tmp_data = tmp_data.loc[(tmp_data['pod'] == "webui")]
+        tmp.append(tmp_data)
+    result = pd.concat(tmp)
+    save_data(result, name, "combined")
 
 
 def filter_run() -> None:

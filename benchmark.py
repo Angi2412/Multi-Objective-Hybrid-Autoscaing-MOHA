@@ -48,9 +48,11 @@ def config_env(**kwargs) -> None:
         set_key(dotenv_path=env_file, key_to_set=key, value_to_set=value)
 
 
-def get_prometheus_data(folder: str, iteration: int) -> None:
+def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
     """
     Exports metric data from prometheus to a csv file.
+    :param mm: minutes
+    :param hh: hours
     :param folder: save folder
     :param iteration: number of current iteration
     :return: None
@@ -66,22 +68,24 @@ def get_prometheus_data(folder: str, iteration: int) -> None:
     ]
     network_metrics = ["response_latency_ms_sum", "response_latency_ms_count"]
     # get resource metric data resources
-    resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode="RESOURCES", custom=False)
+    resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode="RESOURCES", custom=False,
+                                                  hh=hh, mm=mm)
     for x in range(1, len(resource_metrics)):
         resource_metrics_data = resource_metrics_data + get_prometheus_metric(metric_name=resource_metrics[x],
-                                                                              mode="RESOURCES", custom=False)
+                                                                              mode="RESOURCES", custom=False, hh=hh,
+                                                                              mm=mm)
     # get custom resource metric data resources
-    custom_memory = get_prometheus_metric(metric_name="memory", mode="RESOURCES", custom=True)
+    custom_memory = get_prometheus_metric(metric_name="memory", mode="RESOURCES", custom=True, hh=hh, mm=mm)
     custom_memory = MetricRangeDataFrame(custom_memory)
     custom_memory.insert(0, 'metric', "memory")
-    custom_cpu = get_prometheus_metric(metric_name="cpu", mode="RESOURCES", custom=True)
+    custom_cpu = get_prometheus_metric(metric_name="cpu", mode="RESOURCES", custom=True, hh=hh, mm=mm)
     custom_cpu = MetricRangeDataFrame(custom_cpu)
     custom_cpu.insert(0, 'metric', "cpu")
     # get network metric data
     network_metrics_data = get_prometheus_metric(metric_name=network_metrics[0],
-                                                 mode="NETWORK", custom=False) + get_prometheus_metric(
+                                                 mode="NETWORK", custom=False, hh=hh, mm=mm) + get_prometheus_metric(
         metric_name=network_metrics[1],
-        mode="NETWORK", custom=False)
+        mode="NETWORK", custom=False, hh=hh, mm=mm)
     # convert to dataframe
     metrics_data = resource_metrics_data + network_metrics_data
     metric_df = MetricRangeDataFrame(metrics_data)
@@ -134,9 +138,11 @@ def get_status(pod: str) -> (list, list):
     return parameters, targets
 
 
-def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
+def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm: int) -> list:
     """
     Gets a given metric from prometheus in a given timeframe.
+    :param mm: minutes
+    :param hh: hours
     :param custom: if custom query should be used
     :param mode: which prometheus to use
     :param metric_name: name of the metric
@@ -144,7 +150,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
     """
     # init
     prom = PrometheusConnect(url=os.getenv(f'PROMETHEUS_{mode}_HOST'), disable_ssl=True)
-    start_time = (dt.datetime.now() - dt.timedelta(hours=int(os.getenv("HH")), minutes=int(os.getenv("MM"))))
+    start_time = (dt.datetime.now() - dt.timedelta(hours=hh, minutes=mm))
     # custom queries
     cpu_usage = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[5m])) by (pod, ' \
                 'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
@@ -173,6 +179,34 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
             end_time=dt.datetime.now(),
         )
     return metric_data
+
+
+def evaluation(name: str, users: int, spawn_rate: int, hh: int, mm: int):
+    # init date
+    date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    # create folder
+    folder_path = os.path.join(os.getcwd(), "data", "raw", f"{date}_eval")
+    os.mkdir(folder_path)
+    # create deployment
+    k8s.k8s_create_teastore()
+    k8s.k8s_create_autoscaler()
+    # config
+    k8s.set_prometheus_info()
+    config_env(app_name=name,
+               host=os.getenv("HOST"),
+               node_port=k8s.k8s_get_app_port(),
+               date=date,
+               users=users,
+               spawn_rate=spawn_rate,
+               )
+    # evaluation
+    logging.info("Starting Evaluation.")
+    logging.info("Start Locust.")
+    start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True)
+    # get prometheus data
+    get_prometheus_data(folder=folder_path, iteration=0, hh=hh, mm=mm)
+    k8s.k8s_delete_namespace()
+    logging.info("Finished Benchmark.")
 
 
 def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
@@ -246,7 +280,8 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                 logging.info("Start Locust.")
                 start_locust(iteration=iteration, folder=folder_path, history=history, custom_shape=custom_shape)
                 # get prometheus data
-                get_prometheus_data(folder=folder_path, iteration=iteration)
+                get_prometheus_data(folder=folder_path, iteration=iteration, hh=int(os.getenv("HH")),
+                                    mm=int(os.getenv("MM")))
                 iteration = iteration + 1
     logging.info("Finished Benchmark.")
 

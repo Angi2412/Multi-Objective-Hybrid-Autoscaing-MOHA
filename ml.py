@@ -5,47 +5,82 @@ from time import time
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from dotenv import load_dotenv, set_key
 from joblib import dump, load, numpy_pickle
 from skcriteria import Data, MIN, MAX
 from skcriteria.madm.closeness import TOPSIS
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, BayesianRidge
 from sklearn.metrics import mean_squared_error, r2_score
-from sklearn.experimental import enable_halving_search_cv
-from sklearn.model_selection import train_test_split, HalvingGridSearchCV, StratifiedShuffleSplit, GridSearchCV
+from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import MLPRegressor
-from sklearn.pipeline import make_pipeline
-from sklearn.preprocessing import RobustScaler, MinMaxScaler
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
 
 
-def linear_regression_model(X: np.array, y: np.array, name: str, save: bool) -> None:
+def linear_least_squares_model(target: str, save: bool) -> None:
     """
     Linear Regression model with given data.
     :param save: if should save
-    :param name: name
-    :param X: data
-    :param y: targets
+    :param target: target name
     :return: None
     """
-    # split data in to train and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+    X_train, X_test, y_train, y_test = get_processed_data(target)
 
     # Create linear regression object
     regression = LinearRegression()
 
+    tic = time()
     # Train the model using the training sets
     regression.fit(X_train, y_train)
-
+    gsh_time = time() - tic
+    print("Linear Least Squares Regression")
+    print(f"Training time: {gsh_time}")
     # Make predictions using the testing set
     y_pred = regression.predict(X_test)
 
     # get metrics
-    print("Linear Regression")
+    print("Metrics:")
     get_metrics(y_test, y_pred)
     # save model
     if save:
-        save_model(regression, name)
+        save_model(regression, target)
+
+
+def linear_bayesian_model(target: str, save: bool, search: bool) -> None:
+    """
+    Linear Regression model with given data.
+    :param save: if should save
+    :param target: target name
+    :param search: grid search
+    :return: None
+    """
+    X_train, X_test, y_train, y_test = get_processed_data(target)
+
+    if search:
+        params = {"lambda_1": np.logspace(-2, 10, 13, base=2), "lambda_2": np.logspace(-2, 10, 13, base=2)}
+        tic = time()
+        search = GridSearchCV(estimator=BayesianRidge(alpha_1=0.01, alpha_2=0.01), param_grid=params, verbose=1)
+        search.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(f"Training time: {gsh_time}")
+        print(f"Best params: {search.best_params_}")
+    # Train the model using the training sets
+    else:
+        # Create linear regression object
+        regression = BayesianRidge(alpha_1=0.01, alpha_2=0.01, lambda_1=1024, lambda_2=1.0)
+        tic = time()
+        regression.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print("Linear Bayesian Regression")
+        print(f"Training time: {gsh_time}")
+        # Make predictions using the testing set
+        y_pred = regression.predict(X_test)
+        # get metrics
+        print("Metrics:")
+        get_metrics(y_test, y_pred)
+        # save model
+        if save:
+            save_model(regression, target)
 
 
 def get_metrics(test: np.array, pred: np.array) -> None:
@@ -61,25 +96,19 @@ def get_metrics(test: np.array, pred: np.array) -> None:
     print('Coefficient of determination: %.2f' % r2_score(test, pred))
 
 
-def svr_model(X: np.array, y: np.array, name: str, save: bool, search: bool) -> None:
+def svr_model(target: str, save: bool, search: bool) -> None:
     """
     Several SVR models with different kernel functions from given data.
     :param save: if should save
-    :param name: name
-    :param X: data
-    :param y: targets
+    :param target: target name
     :param search: search for hyper parameter
     :return: None
     """
-    # scale dataset
-    scaling = MinMaxScaler()
-    X = scaling.fit_transform(X)
-    y = scaling.fit_transform(y)
     # split data in to train and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+    X_train, X_test, y_train, y_test = get_processed_data(target)
     if search:
         # SVRs with different kernels
-        params = {"C": np.logspace(-2, 10, 13, base=10), "gamma": np.logspace(1, 3, 13, base=10)}
+        params = {"C": np.logspace(-2, 10, 13, base=2), "gamma": np.logspace(1, 3, 13, base=2)}
         tic = time()
         search = GridSearchCV(estimator=SVR(kernel="rbf", cache_size=8000, epsilon=0.1), param_grid=params, verbose=1)
         search.fit(X_train, y_train.ravel())
@@ -87,42 +116,60 @@ def svr_model(X: np.array, y: np.array, name: str, save: bool, search: bool) -> 
         print(f"Training time: {gsh_time}")
         print(f"Best params: {search.best_params_}")
     else:
-        svr = SVR(kernel="rbf", C=8, gamma=8, cache_size=8000)
+        svr = SVR(kernel="rbf", C=4.0, gamma=8.0, cache_size=8000)
+        tic = time()
         svr.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print("Support Vector Regression")
+        print(f"Training time: {gsh_time}")
         # Make predictions using the testing set
         y_pred = svr.predict(X_test)
         # print scores
-        print("SVR:")
+        print("Metrics:")
         get_metrics(y_test, y_pred)
         if save:
-            save_model(search, name)
+            save_model(search, target)
 
 
-def neural_network_model(X: np.array, y: np.array, name: str, save: bool) -> None:
+def neural_network_model(target: str, search: bool, save: bool) -> None:
     """
     MLPRegressor neural network with given data.
+    :param search: use search
     :param save: should save
-    :param name: name of model
-    :param X: data
-    :param y: target
+    :param target: target name
     :return: None
     """
     # split data
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+    X_train, X_test, y_train, y_test = get_processed_data(target)
     # train neural network
-    mlp = make_pipeline(StandardScaler(),
-                        MLPRegressor(hidden_layer_sizes=(1000, 1000), solver="lbfgs",
-                                     tol=1e-2, max_iter=10000, random_state=0))
-    mlp.fit(X, y.ravel())
-    # make predictions using the testing set
-    y_pred = mlp.predict(X_test)
-    # print scores
-    print("Neural Network")
-    print(mlp.score(X_test, y_test))
-    get_metrics(y_test, y_pred)
+    mlp = None
+    if search:
+        # SVRs with different kernels
+        params = {"solver": ["lbfgs", "adam", "sgd"], "activation": ["identity", "logistic", "tanh", "relu"],
+                  "alpha": np.logspace(-2, 10, 13, base=2), "tol": np.logspace(1, 3, 13, base=2)}
+        tic = time()
+        search = GridSearchCV(estimator=MLPRegressor(learning_rate="adaptive", max_iter=1000), param_grid=params,
+                              verbose=1)
+        search.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(f"Training time: {gsh_time}")
+        print(f"Best params: {search.best_params_}")
+    else:
+        mlp = MLPRegressor(activation="relu", alpha=0.25, solver="adam", tol=2.244924096618746)
+        # make predictions using the testing set
+        tic = time()
+        mlp.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print("Neural Network")
+        print(f"Training time: {gsh_time}")
+        y_pred = mlp.predict(X_test)
+        # print scores
+        print("Metrics:")
+        print(mlp.score(X_test, y_test))
+        get_metrics(y_test, y_pred)
     # save model
     if save:
-        save_model(mlp, name)
+        save_model(mlp, target)
 
 
 def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
@@ -255,17 +302,31 @@ def train_for_all_targets(date: str, kind: str) -> None:
     for t in targets:
         X, y = get_data(date, t, True)
         if kind == "neural":
-            neural_network_model(X, y, t, True)
+            neural_network_model(t, False, True)
         elif kind == "linear":
-            linear_regression_model(X, y, t, True)
+            linear_least_squares_model(t, True)
+            linear_bayesian_model(t, True, False)
         elif kind == "svr":
-            svr_model(X, y, t, True, False)
+            svr_model(t, True, False)
         else:
             logging.warning("There is no model type: " + kind)
             return
+    set_key(os.getenv(os.getcwd(), ".env"), "LAST_TRAINED_DATA", date)
     logging.info("All models are trained.")
 
 
+def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
+    load_dotenv()
+    X, y = get_data(os.getenv("LAST_DATA"), target, True)
+    # scale dataset
+    scaling = MinMaxScaler()
+    X = scaling.fit_transform(X)
+    y = scaling.fit_transform(y)
+    # split data in to train and test sets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+    return X_train, X_test, y_train, y_test
+
+
 if __name__ == '__main__':
-    X, y = get_data("20210303-230654", "average response time", True)
-    svr_model(X, y, "20210303-230654_art", False, True)
+    load_dotenv()
+    train_for_all_targets(os.getenv("LAST_DATA"), "svr")

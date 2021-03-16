@@ -90,7 +90,7 @@ def k8s_update_deployment_from_file(yaml_file: str, cpu_limit: int, memory_limit
         # update deployment for each deployment from list
         try:
             for deployment in deployment_names:
-                k8s_update_deployment(deployment, cpu_limit, memory_limit, number_of_replicas)
+                k8s_update_deployment(deployment, cpu_limit, memory_limit, number_of_replicas, replace=True)
         except Exception as err:
             logging.error(f"Error while updating deployment from file: {err}")
 
@@ -124,8 +124,8 @@ def k8s_deployment(name: str, port: int, image: str) -> client.V1Deployment:
         image=image,
         ports=[client.V1ContainerPort(container_port=port)],
         resources=client.V1ResourceRequirements(
-            requests={"cpu": "200m", "memory": "600Mi"},
-            limits={"cpu": "200m", "memory": "600Mi"}
+            requests={"cpu": "100m", "memory": "100"},
+            limits={"cpu": "200m", "memory": "300Mi"}
         ),
         image_pull_policy="Never"
     )
@@ -137,7 +137,7 @@ def k8s_deployment(name: str, port: int, image: str) -> client.V1Deployment:
     spec = client.V1DeploymentSpec(
         replicas=1,
         template=template,
-        selector={'matchLabels': {'app': name}})
+        selector={'matchLabels': {'app': "teastore"}})
     # Instantiate the deployment object
     deployment = client.V1Deployment(
         api_version="apps/v1",
@@ -166,20 +166,18 @@ def k8s_create_deployment(deployment: client.V1Deployment) -> None:
 
 
 def k8s_update_all_deployments_in_namespace(cpu_limit: int, memory_limit: int,
-                                            number_of_replicas: int, delete: bool) -> None:
+                                            number_of_replicas: int) -> None:
     """
     Updates all deployments in a given namespace with given values.
     :param cpu_limit: limit of cpu
     :param memory_limit: limit of memory
     :param number_of_replicas: limit of number of replicas
-    :param delete: update method
     :return: None
     """
     not_scalable = ["mysql", "mongodb", "redis", "rabbitmq"]
     # init API
     config.load_kube_config()
     apps_v1 = client.AppsV1Api()
-    core_v1 = client.CoreV1Api()
     # read deployment
     counter = 0
     ret = apps_v1.list_namespaced_deployment(namespace=os.getenv("NAMESPACE"))
@@ -272,6 +270,7 @@ def k8s_delete_namespace() -> None:
                 api_response = v1.delete_namespace(os.getenv("NAMESPACE"))
                 time.sleep(180)
                 logging.info("Deleted namespace " + os.getenv("NAMESPACE"))
+                logging.debug(api_response)
                 return
         logging.warning(f"Could not delete namespace: {os.getenv('NAMESPACE')} because is does not exist.")
     except client.exceptions.ApiException as e:
@@ -294,25 +293,6 @@ def k8s_get_app_port() -> int:
             if i.spec.ports[0].node_port:
                 logging.debug(f"NodePort for service {i.metadata.name} is {i.spec.ports[0].node_port}")
                 return int(i.spec.ports[0].node_port)
-
-
-def k8s_create_robotshop() -> None:
-    """
-    Create robot-shop deployment from helm.
-    :return: None
-    """
-    work_directory = os.getcwd()
-    # Create namespace
-    os.system(f"kubectl create namespace {os.getenv('NAMESPACE')}")
-    time.sleep(30)
-    # create deployment
-    robot_shop_dir = os.path.join(os.getcwd(), "k8s", "robotshop", "K8s", "helm")
-    os.chdir(robot_shop_dir)
-    os.system("helm install robot-shop --namespace robot-shop .")
-    logging.info("Creating robot-shop: waiting 5 minutes...")
-    time.sleep(300)
-    os.chdir(work_directory)
-    logging.info("Created robot-shop.")
 
 
 def build_docker_image(name: str, docker_path: str) -> str:
@@ -393,3 +373,17 @@ def get_resource_requests() -> dict:
         resources = deployment.spec.template.spec.containers[0].resources.requests
         resource_requests[i.metadata.name] = resources
     return resource_requests
+
+
+def create_autoscaler() -> None:
+    work_directory = os.getcwd()
+    try:
+        yaml_path = os.path.join(os.getcwd(), "k8s")
+        os.chdir(yaml_path)
+        os.system(f"kubectl create -f autoscaler.yaml -n teastore")
+        time.sleep(10)
+        os.system(f"kubectl create -f cronjob.yaml -n teastore")
+        time.sleep(10)
+        os.chdir(work_directory)
+    except Exception as err:
+        logging.error(f"Error while creating autoscaler: {err}")

@@ -112,15 +112,23 @@ def get_status(pod: str) -> (list, list):
     cpu_usage_data["pod"] = cpu_usage_data["pod"].str.split("-", n=2).str[1]
     memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage))
     memory_usage_data["pod"] = memory_usage_data["pod"].str.split("-", n=2).str[1]
-    average_response_time_data = MetricSnapshotDataFrame(
-        prom_net.get_current_metric_value("response_latency_ms_sum") / prom_net.get_current_metric_value(
-            "response_latency_ms_count"))
-    average_response_time_data["pod"] = average_response_time_data["pod"].str.split("-", n=2).str[1]
+    average_response_time_sum_data = MetricSnapshotDataFrame(
+        prom_net.get_current_metric_value("response_latency_ms_sum"))
+    average_response_time_count_data = MetricSnapshotDataFrame(
+        prom_net.get_current_metric_value("response_latency_ms_count"))
+
+    average_response_time_sum_data["pod"] = average_response_time_sum_data["pod"].str.split("-", n=2).str[1]
+    average_response_time_count_data["pod"] = average_response_time_count_data["pod"].str.split("-", n=2).str[1]
     # filter
     cpu_usage = cpu_usage_data.loc[(cpu_usage_data['pod'] == pod)].at[0, 'value']
     memory_usage = memory_usage_data.loc[(memory_usage_data['pod'] == pod)].at[0, 'value']
-    average_response_time = average_response_time_data.loc[(average_response_time_data['pod'] == pod)].at[0, 'value']
-    targets = [cpu_usage, memory_usage, average_response_time]
+    average_response_time_sum = average_response_time_sum_data.loc[
+        (average_response_time_sum_data['pod'] == pod)].mean()
+    average_response_time_count = average_response_time_count_data.loc[
+        (average_response_time_count_data['pod'] == pod)].mean()
+    average_response_time = float(average_response_time_sum.loc['value']) / float(
+        average_response_time_count.loc['value'])
+    targets = [float(cpu_usage), float(memory_usage), average_response_time]
     # parameter metrics
     cpu_limit_data = MetricSnapshotDataFrame(
         prom_res.get_current_metric_value("kube_pod_container_resource_limits_cpu_cores"))
@@ -131,10 +139,10 @@ def get_status(pod: str) -> (list, list):
     number_of_pods_data = MetricSnapshotDataFrame(prom_res.get_current_metric_value("kube_deployment_spec_replicas"))
     number_of_pods_data["pod"] = number_of_pods_data["pod"].str.split("-", n=2).str[1]
     # filter
-    cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)].at[0, 'value']
-    memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)].at[0, 'value']
-    number_of_pods = number_of_pods_data.loc[(number_of_pods_data['pod'] == pod)].at[0, 'value']
-    parameters = [cpu_limit, memory_limit, number_of_pods]
+    cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)]['value']
+    memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)]['value'].loc[4]
+    number_of_pods = number_of_pods_data.loc[(number_of_pods_data['deployment'] == f"teastore-{pod}")]['value'].loc[20]
+    parameters = [int(float(cpu_limit) * 1000), int(float(memory_limit) / 1048576), int(number_of_pods)]
     return parameters, targets
 
 
@@ -189,7 +197,7 @@ def evaluation(name: str, users: int, spawn_rate: int, hh: int, mm: int):
     os.mkdir(folder_path)
     # create deployment
     k8s.k8s_create_teastore()
-    k8s.k8s_create_autoscaler()
+    k8s.create_autoscaler()
     # config
     k8s.set_prometheus_info()
     config_env(app_name=name,
@@ -315,15 +323,16 @@ def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, 
 
 
 def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int,
-                        pods_limit: int, step: int, invert: bool, sample: bool) -> np.array:
+                        pods_request: int,
+                        pods_limit: int, step: int, invert: bool, sample: bool, save: bool) -> np.array:
     """
     Calculates a matrix mit all combination of the parameters.
     :return: parameter variation matrix
     """
     # init parameters: (start, end, step)
-    cpu = np.arange(cpu_request, cpu_limit, step, np.int32)
-    memory = np.arange(memory_request, memory_limit, step, np.int32)
-    pods = np.arange(1, pods_limit + 1, 1, np.int32)
+    cpu = np.arange(cpu_request, cpu_limit + step, step, np.int32)
+    memory = np.arange(memory_request, memory_limit + step, step, np.int32)
+    pods = np.arange(pods_request, pods_limit + 1, 1, np.int32)
     if invert:
         cpu = np.flip(cpu)
         memory = np.flip(memory)
@@ -355,9 +364,10 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
                 df.at[i, 'Pods'] = pods[p]
                 i = i + 1
     logging.debug(df.head())
-    # save dataframe to csv
-    if not os.path.exists(csv_path):
-        df.to_csv(csv_path)
+    if save:
+        # save dataframe to csv
+        if not os.path.exists(csv_path):
+            df.to_csv(csv_path)
     return variation_matrix
 
 
@@ -436,10 +446,21 @@ def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: in
         benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape, history, sample)
 
 
+def flattenNestedList(nestedList: list) -> list:
+    """ Converts a nested list to a flat list """
+    flat = []
+    # Iterate over all the elements in given list
+    for elem in nestedList:
+        # Check if type of element is list
+        if isinstance(elem, list):
+            # Extend the flat list by adding contents of this element (list)
+            flat.extend(flattenNestedList(elem))
+        else:
+            # Append the elemengt to the list
+            flat.append(elem)
+    return flat
+
 if __name__ == '__main__':
-    # create deployment
-    k8s.k8s_create_teastore()
-    start_run(name="teastore", users=100, spawn_rate=1, expressions=5, step=100, pods_limit=5, runs=10,
-              custom_shape=False, history=False, sample=False)
-    # delete namespace
-    k8s.k8s_delete_namespace()
+
+    for i,x in enumerate(res):
+        print(f"{i}: {x}")

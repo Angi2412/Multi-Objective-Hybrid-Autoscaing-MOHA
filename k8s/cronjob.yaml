@@ -1,7 +1,7 @@
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: callout
+  name: scale
 spec:
   schedule: "* * * * *"
   concurrencyPolicy: Forbid
@@ -23,7 +23,7 @@ spec:
 apiVersion: batch/v1beta1
 kind: CronJob
 metadata:
-  name: callout
+  name: improve
 spec:
   schedule: "0 * * * *"
   concurrencyPolicy: Forbid

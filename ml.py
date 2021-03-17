@@ -1,4 +1,5 @@
 import logging
+import math
 import os
 from time import time
 
@@ -15,6 +16,9 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
+
+import benchmark
+import k8s_tools
 
 
 def linear_least_squares_model(target: str, save: bool) -> None:
@@ -128,7 +132,7 @@ def svr_model(target: str, save: bool, search: bool) -> None:
         print("Metrics:")
         get_metrics(y_test, y_pred)
         if save:
-            save_model(search, target)
+            save_model(svr, target)
 
 
 def neural_network_model(target: str, search: bool, save: bool) -> None:
@@ -232,28 +236,54 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
     # init arrays
     step = int(os.getenv("STEP"))
     models = get_models()
-    predict_window = np.empty(window * 2, dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32)])
-    predictions = np.empty((len(models), window * 2))
-    prediction_array = np.zeros(window * 2, dtype=[('cpu', np.int32), ('memory', np.int32), ('art', np.int32)])
+    possibilities = int(math.pow(2 * window + 1, 3))
+    predictions = np.empty((len(models), possibilities))
+    prediction_array = np.zeros(possibilities, dtype=np.float64)
+
+    # current state
     # get all possibilities in window
-    for i in range(0, 2 * window):
-        j = (i % window) + 1
-        if i < window:
-            predict_window[i] = ((cpu_limit - (j * step)), (memory_limit - (j * step)), (number_of_pods - j))
-        else:
-            predict_window[i] = ((cpu_limit + (j * step)), (memory_limit + (j * step)), (number_of_pods + j))
+    predict_window_list = benchmark.flattenNestedList(
+        benchmark.parameter_variation("webui", cpu_limit - window * step, cpu_limit + window * step,
+                                      memory_limit - window * step, memory_limit + window * step,
+                                      number_of_pods - window, number_of_pods + window,
+                                      step, False, False, False).tolist())
+    # validate parameter variations
+    for i, entry in enumerate(predict_window_list):
+        predict_window_list[i] = validate_parameter(entry)
+    predict_window = np.array(predict_window_list, dtype=np.float64)
     # get predictions
     for i, model in enumerate(models):
-        print(model.predict(predict_window.tolist()))
-        predictions[i] = model.predict(predict_window.tolist())
+        scaler = MinMaxScaler()
+        predict_window = scaler.fit(predict_window)
+        predictions[i] = model.predict(predict_window)
     # format into array
-    for i in range(0, 2 * window):
-        prediction_array[i] = (predictions[0][i], predictions[1][i], predictions[2][i])
+    for i in range(0, possibilities):
+        prediction_array[i] = (predictions[0][i], predictions[1][1], predictions[i][2])
     # get index of best outcome
     best_outcome_index = choose_best(prediction_array.tolist())
     # get parameters of best outcome
     best_parameters = predict_window[best_outcome_index]
     return best_parameters
+
+
+def validate_parameter(limits: tuple) -> tuple:
+    """
+    Validates if the given limits are below the requested resources.
+    :return: validated resources
+    """
+    cpu = limits[0]
+    memory = limits[1]
+    pods = limits[2]
+    request = k8s_tools.get_resource_requests()[os.getenv("SCALE_POD")]
+    cpu_request = int(str(request["cpu"]).rstrip("m"))
+    memory_request = int(str(request["memory"]).rstrip("Mi"))
+    if cpu <= cpu_request:
+        cpu = cpu_request
+    if memory <= memory_request:
+        memory = memory_request
+    if pods <= 1:
+        pods = 1
+    return (cpu, memory, pods)
 
 
 def choose_best(mtx: np.array) -> int:
@@ -283,11 +313,14 @@ def get_models() -> list:
     :return: list of models
     """
     targets = ["average response time", "cpu usage", "memory usage"]
-    models_path = os.path.join(os.getcwd(), "data", "models")
     models = list()
     for t in targets:
-        model = os.path.join(models_path, f"{t}.joblib")
-        models.append(load(model))
+        model = os.path.join(os.getcwd(), "data", "models", f"{t}.joblib")
+        if os.path.exists(model):
+            models.append(load(model))
+        else:
+            logging.error(f"No model found with name {t}")
+    print(models)
     return models
 
 
@@ -325,8 +358,3 @@ def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
     # split data in to train and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
     return X_train, X_test, y_train, y_test
-
-
-if __name__ == '__main__':
-    load_dotenv()
-    train_for_all_targets(os.getenv("LAST_DATA"), "svr")

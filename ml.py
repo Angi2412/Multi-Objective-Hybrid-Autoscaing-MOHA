@@ -254,8 +254,8 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
     # get predictions
     for i, model in enumerate(models):
         scaler = MinMaxScaler()
-        predict_window = scaler.fit(predict_window)
-        predictions[i] = model.predict(predict_window)
+        predict_window = scaler.fit_transform(predict_window)
+        predictions[i] = scaler.inverse_transform(model.predict(predict_window))
     # format into array
     for i in range(0, possibilities):
         prediction_array[i] = (predictions[0][i], predictions[1][1], predictions[i][2])

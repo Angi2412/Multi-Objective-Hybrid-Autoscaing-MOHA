@@ -6,14 +6,14 @@ from flask import Flask, jsonify
 
 import benchmark
 import formatting
-import k8s_tools
 import ml
+from k8s_tools import k8s_update_deployment
 
 app = Flask(__name__)
 
 
 @app.route('/heartbeat')
-def heartbeat() -> bool:
+def heartbeat():
     """
     Sends heartbeat if application is running.
     :return: heartbeat
@@ -22,22 +22,24 @@ def heartbeat() -> bool:
 
 
 @app.route('/scale')
-def scale() -> None:
+def scale():
     """
     Autoscaling loop.
-    :return: None
     """
     load_dotenv()
     parameter_status, target_status = benchmark.get_status("webui")
-    print("got status")
+    print(f"Parameter status: {parameter_status}")
+    print(f"Target Status: {target_status}")
     if check_target_status(target_status):
         return jsonify(success=True)
     else:
         best_parameters = ml.get_best_parameters(cpu_limit=parameter_status[0], memory_limit=parameter_status[1],
                                                  number_of_pods=parameter_status[2], window=int(os.getenv("WINDOW")))
-        #k8s_tools.k8s_update_deployment(os.getenv("SCALE_POD"), best_parameters[0], best_parameters[1],
-                                        #best_parameters[2], replace=False)
-        return jsonify({"cpu": best_parameters[0], "memory": best_parameters[1], "number of pods": best_parameters[2]})
+        k8s_update_deployment(os.getenv("SCALE_POD"), best_parameters[0], best_parameters[1],
+                              best_parameters[2], replace=False)
+        print(f"Best parameters:")
+        print(f"cpu: {best_parameters[0]}m - memory: {best_parameters[1]}Mi - pods: {best_parameters[2]}")
+        return jsonify(success=True)
 
 
 @app.route('/improve')
@@ -84,5 +86,5 @@ def check_target_status(targets: list) -> bool:
 
 
 if __name__ == '__main__':
-    print(scale())
+    scale()
     # app.run(host="localhost", port=5000, debug=False)

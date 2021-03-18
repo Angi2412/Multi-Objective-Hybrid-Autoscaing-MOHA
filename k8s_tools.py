@@ -390,5 +390,5 @@ def create_autoscaler() -> None:
 
 
 if __name__ == '__main__':
-    #k8s_create_teastore()
-    create_autoscaler()
+    k8s_create_teastore()
+    #create_autoscaler()

@@ -238,7 +238,7 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
     models = get_models()
     possibilities = int(math.pow(2 * window + 1, 3))
     predictions = np.empty((len(models), possibilities))
-    prediction_array = np.zeros(possibilities, dtype=np.float64)
+    prediction_array = np.zeros([possibilities, len(models)], dtype=np.float64)
 
     # current state
     # get all possibilities in window
@@ -252,17 +252,25 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
         predict_window_list[i] = validate_parameter(entry)
     predict_window = np.array(predict_window_list, dtype=np.float64)
     # get predictions
+    scaler = MinMaxScaler()
     for i, model in enumerate(models):
-        scaler = MinMaxScaler()
-        predict_window = scaler.fit_transform(predict_window)
-        predictions[i] = scaler.inverse_transform(model.predict(predict_window))
+        # scale data
+        predict_window_scaled = scaler.fit_transform(predict_window)
+        # predict
+        predictions[i] = model.predict(predict_window_scaled)
+    # load target scaler
+    y_scaler = load(os.path.join(os.getcwd(), "data", "models", "y_scaler.gz"))
     # format into array
     for i in range(0, possibilities):
-        prediction_array[i] = (predictions[0][i], predictions[1][1], predictions[i][2])
+        for j in range(0, len(models)):
+            prediction_array[i, j] = y_scaler.inverse_transform(predictions[j, i].reshape(1, -1))
+    prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
     # get index of best outcome
     best_outcome_index = choose_best(prediction_array.tolist())
     # get parameters of best outcome
-    best_parameters = predict_window[best_outcome_index]
+    best_parameters = predict_window_list[best_outcome_index]
+    print(
+        f"Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%")
     return best_parameters
 
 
@@ -283,7 +291,7 @@ def validate_parameter(limits: tuple) -> tuple:
         memory = memory_request
     if pods <= 1:
         pods = 1
-    return (cpu, memory, pods)
+    return cpu, memory, pods
 
 
 def choose_best(mtx: np.array) -> int:
@@ -292,18 +300,19 @@ def choose_best(mtx: np.array) -> int:
     :param mtx: alternatives
     :return: index of best alternative
     """
-    # min average response time, max cpu usage, max memory usage
-    criteria = [MIN, MAX, MAX]
+    # min average response time, max cpu usage, max memory usage, min cpu limit, min memory limit, min number of pods
+    criteria = [MIN, MAX, MAX, MIN, MIN, MIN]
+    weights = [0.3, 0.125, 0.125, 0.125, 0.125, 0.20]
     # create DecisionMaker
     dm = TOPSIS()
     # create data object
-    data = Data(mtx=mtx, criteria=criteria, cnames=["average response time", "cpu usage", "memory usage"])
+    data = Data(mtx=mtx, criteria=criteria, weights=weights, cnames=["average response time", "cpu usage", "memory usage", "cpu limit", "memory limit", "number of pods"])
     # make decision
     dec = dm.decide(data)
     # show result
-    print(dec)
     data.plot("box")
     plt.show()
+    print(f"index: {dec.best_alternative_}")
     return dec.best_alternative_
 
 
@@ -352,9 +361,12 @@ def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
     load_dotenv()
     X, y = get_data(os.getenv("LAST_DATA"), target, True)
     # scale dataset
-    scaling = MinMaxScaler()
-    X = scaling.fit_transform(X)
-    y = scaling.fit_transform(y)
+    x_scaling = MinMaxScaler()
+    y_scaling = MinMaxScaler()
+    X = x_scaling.fit_transform(X)
+    y = y_scaling.fit_transform(y)
+    # save y scaler
+    dump(y_scaling, os.path.join(os.getcwd(), "data", "models", "y_scaler.gz"))
     # split data in to train and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
     return X_train, X_test, y_train, y_test

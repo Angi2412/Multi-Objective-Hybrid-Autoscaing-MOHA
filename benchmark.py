@@ -81,6 +81,9 @@ def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
     custom_cpu = get_prometheus_metric(metric_name="cpu", mode="RESOURCES", custom=True, hh=hh, mm=mm)
     custom_cpu = MetricRangeDataFrame(custom_cpu)
     custom_cpu.insert(0, 'metric', "cpu")
+    custom_rps = get_prometheus_metric(metric_name="rps", mode="NETWORK", custom=True, hh=hh, mm=mm)
+    custom_rps = MetricRangeDataFrame(custom_rps)
+    custom_rps.insert(0, 'metric', "rps")
     # get network metric data
     network_metrics_data = get_prometheus_metric(metric_name=network_metrics[0],
                                                  mode="NETWORK", custom=False, hh=hh, mm=mm) + get_prometheus_metric(
@@ -89,7 +92,7 @@ def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
     # convert to dataframe
     metrics_data = resource_metrics_data + network_metrics_data
     metric_df = MetricRangeDataFrame(metrics_data)
-    custom_metrics_df = pd.concat([custom_cpu, custom_memory])
+    custom_metrics_df = pd.concat([custom_cpu, custom_memory, custom_rps])
     # write to csv file
     metric_df.to_csv(rf"{folder}\metrics_{iteration}.csv")
     custom_metrics_df.to_csv(rf"{folder}\custom_metrics_{iteration}.csv")
@@ -100,23 +103,25 @@ def get_status(pod: str) -> (list, list):
     prom_res = PrometheusConnect(url=os.getenv(f'PROMETHEUS_RESOURCES_HOST'), disable_ssl=True)
     prom_net = PrometheusConnect(url=os.getenv(f'PROMETHEUS_NETWORK_HOST'), disable_ssl=True)
     # custom queries
-    cpu_usage = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[5m])) by (pod, ' \
-                'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
-                'container!=""}/container_spec_cpu_period{namespace="teastore", container!=""}) by (pod, ' \
-                'container) )*100'
-    memory_usage = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",pod=~".*" }[' \
-                   '5m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
-
+    cpu_usage_query = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[5m])) by (pod, ' \
+                      'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
+                      'container!=""}/container_spec_cpu_period{namespace="teastore", container!=""}) by (pod, ' \
+                      'container) )*100'
+    memory_usage_query = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",pod=~".*" }[' \
+                         '5m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
+    rps_query = 'sum(irate(request_total{namespace="teastore", direction="inbound",deployment="teastore-webui"}[5m]))'
     # target metrics
-    cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage))
+    # get cpu
+    cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage_query))
     cpu_usage_data["pod"] = cpu_usage_data["pod"].str.split("-", n=2).str[1]
-    memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage))
+    # get memory
+    memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage_query))
     memory_usage_data["pod"] = memory_usage_data["pod"].str.split("-", n=2).str[1]
+    # get average response time
     average_response_time_sum_data = MetricSnapshotDataFrame(
         prom_net.get_current_metric_value("response_latency_ms_sum"))
     average_response_time_count_data = MetricSnapshotDataFrame(
         prom_net.get_current_metric_value("response_latency_ms_count"))
-
     average_response_time_sum_data["pod"] = average_response_time_sum_data["pod"].str.split("-", n=2).str[1]
     average_response_time_count_data["pod"] = average_response_time_count_data["pod"].str.split("-", n=2).str[1]
     # filter
@@ -130,19 +135,25 @@ def get_status(pod: str) -> (list, list):
         average_response_time_count.loc['value'])
     targets = [float(cpu_usage), float(memory_usage), average_response_time]
     # parameter metrics
+    # cpu
     cpu_limit_data = MetricSnapshotDataFrame(
         prom_res.get_current_metric_value("kube_pod_container_resource_limits_cpu_cores"))
     cpu_limit_data["pod"] = cpu_limit_data["pod"].str.split("-", n=2).str[1]
+    # memory
     memory_limit_data = MetricSnapshotDataFrame(
         prom_res.get_current_metric_value("kube_pod_container_resource_limits_memory_bytes"))
     memory_limit_data["pod"] = memory_limit_data["pod"].str.split("-", n=2).str[1]
+    # number of pods
     number_of_pods_data = MetricSnapshotDataFrame(prom_res.get_current_metric_value("kube_deployment_spec_replicas"))
     number_of_pods_data["pod"] = number_of_pods_data["pod"].str.split("-", n=2).str[1]
+    # rps
+    rps_data = MetricSnapshotDataFrame(prom_net.custom_query(rps_query))
     # filter
-    cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)]['value']
-    memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)]['value'].loc[4]
-    number_of_pods = number_of_pods_data.loc[(number_of_pods_data['deployment'] == f"teastore-{pod}")]['value'].loc[20]
-    parameters = [int(float(cpu_limit) * 1000), int(float(memory_limit) / 1048576), int(number_of_pods)]
+    cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)]['value'].iloc[0]
+    memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)]['value'].iloc[0]
+    number_of_pods = number_of_pods_data.loc[(number_of_pods_data['deployment'] == f"teastore-{pod}")]['value'].iloc[0]
+    rps = rps_data.at[0, 'value']
+    parameters = [int(float(cpu_limit) * 1000), int(float(memory_limit) / 1048576), int(number_of_pods), float(rps)]
     return parameters, targets
 
 
@@ -166,6 +177,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
                 'container) )*100'
     memory_usage = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",pod=~".*" }[' \
                    '5m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
+    rps = 'sum(irate(request_total{namespace="teastore", direction="inbound"}[5m]))'
     query = None
     # get data
     if custom:
@@ -173,8 +185,10 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
             query = cpu_usage
         elif metric_name == "memory":
             query = memory_usage
+        elif metric_name == "rps":
+            query = rps
         else:
-            logging.error("Accepts cpu or memory, but received " + metric_name)
+            logging.error("Accepts cpu, memory or rps but received " + metric_name)
         metric_data = prom.custom_query_range(
             query=query,
             start_time=start_time,
@@ -451,7 +465,7 @@ def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: in
                   locust)
 
 
-def start_jmeter(iteration: int, date:str):
+def start_jmeter(iteration: int, date: str):
     work_directory = os.getcwd()
     jmeter_path = os.path.join(os.getcwd(), "data", "loadtest", "jmeter", "bin")
     os.chdir(jmeter_path)
@@ -474,6 +488,7 @@ def flattenNestedList(nestedList: list) -> list:
             flat.append(elem)
     return flat
 
+
 if __name__ == '__main__':
-    start_run(name="teastore", users=10, spawn_rate=1, expressions=1, step=100, pods_limit=5, runs=1,
-              custom_shape=False, history=False, sample=False, locust=False)
+    start_run(name="teastore", users=10, spawn_rate=1, expressions=1, step=100, pods_limit=1, runs=1,
+              custom_shape=False, history=False, sample=False, locust=True)

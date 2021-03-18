@@ -1,4 +1,5 @@
 # Copyright (c) 2020 Angelina Horn
+import subprocess
 
 from gevent import monkey
 
@@ -31,7 +32,9 @@ load_dotenv(override=True)
 
 # init logger
 logging.getLogger().setLevel(logging.INFO)
-logging.basicConfig(filename='benchmark.log', level=logging.DEBUG)
+
+
+# logging.basicConfig(filename='benchmark.log', level=logging.DEBUG)
 
 
 def config_env(**kwargs) -> None:
@@ -107,7 +110,8 @@ def get_status(pod: str) -> (list, list):
                       'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
                       'container!=""}/container_spec_cpu_period{namespace="teastore", container!=""}) by (pod, ' \
                       'container) )*100'
-    memory_usage_query = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",pod=~".*" }[' \
+    memory_usage_query = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",' \
+                         'pod=~".*" }[' \
                          '5m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
     rps_query = 'sum(irate(request_total{namespace="teastore", direction="inbound",deployment="teastore-webui"}[5m]))'
     # target metrics
@@ -220,6 +224,8 @@ def evaluation(name: str, users: int, spawn_rate: int, hh: int, mm: int):
                date=date,
                users=users,
                spawn_rate=spawn_rate,
+               HH=hh,
+               MM=mm
                )
     # evaluation
     logging.info("Starting Evaluation.")
@@ -251,11 +257,13 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     :return: None
     """
     # init date
+    # read new environment data
+    load_dotenv(override=True)
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     # create folder
     folder_path = os.path.join(os.getcwd(), "data", "raw", date)
     os.mkdir(folder_path)
-
+    k8s.k8s_create_teastore()
     # config
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
     k8s.set_prometheus_info()
@@ -264,12 +272,10 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                node_port=k8s.k8s_get_app_port(),
                date=date,
                users=users,
-               spawn_rate=spawn_rate,
+               spawn_rate=spawn_rate
                )
     iteration = 1
     scale_only = "webui"
-    # read new environment data
-    load_dotenv(override=True)
     # get variation
     variations = parameter_variation_namespace(pods_limit, expressions, step, sample)
     c_max, m_max, p_max = variations[os.getenv("UI")].shape
@@ -304,11 +310,12 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                 if locust:
                     start_locust(iteration=iteration, folder=folder_path, history=history, custom_shape=custom_shape)
                 else:
-                    start_jmeter()
+                    start_jmeter(iteration, date)
                 # get prometheus data
                 get_prometheus_data(folder=folder_path, iteration=iteration, hh=int(os.getenv("HH")),
                                     mm=int(os.getenv("MM")))
                 iteration = iteration + 1
+    k8s.k8s_delete_namespace()
     logging.info("Finished Benchmark.")
 
 
@@ -336,7 +343,8 @@ def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, 
             logging.debug(f"memory request: {p_memory_request}Mi - memory limit: {p_memory_limit}Mi")
             # parameter variation matrix
             variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
-                                               p_memory_limit, pods_limit, step, invert=False, sample=sample)
+                                               p_memory_limit, 1, pods_limit, step, invert=False, sample=sample,
+                                               save=True)
     return variation
 
 
@@ -466,11 +474,18 @@ def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: in
 
 
 def start_jmeter(iteration: int, date: str):
+    """
+    Stats a jMeter run.
+    :param iteration: current iteration
+    :param date: current date
+    """
     work_directory = os.getcwd()
     jmeter_path = os.path.join(os.getcwd(), "data", "loadtest", "jmeter", "bin")
     os.chdir(jmeter_path)
-    os.system(
-        f"java -jar ApacheJMeter.jar -t teastore_browse_nogui.jmx -Jhostname localhost -Jport {os.getenv('NODE_PORT')} -JnumUser {os.getenv('USERS')} -JrampUp 1 -l {date}_{iteration}.log -Jduration=60, -Jload=50 -n")
+    cmd = ["java", "-jar", "ApacheJMeter.jar", "-t", "teastore_browse_nogui.jmx", "-Jhostname", os.getenv("host"),
+           "-Jport", os.getenv('NODE_PORT'), "-JnumUser", os.getenv('USERS'), "-JrampUp", "1",
+           "-l", f"{date}_{iteration}.log", "-Jduration", os.getenv('MM'), "-Jload", os.getenv('USERS'), "-n"]
+    subprocess.run(cmd)
     os.chdir(work_directory)
 
 
@@ -484,7 +499,7 @@ def flattenNestedList(nestedList: list) -> list:
             # Extend the flat list by adding contents of this element (list)
             flat.extend(flattenNestedList(elem))
         else:
-            # Append the elemengt to the list
+            # Append the element to the list
             flat.append(elem)
     return flat
 

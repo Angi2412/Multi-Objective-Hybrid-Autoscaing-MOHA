@@ -3,7 +3,7 @@ Repository for all things related to my master thesis.
 
 # Configure Kubernetes
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop) and activate Kubernetes
-2. Install [linkerd](https://linkerd.io):
+2. Install [linkerd v2.9](https://linkerd.io/2.9/getting-started/):
     
     2a. Download: 
    

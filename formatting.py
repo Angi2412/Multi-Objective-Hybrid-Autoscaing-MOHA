@@ -186,14 +186,14 @@ def filter_data(directory: str) -> pd.DataFrame:
     # filter for pod name
     filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
     custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
-    # filter only take latency where status code < 300
+    # filter only take latency where status code < 400
     filtered_data['status_code'] = filtered_data['status_code'].fillna(0)
-    filtered_data = filtered_data.loc[filtered_data['status_code'].astype(int) < 300]
+    filtered_data = filtered_data.loc[filtered_data['status_code'].astype(int) < 400]
     # filter only inbound requests
     filtered_data['direction'] = filtered_data['direction'].fillna("none")
     filtered_data = filtered_data.loc[(filtered_data['direction'] != "outbound")]
     # count data points per iteration
-    filtered_data['datapoint'] = filtered_data.groupby(["Iteration"]).cumcount()+1
+    filtered_data['datapoint'] = filtered_data.groupby(["Iteration"]).cumcount() + 1
     custom['datapoint'] = custom.groupby(["Iteration"]).cumcount() + 1
     # create pivot tables
     filtered_data = pd.pivot_table(filtered_data, index=["Iteration", "pod", "datapoint"], columns=["__name__"],
@@ -253,14 +253,15 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
     y_axis = ["cpu usage", "memory usage", "average response time"]
     # functions
     functions = [pd.DataFrame.min, pd.DataFrame.median, pd.DataFrame.max]
+    functions_reversed = list(reversed(functions))
     # create and save plots
     plot = None
-    for i, fn in enumerate(functions):
+    for (i, fn), fn_r in zip(enumerate(functions), functions_reversed):
         for y in y_axis:
             for x in x_axis:
                 if x == "number of pods":
                     data_pods = data.loc[(data['memory limit'] == fn(data['memory limit'])) & (
-                            data['cpu limit'] == fn(data['cpu limit']))]
+                            data['cpu limit'] == fn_r(data['cpu limit']))]
                     plot = sns.lineplot(data=data_pods, x=x, y=y)
                 elif x == "memory limit":
                     data_memory = data.loc[(data['cpu limit'] == fn(data['cpu limit']))]
@@ -269,7 +270,11 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
                     data_cpu = data.loc[(data['memory limit'] == fn(data['memory limit']))]
                     plot = sns.lineplot(data=data_cpu, x=x, y=y, hue="number of pods")
                 # save plot
-                plot.figure.savefig(os.path.join(dir_path, f"{x}_{y}_{i}.png"))
+                if x == "number of pods":
+                    name = f"{x}_{y}_{str(fn.__name__)}_{str(fn_r.__name__)}.png"
+                else:
+                    name = f"{x}_{y}_{i}.png"
+                plot.figure.savefig(os.path.join(dir_path, name))
                 plot.figure.clf()
 
 
@@ -279,7 +284,6 @@ def format_for_extra_p() -> None:
     :return: None
     """
     # init
-    filtered_base_path = os.path.join(os.getcwd(), "data", "filtered")
     save_path = os.path.join(os.getcwd(), "data", "formatted", os.getenv('LAST_DATA'))
     # create directory if not existing
     if not os.path.exists(save_path):
@@ -287,9 +291,7 @@ def format_for_extra_p() -> None:
     # get variation matrix
     variation = get_variation_matrix(os.getenv('LAST_DATA'))
     print(variation.shape)
-    c_max = variation["CPU"].nunique()
     m_max = variation["Memory"].nunique()
-    p_max = variation["Pods"].nunique()
     # parameter and metrics
     parameter = ["cpu limit", "memory limit", "number of pods"]
     metrics = ["average response time", "cpu usage", "memory usage"]
@@ -312,7 +314,7 @@ def format_for_extra_p() -> None:
                     file.write("\n")
                     file.write("POINTS ")
                 row = variation.iloc[[i]]
-                file.write(f"( {row.iloc[0]['CPU']} {row.iloc[0]['Memory']} {row.iloc[0]['Pods']} )")
+                file.write(f"( {row.iloc[0]['CPU']} {row.iloc[0]['Memory']} {row.iloc[0]['Pods']} ) ")
             file.write("\n")
             file.write("REGION Test\n")
             file.write(f"METRIC {m_name}\n")
@@ -370,6 +372,22 @@ def combine_runs() -> None:
         tmp.append(tmp_data)
     result = pd.concat(tmp)
     save_data(result, os.getenv("LAST_DATA"), "combined")
+
+
+def combine_data(data: list, name: str) -> None:
+    """
+    Combines data from all runs.
+    :return: None
+    """
+    data_path = os.path.join(os.getcwd(), "data", "filtered")
+    tmp = list()
+    for i, file in enumerate(data):
+        tmp_data = pd.read_csv(filepath_or_buffer=os.path.join(data_path, f"{file}.csv"), delimiter=',')
+        tmp_data.insert(0, 'run', i + 1)
+        tmp_data = tmp_data.loc[(tmp_data['pod'] == "webui")]
+        tmp.append(tmp_data)
+    result = pd.concat(tmp)
+    save_data(result, name, "combined")
 
 
 def filter_run() -> None:

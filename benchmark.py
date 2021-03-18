@@ -48,9 +48,11 @@ def config_env(**kwargs) -> None:
         set_key(dotenv_path=env_file, key_to_set=key, value_to_set=value)
 
 
-def get_prometheus_data(folder: str, iteration: int) -> None:
+def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
     """
     Exports metric data from prometheus to a csv file.
+    :param mm: minutes
+    :param hh: hours
     :param folder: save folder
     :param iteration: number of current iteration
     :return: None
@@ -66,22 +68,24 @@ def get_prometheus_data(folder: str, iteration: int) -> None:
     ]
     network_metrics = ["response_latency_ms_sum", "response_latency_ms_count"]
     # get resource metric data resources
-    resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode="RESOURCES", custom=False)
+    resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode="RESOURCES", custom=False,
+                                                  hh=hh, mm=mm)
     for x in range(1, len(resource_metrics)):
         resource_metrics_data = resource_metrics_data + get_prometheus_metric(metric_name=resource_metrics[x],
-                                                                              mode="RESOURCES", custom=False)
+                                                                              mode="RESOURCES", custom=False, hh=hh,
+                                                                              mm=mm)
     # get custom resource metric data resources
-    custom_memory = get_prometheus_metric(metric_name="memory", mode="RESOURCES", custom=True)
+    custom_memory = get_prometheus_metric(metric_name="memory", mode="RESOURCES", custom=True, hh=hh, mm=mm)
     custom_memory = MetricRangeDataFrame(custom_memory)
     custom_memory.insert(0, 'metric', "memory")
-    custom_cpu = get_prometheus_metric(metric_name="cpu", mode="RESOURCES", custom=True)
+    custom_cpu = get_prometheus_metric(metric_name="cpu", mode="RESOURCES", custom=True, hh=hh, mm=mm)
     custom_cpu = MetricRangeDataFrame(custom_cpu)
     custom_cpu.insert(0, 'metric', "cpu")
     # get network metric data
     network_metrics_data = get_prometheus_metric(metric_name=network_metrics[0],
-                                                 mode="NETWORK", custom=False) + get_prometheus_metric(
+                                                 mode="NETWORK", custom=False, hh=hh, mm=mm) + get_prometheus_metric(
         metric_name=network_metrics[1],
-        mode="NETWORK", custom=False)
+        mode="NETWORK", custom=False, hh=hh, mm=mm)
     # convert to dataframe
     metrics_data = resource_metrics_data + network_metrics_data
     metric_df = MetricRangeDataFrame(metrics_data)
@@ -108,15 +112,23 @@ def get_status(pod: str) -> (list, list):
     cpu_usage_data["pod"] = cpu_usage_data["pod"].str.split("-", n=2).str[1]
     memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage))
     memory_usage_data["pod"] = memory_usage_data["pod"].str.split("-", n=2).str[1]
-    average_response_time_data = MetricSnapshotDataFrame(
-        prom_net.get_current_metric_value("response_latency_ms_sum") / prom_net.get_current_metric_value(
-            "response_latency_ms_count"))
-    average_response_time_data["pod"] = average_response_time_data["pod"].str.split("-", n=2).str[1]
+    average_response_time_sum_data = MetricSnapshotDataFrame(
+        prom_net.get_current_metric_value("response_latency_ms_sum"))
+    average_response_time_count_data = MetricSnapshotDataFrame(
+        prom_net.get_current_metric_value("response_latency_ms_count"))
+
+    average_response_time_sum_data["pod"] = average_response_time_sum_data["pod"].str.split("-", n=2).str[1]
+    average_response_time_count_data["pod"] = average_response_time_count_data["pod"].str.split("-", n=2).str[1]
     # filter
     cpu_usage = cpu_usage_data.loc[(cpu_usage_data['pod'] == pod)].at[0, 'value']
     memory_usage = memory_usage_data.loc[(memory_usage_data['pod'] == pod)].at[0, 'value']
-    average_response_time = average_response_time_data.loc[(average_response_time_data['pod'] == pod)].at[0, 'value']
-    targets = [cpu_usage, memory_usage, average_response_time]
+    average_response_time_sum = average_response_time_sum_data.loc[
+        (average_response_time_sum_data['pod'] == pod)].mean()
+    average_response_time_count = average_response_time_count_data.loc[
+        (average_response_time_count_data['pod'] == pod)].mean()
+    average_response_time = float(average_response_time_sum.loc['value']) / float(
+        average_response_time_count.loc['value'])
+    targets = [float(cpu_usage), float(memory_usage), average_response_time]
     # parameter metrics
     cpu_limit_data = MetricSnapshotDataFrame(
         prom_res.get_current_metric_value("kube_pod_container_resource_limits_cpu_cores"))
@@ -127,16 +139,18 @@ def get_status(pod: str) -> (list, list):
     number_of_pods_data = MetricSnapshotDataFrame(prom_res.get_current_metric_value("kube_deployment_spec_replicas"))
     number_of_pods_data["pod"] = number_of_pods_data["pod"].str.split("-", n=2).str[1]
     # filter
-    cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)].at[0, 'value']
-    memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)].at[0, 'value']
-    number_of_pods = number_of_pods_data.loc[(number_of_pods_data['pod'] == pod)].at[0, 'value']
-    parameters = [cpu_limit, memory_limit, number_of_pods]
+    cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)]['value']
+    memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)]['value'].loc[4]
+    number_of_pods = number_of_pods_data.loc[(number_of_pods_data['deployment'] == f"teastore-{pod}")]['value'].loc[20]
+    parameters = [int(float(cpu_limit) * 1000), int(float(memory_limit) / 1048576), int(number_of_pods)]
     return parameters, targets
 
 
-def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
+def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm: int) -> list:
     """
     Gets a given metric from prometheus in a given timeframe.
+    :param mm: minutes
+    :param hh: hours
     :param custom: if custom query should be used
     :param mode: which prometheus to use
     :param metric_name: name of the metric
@@ -144,7 +158,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
     """
     # init
     prom = PrometheusConnect(url=os.getenv(f'PROMETHEUS_{mode}_HOST'), disable_ssl=True)
-    start_time = (dt.datetime.now() - dt.timedelta(hours=int(os.getenv("HH")), minutes=int(os.getenv("MM"))))
+    start_time = (dt.datetime.now() - dt.timedelta(hours=hh, minutes=mm))
     # custom queries
     cpu_usage = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[5m])) by (pod, ' \
                 'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
@@ -175,6 +189,34 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
     return metric_data
 
 
+def evaluation(name: str, users: int, spawn_rate: int, hh: int, mm: int):
+    # init date
+    date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
+    # create folder
+    folder_path = os.path.join(os.getcwd(), "data", "raw", f"{date}_eval")
+    os.mkdir(folder_path)
+    # create deployment
+    k8s.k8s_create_teastore()
+    k8s.create_autoscaler()
+    # config
+    k8s.set_prometheus_info()
+    config_env(app_name=name,
+               host=os.getenv("HOST"),
+               node_port=k8s.k8s_get_app_port(),
+               date=date,
+               users=users,
+               spawn_rate=spawn_rate,
+               )
+    # evaluation
+    logging.info("Starting Evaluation.")
+    logging.info("Start Locust.")
+    start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True)
+    # get prometheus data
+    get_prometheus_data(folder=folder_path, iteration=0, hh=hh, mm=mm)
+    k8s.k8s_delete_namespace()
+    logging.info("Finished Benchmark.")
+
+
 def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
               step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool, history: bool,
               sample: bool, locust: bool) -> None:
@@ -199,8 +241,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     # create folder
     folder_path = os.path.join(os.getcwd(), "data", "raw", date)
     os.mkdir(folder_path)
-    # create deployment
-    k8s.k8s_create_teastore()
+
     # config
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="LAST_DATA", value_to_set=date)
     k8s.set_prometheus_info()
@@ -251,10 +292,9 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                 else:
                     start_jmeter()
                 # get prometheus data
-                get_prometheus_data(folder=folder_path, iteration=iteration)
+                get_prometheus_data(folder=folder_path, iteration=iteration, hh=int(os.getenv("HH")),
+                                    mm=int(os.getenv("MM")))
                 iteration = iteration + 1
-    # delete namespace
-    k8s.k8s_delete_namespace()
     logging.info("Finished Benchmark.")
 
 
@@ -287,15 +327,16 @@ def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, 
 
 
 def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int,
-                        pods_limit: int, step: int, invert: bool, sample: bool) -> np.array:
+                        pods_request: int,
+                        pods_limit: int, step: int, invert: bool, sample: bool, save: bool) -> np.array:
     """
     Calculates a matrix mit all combination of the parameters.
     :return: parameter variation matrix
     """
     # init parameters: (start, end, step)
-    cpu = np.arange(cpu_request, cpu_limit, step, np.int32)
-    memory = np.arange(memory_request, memory_limit, step, np.int32)
-    pods = np.arange(1, pods_limit + 1, 1, np.int32)
+    cpu = np.arange(cpu_request, cpu_limit + step, step, np.int32)
+    memory = np.arange(memory_request, memory_limit + step, step, np.int32)
+    pods = np.arange(pods_request, pods_limit + 1, 1, np.int32)
     if invert:
         cpu = np.flip(cpu)
         memory = np.flip(memory)
@@ -327,9 +368,10 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
                 df.at[i, 'Pods'] = pods[p]
                 i = i + 1
     logging.debug(df.head())
-    # save dataframe to csv
-    if not os.path.exists(csv_path):
-        df.to_csv(csv_path)
+    if save:
+        # save dataframe to csv
+        if not os.path.exists(csv_path):
+            df.to_csv(csv_path)
     return variation_matrix
 
 
@@ -417,6 +459,20 @@ def start_jmeter(iteration: int, date:str):
         f"java -jar ApacheJMeter.jar -t teastore_browse_nogui.jmx -Jhostname localhost -Jport {os.getenv('NODE_PORT')} -JnumUser {os.getenv('USERS')} -JrampUp 1 -l {date}_{iteration}.log -Jduration=60, -Jload=50 -n")
     os.chdir(work_directory)
 
+
+def flattenNestedList(nestedList: list) -> list:
+    """ Converts a nested list to a flat list """
+    flat = []
+    # Iterate over all the elements in given list
+    for elem in nestedList:
+        # Check if type of element is list
+        if isinstance(elem, list):
+            # Extend the flat list by adding contents of this element (list)
+            flat.extend(flattenNestedList(elem))
+        else:
+            # Append the elemengt to the list
+            flat.append(elem)
+    return flat
 
 if __name__ == '__main__':
     start_run(name="teastore", users=10, spawn_rate=1, expressions=1, step=100, pods_limit=5, runs=1,

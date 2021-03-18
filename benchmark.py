@@ -2,14 +2,14 @@
 
 from gevent import monkey
 
-from data.loadtest.loadshapes import DoubleWave
+from data.loadtest.locust.loadshapes import DoubleWave
 
 monkey.patch_all()
 
 import gevent
 from locust.env import Environment
 from locust.stats import stats_history, StatsCSVFileWriter
-from data.loadtest.teastore_fast import UserBehavior
+from data.loadtest.locust.teastore_fast import UserBehavior
 # imports
 import datetime as dt
 import logging
@@ -177,7 +177,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool) -> list:
 
 def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
               step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool, history: bool,
-              sample: bool) -> None:
+              sample: bool, locust: bool) -> None:
     """
     Benchmark methods.
     :param history: enable locust history
@@ -191,6 +191,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     :param users: number of users
     :param spawn_rate: spawn rate
     :param sample: enable sample run
+    :param locust: use locust or jmeter
     :return: None
     """
     # init date
@@ -244,8 +245,11 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                         while not k8s.check_teastore_health():
                             time.sleep(10)
                 # start load test
-                logging.info("Start Locust.")
-                start_locust(iteration=iteration, folder=folder_path, history=history, custom_shape=custom_shape)
+                logging.info("Start Load.")
+                if locust:
+                    start_locust(iteration=iteration, folder=folder_path, history=history, custom_shape=custom_shape)
+                else:
+                    start_jmeter()
                 # get prometheus data
                 get_prometheus_data(folder=folder_path, iteration=iteration)
                 iteration = iteration + 1
@@ -397,13 +401,23 @@ def get_persistence_data() -> None:
 
 
 def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: int, pods_limit: int, runs: int,
-              custom_shape: bool, history: bool, sample: bool) -> None:
+              custom_shape: bool, history: bool, sample: bool, locust: bool) -> None:
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
-        benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape, history, sample)
+        benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape, history, sample,
+                  locust)
+
+
+def start_jmeter(iteration: int, date:str):
+    work_directory = os.getcwd()
+    jmeter_path = os.path.join(os.getcwd(), "data", "loadtest", "jmeter", "bin")
+    os.chdir(jmeter_path)
+    os.system(
+        f"java -jar ApacheJMeter.jar -t teastore_browse_nogui.jmx -Jhostname localhost -Jport {os.getenv('NODE_PORT')} -JnumUser {os.getenv('USERS')} -JrampUp 1 -l {date}_{iteration}.log -Jduration=60, -Jload=50 -n")
+    os.chdir(work_directory)
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=50, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
-              custom_shape=False, history=True, sample=False)
+    start_run(name="teastore", users=10, spawn_rate=1, expressions=1, step=100, pods_limit=5, runs=1,
+              custom_shape=False, history=False, sample=False, locust=False)

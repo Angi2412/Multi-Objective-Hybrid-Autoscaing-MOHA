@@ -463,4 +463,4 @@ def process_all_runs() -> None:
 
 
 if __name__ == '__main__':
-    process_run()
+    process_all_runs()

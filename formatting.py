@@ -195,6 +195,7 @@ def filter_data(directory: str) -> pd.DataFrame:
     # count data points per iteration
     filtered_data['datapoint'] = filtered_data.groupby(["Iteration"]).cumcount() + 1
     custom['datapoint'] = custom.groupby(["Iteration"]).cumcount() + 1
+    custom['pod'].fillna("webui", inplace=True)
     # create pivot tables
     filtered_data = pd.pivot_table(filtered_data, index=["Iteration", "pod", "datapoint"], columns=["__name__"],
                                    values="value").reset_index()
@@ -213,7 +214,7 @@ def filter_data(directory: str) -> pd.DataFrame:
                            "kube_pod_container_resource_limits_memory_bytes",
                            "kube_pod_container_resource_requests_cpu_cores",
                            "kube_pod_container_resource_requests_memory_bytes", "response_latency_ms_count",
-                           "response_latency_ms_sum"], inplace=True)
+                           "response_latency_ms_sum", "datapoint_x", "datapoint_y"], inplace=True)
     res_data.rename(
         columns={"cpu": "cpu usage", "memory": "memory usage", "CPU": "cpu limit", "Memory": "memory limit",
                  "Pods": "number of pods", "container_cpu_cfs_throttled_seconds_total": "cpu throttled total"},
@@ -221,6 +222,7 @@ def filter_data(directory: str) -> pd.DataFrame:
     # filter for webui pod
     res_data = res_data.loc[(res_data['pod'] == "webui")]
     res_data.reset_index(inplace=True)
+    res_data.drop(columns=["index"], inplace=True)
     save_data(res_data, directory, "filtered")
     return res_data
 
@@ -481,4 +483,4 @@ def process_all_runs() -> None:
 
 
 if __name__ == '__main__':
-    process_all_runs()
+    process_run()

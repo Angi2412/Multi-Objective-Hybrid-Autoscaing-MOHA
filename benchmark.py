@@ -356,8 +356,8 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     :return: parameter variation matrix
     """
     # init parameters: (start, end, step)
-    cpu = np.arange(cpu_request, cpu_limit + step, step, np.int32)
-    memory = np.arange(memory_request, memory_limit + step, step, np.int32)
+    cpu = np.arange(cpu_request, cpu_limit, step, np.int32)
+    memory = np.arange(memory_request, memory_limit, step, np.int32)
     pods = np.arange(pods_request, pods_limit + 1, 1, np.int32)
     if invert:
         cpu = np.flip(cpu)
@@ -505,5 +505,5 @@ def flattenNestedList(nestedList: list) -> list:
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=10, spawn_rate=1, expressions=1, step=100, pods_limit=1, runs=1,
-              custom_shape=False, history=False, sample=False, locust=True)
+    start_run(name="teastore", users=10, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
+              custom_shape=False, history=False, sample=False, locust=False)

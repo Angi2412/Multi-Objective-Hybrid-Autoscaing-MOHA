@@ -185,7 +185,6 @@ def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
     :return: X, y
     """
     # init path
-    path = None
     if combined:
         path = os.path.join(os.getcwd(), "data", "combined")
     else:
@@ -196,7 +195,7 @@ def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
             if date in file and "mean" not in file:
                 data = pd.read_csv(os.path.join(path, file), delimiter=",")
                 data = data.reset_index()
-                X = data[['cpu limit', 'memory limit', 'number of pods']].to_numpy()
+                X = data[['cpu limit', 'memory limit', 'number of pods', 'rps']].to_numpy()
                 y = data[[target]].to_numpy()
                 logging.info(f"X: {X.shape} - y: {y.shape}")
                 return X, y
@@ -224,12 +223,13 @@ def load_model(name: str) -> numpy_pickle:
     return load(save_path)
 
 
-def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, window: int):
+def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int):
     """
     Chooses the best values for the parameters in a given window for a given status.
     :param cpu_limit: current cpu limit
     :param memory_limit: current memory limit
     :param number_of_pods: current number of pods
+    :param rps: requests per second
     :param window: size of window
     :return: pes parameters
     """
@@ -249,7 +249,7 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
                                       step, False, False, False).tolist())
     # validate parameter variations
     for i, entry in enumerate(predict_window_list):
-        predict_window_list[i] = validate_parameter(entry)
+        predict_window_list[i] = validate_parameter(entry, rps)
     predict_window = np.array(predict_window_list, dtype=np.float64)
     # get predictions
     scaler = MinMaxScaler()
@@ -274,7 +274,7 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
     return best_parameters
 
 
-def validate_parameter(limits: tuple) -> tuple:
+def validate_parameter(limits: tuple, rps: float) -> tuple:
     """
     Validates if the given limits are below the requested resources.
     :return: validated resources
@@ -291,7 +291,7 @@ def validate_parameter(limits: tuple) -> tuple:
         memory = memory_request
     if pods <= 1:
         pods = 1
-    return cpu, memory, pods
+    return cpu, memory, pods, rps
 
 
 def choose_best(mtx: np.array) -> int:
@@ -306,7 +306,9 @@ def choose_best(mtx: np.array) -> int:
     # create DecisionMaker
     dm = TOPSIS()
     # create data object
-    data = Data(mtx=mtx, criteria=criteria, weights=weights, cnames=["average response time", "cpu usage", "memory usage", "cpu limit", "memory limit", "number of pods"])
+    data = Data(mtx=mtx, criteria=criteria, weights=weights,
+                cnames=["average response time", "cpu usage", "memory usage", "cpu limit", "memory limit",
+                        "number of pods"])
     # make decision
     dec = dm.decide(data)
     # show result
@@ -342,7 +344,6 @@ def train_for_all_targets(date: str, kind: str) -> None:
     """
     targets = ["average response time", "cpu usage", "memory usage"]
     for t in targets:
-        X, y = get_data(date, t, True)
         if kind == "neural":
             neural_network_model(t, False, True)
         elif kind == "linear":

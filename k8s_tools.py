@@ -254,7 +254,7 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
 def check_teastore_health() -> bool:
     try:
         health = requests.get(
-            f"http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}/{os.getenv('ROUTE')}/rest/ready/isready")
+            f"http://{os.getenv('HOST')}:{k8s_get_app_port()}/{os.getenv('ROUTE')}/rest/ready/isready")
         if health.ok:
             return bool(health.json())
         else:

@@ -278,6 +278,9 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
                     name = f"{x}_{y}_{i}.png"
                 plot.figure.savefig(os.path.join(dir_path, name))
                 plot.figure.clf()
+    plot = sns.lineplot(data=data_memory, x="Iteration", y="rps")
+    plot.figure.savefig(os.path.join(dir_path, "rps.png"))
+    plot.figure.clf()
 
 
 def format_for_extra_p() -> None:

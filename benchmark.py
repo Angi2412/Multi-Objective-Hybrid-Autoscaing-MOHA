@@ -483,9 +483,11 @@ def start_jmeter(iteration: int, date: str):
     jmeter_path = os.path.join(os.getcwd(), "data", "loadtest", "jmeter", "bin")
     os.chdir(jmeter_path)
     cmd = ["java", "-jar", "ApacheJMeter.jar", "-t", "teastore_browse_nogui.jmx", "-Jhostname", os.getenv("host"),
-           "-Jport", os.getenv('NODE_PORT'), "-JnumUser", os.getenv('USERS'), "-JrampUp", "1",
+           "-Jport", os.getenv('NODE_PORT'), "-JnumUser", "1", "-JrampUp", "0",
            "-l", f"{date}_{iteration}.log", "-Jduration", os.getenv('MM'), "-Jload", os.getenv('USERS'), "-n"]
-    subprocess.run(cmd)
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True) as p:
+        for line in p.stdout:
+            print(line, end='')  # process line here
     os.chdir(work_directory)
 
 
@@ -505,5 +507,5 @@ def flattenNestedList(nestedList: list) -> list:
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=10, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
+    start_run(name="teastore", users=20, spawn_rate=1, expressions=5, step=100, pods_limit=5, runs=1,
               custom_shape=False, history=False, sample=False, locust=False)

@@ -207,17 +207,16 @@ def filter_data(directory: str) -> pd.DataFrame:
     # merge all tables
     res_data = pd.merge(filtered_data, filtered_custom_data, how='left', on=["Iteration", "pod"])
     res_data = pd.merge(res_data, variation, how='left', on=["Iteration", "pod"])
-    # calculate average response time
-    res_data["average response time"] = res_data["response_latency_ms_sum"] / res_data["response_latency_ms_count"]
     # erase stuff
     res_data.drop(columns=["kube_deployment_spec_replicas", "kube_pod_container_resource_limits_cpu_cores",
                            "kube_pod_container_resource_limits_memory_bytes",
                            "kube_pod_container_resource_requests_cpu_cores",
-                           "kube_pod_container_resource_requests_memory_bytes", "response_latency_ms_count",
-                           "response_latency_ms_sum", "datapoint_x", "datapoint_y"], inplace=True)
+                           "kube_pod_container_resource_requests_memory_bytes",
+                           "datapoint_x", "datapoint_y"], inplace=True)
     res_data.rename(
         columns={"cpu": "cpu usage", "memory": "memory usage", "CPU": "cpu limit", "Memory": "memory limit",
-                 "Pods": "number of pods", "container_cpu_cfs_throttled_seconds_total": "cpu throttled total"},
+                 "Pods": "number of pods", "container_cpu_cfs_throttled_seconds_total": "cpu throttled total",
+                 "response_time": "average response time"},
         inplace=True)
     # filter for webui pod
     res_data = res_data.loc[(res_data['pod'] == "webui")]
@@ -278,7 +277,7 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
                     name = f"{x}_{y}_{i}.png"
                 plot.figure.savefig(os.path.join(dir_path, name))
                 plot.figure.clf()
-    plot = sns.lineplot(data=data_memory, x="Iteration", y="rps")
+    plot = sns.lineplot(data=data, x="Iteration", y="rps")
     plot.figure.savefig(os.path.join(dir_path, "rps.png"))
     plot.figure.clf()
 

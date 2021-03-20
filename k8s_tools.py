@@ -403,3 +403,7 @@ def create_autoscaler() -> None:
         os.chdir(work_directory)
     except Exception as err:
         logging.error(f"Error while creating autoscaler: {err}")
+
+
+if __name__ == '__main__':
+    k8s_create_teastore()

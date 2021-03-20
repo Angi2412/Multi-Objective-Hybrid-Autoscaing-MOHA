@@ -70,7 +70,6 @@ def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
         "container_cpu_cfs_throttled_seconds_total",
         "kube_deployment_spec_replicas"
     ]
-    network_metrics = ["response_latency_ms_sum", "response_latency_ms_count"]
     # get resource metric data resources
     resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode="RESOURCES", custom=False,
                                                   hh=hh, mm=mm)
@@ -88,15 +87,13 @@ def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
     custom_rps = get_prometheus_metric(metric_name="rps", mode="NETWORK", custom=True, hh=hh, mm=mm)
     custom_rps = MetricRangeDataFrame(custom_rps)
     custom_rps.insert(0, 'metric', "rps")
-    # get network metric data
-    network_metrics_data = get_prometheus_metric(metric_name=network_metrics[0],
-                                                 mode="NETWORK", custom=False, hh=hh, mm=mm) + get_prometheus_metric(
-        metric_name=network_metrics[1],
-        mode="NETWORK", custom=False, hh=hh, mm=mm)
+    custom_latency = get_prometheus_metric(metric_name="response_time", mode="NETWORK", custom=True, hh=hh, mm=mm)
+    custom_latency = MetricRangeDataFrame(custom_latency)
+    custom_latency.insert(0, 'metric', "response_time")
     # convert to dataframe
-    metrics_data = resource_metrics_data + network_metrics_data
+    metrics_data = resource_metrics_data
     metric_df = MetricRangeDataFrame(metrics_data)
-    custom_metrics_df = pd.concat([custom_cpu, custom_memory, custom_rps])
+    custom_metrics_df = pd.concat([custom_cpu, custom_memory, custom_rps, custom_latency])
     # write to csv file
     metric_df.to_csv(rf"{folder}\metrics_{iteration}.csv")
     custom_metrics_df.to_csv(rf"{folder}\custom_metrics_{iteration}.csv")
@@ -114,7 +111,9 @@ def get_status(pod: str) -> (list, list):
     memory_usage_query = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",' \
                          'pod=~".*" }[' \
                          '5m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
-    rps_query = 'sum(irate(request_total{namespace="teastore", direction="inbound",deployment="teastore-webui"}[5m]))'
+    rps_query = 'sum(irate(request_total{deployment="teastore-webui", direction="inbound"}[30s]))'
+    response_time = 'sum(response_latency_ms_sum{deployment="teastore-webui", direction="inbound"})/sum(' \
+                    'response_latency_ms_count{deployment="teastore-webui", direction="inbound"}) '
     # target metrics
     # get cpu
     cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage_query))
@@ -123,22 +122,12 @@ def get_status(pod: str) -> (list, list):
     memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage_query))
     memory_usage_data["pod"] = memory_usage_data["pod"].str.split("-", n=2).str[1]
     # get average response time
-    average_response_time_sum_data = MetricSnapshotDataFrame(
-        prom_net.get_current_metric_value("response_latency_ms_sum"))
-    average_response_time_count_data = MetricSnapshotDataFrame(
-        prom_net.get_current_metric_value("response_latency_ms_count"))
-    average_response_time_sum_data["pod"] = average_response_time_sum_data["pod"].str.split("-", n=2).str[1]
-    average_response_time_count_data["pod"] = average_response_time_count_data["pod"].str.split("-", n=2).str[1]
+    latency_data = MetricSnapshotDataFrame(prom_net.custom_query(response_time))
+    latency = latency_data.at[0, 'value']
     # filter
     cpu_usage = cpu_usage_data.loc[(cpu_usage_data['pod'] == pod)].at[0, 'value']
     memory_usage = memory_usage_data.loc[(memory_usage_data['pod'] == pod)].at[0, 'value']
-    average_response_time_sum = average_response_time_sum_data.loc[
-        (average_response_time_sum_data['pod'] == pod)].mean()
-    average_response_time_count = average_response_time_count_data.loc[
-        (average_response_time_count_data['pod'] == pod)].mean()
-    average_response_time = float(average_response_time_sum.loc['value']) / float(
-        average_response_time_count.loc['value'])
-    targets = [float(cpu_usage), float(memory_usage), average_response_time]
+    targets = [float(cpu_usage), float(memory_usage), float(latency)]
     # parameter metrics
     # cpu
     cpu_limit_data = MetricSnapshotDataFrame(
@@ -176,13 +165,15 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
     prom = PrometheusConnect(url=os.getenv(f'PROMETHEUS_{mode}_HOST'), disable_ssl=True)
     start_time = (dt.datetime.now() - dt.timedelta(hours=hh, minutes=mm))
     # custom queries
-    cpu_usage = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[5m])) by (pod, ' \
+    cpu_usage = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[1m])) by (pod, ' \
                 'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
                 'container!=""}/container_spec_cpu_period{namespace="teastore", container!=""}) by (pod, ' \
                 'container) )*100'
     memory_usage = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",pod=~".*" }[' \
-                   '5m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
-    rps = 'sum(irate(request_total{namespace="teastore", direction="inbound"}[5m]))'
+                   '1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
+    rps = 'sum(irate(request_total{deployment="teastore-webui", direction="inbound"}[30s]))'
+    response_time = 'sum(response_latency_ms_sum{deployment="teastore-webui", direction="inbound"})/sum(' \
+                    'response_latency_ms_count{deployment="teastore-webui", direction="inbound"}) '
     query = None
     # get data
     if custom:
@@ -192,6 +183,8 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
             query = memory_usage
         elif metric_name == "rps":
             query = rps
+        elif metric_name == "response time":
+            query = response_time
         else:
             logging.error("Accepts cpu, memory or rps but received " + metric_name)
         metric_data = prom.custom_query_range(
@@ -311,7 +304,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                 if locust:
                     start_locust(iteration=iteration, folder=folder_path, history=history, custom_shape=custom_shape)
                 else:
-                    start_jmeter(iteration, date)
+                    start_jmeter(iteration, date, True, users)
                 # get prometheus data
                 get_prometheus_data(folder=folder_path, iteration=iteration, hh=int(os.getenv("HH")),
                                     mm=int(os.getenv("MM")))
@@ -474,18 +467,26 @@ def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: in
                   locust)
 
 
-def start_jmeter(iteration: int, date: str):
+def start_jmeter(iteration: int, date: str, test: bool, rps: int):
     """
     Stats a jMeter run.
     :param iteration: current iteration
     :param date: current date
+    :param test: test cmd
+    :param rps: requests per second
     """
     work_directory = os.getcwd()
     jmeter_path = os.path.join(os.getcwd(), "data", "loadtest", "jmeter", "bin")
     os.chdir(jmeter_path)
-    cmd = ["java", "-jar", "ApacheJMeter.jar", "-t", "teastore_browse_nogui.jmx", "-Jhostname", os.getenv("host"),
-           "-Jport", os.getenv('NODE_PORT'), "-JnumUser", "1", "-JrampUp", "0",
-           "-l", f"{date}_{iteration}.log", "-Jduration", os.getenv('MM'), "-Jload", os.getenv('USERS'), "-n"]
+    if test:
+        cmd = ["java", "-jar", "ApacheJMeter.jar", "-t", "teastore_browse_rps.jmx", "-Jhostname", os.getenv("HOST"),
+               "-Jport", os.getenv('NODE_PORT'), "-l", f"{date}_{iteration}.log",
+               '-Jload_profile', f'const({rps},{int(os.getenv("MM")) * 60}s)', "-n"]
+    else:
+        cmd = ["java", "-jar", "ApacheJMeter.jar", "-t", "teastore_browse_nogui.jmx", "-Jhostname", os.getenv("HOST"),
+               "-Jport", os.getenv('NODE_PORT'), "-JnumUser", "1", "-JrampUp", "0",
+               "-l", f"{date}_{iteration}.log", "-Jduration", os.getenv('MM'), "-Jload", os.getenv('USERS'), "-n"]
+    logging.info(cmd)
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True) as p:
         for line in p.stdout:
             print(line, end='')  # process line here
@@ -508,5 +509,5 @@ def flattenNestedList(nestedList: list) -> list:
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=20, spawn_rate=1, expressions=5, step=100, pods_limit=5, runs=1,
+    start_run(name="teastore", users=50, spawn_rate=1, expressions=2, step=100, pods_limit=2, runs=1,
               custom_shape=False, history=False, sample=False, locust=False)

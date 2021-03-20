@@ -5,11 +5,18 @@ from dotenv import load_dotenv
 from flask import Flask, jsonify
 
 import benchmark
+import logging
 import formatting
 import ml
 from k8s_tools import k8s_update_deployment
 
 app = Flask(__name__)
+# init logger
+logging.getLogger().setLevel(logging.INFO)
+logging.basicConfig(
+    format='%(asctime)s %(levelname)-8s %(message)s',
+    level=logging.INFO,
+    datefmt='%Y-%m-%d %H:%M:%S')
 
 
 @app.route('/heartbeat')
@@ -28,8 +35,8 @@ def scale():
     """
     load_dotenv()
     parameter_status, target_status = benchmark.get_status("webui")
-    print(f"Parameter status: {parameter_status}")
-    print(f"Target Status: {target_status}")
+    logging.info("Started autosclaing.")
+    logging.info(f"Parameter status: {parameter_status} \n Target Status: {target_status}")
     if check_target_status(target_status):
         return jsonify(success=True)
     else:
@@ -38,8 +45,9 @@ def scale():
                                                  window=int(os.getenv("WINDOW")))
         k8s_update_deployment(os.getenv("SCALE_POD"), best_parameters[0], best_parameters[1],
                               best_parameters[2], replace=False)
-        print(f"Best parameters:")
-        print(f"cpu: {best_parameters[0]}m - memory: {best_parameters[1]}Mi - pods: {best_parameters[2]}")
+        logging.info(
+            f"Best parameters: cpu: {best_parameters[0]}m - memory: {best_parameters[1]}Mi - pods: {best_parameters[2]}")
+        logging.info("Finished Autoscaling.")
         return jsonify(success=True)
 
 
@@ -72,20 +80,19 @@ def check_target_status(targets: list) -> bool:
     load_dotenv()
     # check if average response time is healthy
     if targets[0] > float(os.getenv("MAX_RESPONSE")):
-        print("Average response time not in bound.")
+        logging.info("Average response time not in bound.")
         return False
     # check if cpu usage is healthy
     elif not int(os.getenv("MIN_USAGE")) < targets[1] < int(os.getenv("MAX_USAGE")):
-        print(f"CPU usage not in bound: {targets[1]}")
+        logging.info(f"CPU usage not in bound: {targets[1]}")
         return False
     # check if memory usage is healthy
     elif not int(os.getenv("MIN_USAGE")) < targets[2] < int(os.getenv("MAX_USAGE")):
-        print(f"Memory usage not in bound: {targets[2]}")
+        logging.info(f"Memory usage not in bound: {targets[2]}")
         return False
     else:
         return True
 
 
 if __name__ == '__main__':
-    scale()
-    # app.run(host="localhost", port=5000, debug=False)
+    app.run(host="localhost", port=5000, debug=False)

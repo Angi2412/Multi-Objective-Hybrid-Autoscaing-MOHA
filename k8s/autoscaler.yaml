@@ -11,6 +11,8 @@ spec:
       app: teastore
   template:
     metadata:
+      annotations:
+        linkerd.io/inject: enabled
       labels:
         app: teastore
       namespace: default

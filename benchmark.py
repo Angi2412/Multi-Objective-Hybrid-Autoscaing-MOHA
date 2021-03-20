@@ -31,7 +31,8 @@ import requests
 load_dotenv(override=True)
 
 # init logger
-logging.getLogger().setLevel(logging.INFO)
+p = logging.getLogger(__name__)
+p.setLevel(logging.INFO)
 
 
 # logging.basicConfig(filename='benchmark.log', level=logging.DEBUG)

@@ -1,4 +1,6 @@
 # Copyright (c) 2020 Angelina Horn
+import subprocess
+
 from gevent import monkey
 
 monkey.patch_all()
@@ -19,23 +21,29 @@ import requests
 load_dotenv(override=True)
 
 # init logger
-logging.getLogger().setLevel(logging.INFO)
+k = logging.getLogger()
+k.setLevel(logging.INFO)
 
 
 def k8s_create_teastore():
     # create deployment
     work_directory = os.getcwd()
-    os.system(f"kubectl create namespace teastore")
+    cmd_ns = f"kubectl create namespace teastore"
+    logging.debug(subprocess.check_output(cmd_ns, shell=True))
+    logging.info("Created namespace.")
     time.sleep(10)
     try:
         teastore_path = os.path.join(os.getcwd(), "k8s", "TeaStore", "examples", "kubernetes")
         os.chdir(teastore_path)
-        os.system(f"kubectl create -f teastore-clusterip-linkerd.yaml -n teastore")
+        cmd = f"kubectl create -f teastore-clusterip-linkerd.yaml -n teastore"
+        logging.debug(subprocess.check_output(cmd, shell=True))
+        logging.info("Deployed teastore.")
         os.chdir(work_directory)
         # wait until deployment is ready
         time.sleep(int(os.getenv("SLEEP_TIME")))
         while not check_teastore_health():
             time.sleep(10)
+        logging.info("Teastore is alive.")
     except Exception as err:
         logging.error(f"Error while deploying teastore: {err}")
         k8s_delete_namespace()
@@ -376,19 +384,22 @@ def get_resource_requests() -> dict:
 
 
 def create_autoscaler() -> None:
+    """
+    Deploys the autoscaler app with cron jobs for scaling and online learning.
+    :return: None
+    """
     work_directory = os.getcwd()
     try:
         yaml_path = os.path.join(os.getcwd(), "k8s")
         os.chdir(yaml_path)
         os.system(f"kubectl create -f autoscaler.yaml -n teastore")
         time.sleep(10)
-        #os.system(f"kubectl create -f cronjob.yaml -n teastore")
+        autoscaler_status = requests.get(f"http://{os.getenv('HOST')}:30050/heartbeat").json()
+        while not bool(autoscaler_status["success"]):
+            time.sleep(10)
+        logging.info("Autoscaler is up and alive.")
+        # os.system(f"kubectl create -f cronjob.yaml -n teastore")
         time.sleep(10)
         os.chdir(work_directory)
     except Exception as err:
         logging.error(f"Error while creating autoscaler: {err}")
-
-
-if __name__ == '__main__':
-    k8s_create_teastore()
-    #create_autoscaler()

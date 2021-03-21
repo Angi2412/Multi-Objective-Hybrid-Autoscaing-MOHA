@@ -183,7 +183,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
             query = memory_usage
         elif metric_name == "rps":
             query = rps
-        elif metric_name == "response time":
+        elif metric_name == "response_time":
             query = response_time
         else:
             logging.error("Accepts cpu, memory or rps but received " + metric_name)
@@ -509,5 +509,7 @@ def flattenNestedList(nestedList: list) -> list:
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=50, spawn_rate=1, expressions=2, step=100, pods_limit=2, runs=1,
-              custom_shape=False, history=False, sample=False, locust=False)
+    for l in [False, True]:
+        for u in [5, 10]:
+            start_run(name="teastore", users=u, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
+                      custom_shape=False, history=False, sample=False, locust=l)

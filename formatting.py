@@ -186,12 +186,6 @@ def filter_data(directory: str) -> pd.DataFrame:
     # filter for pod name
     filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
     custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
-    # filter only take latency where status code < 400
-    filtered_data['status_code'] = filtered_data['status_code'].fillna(0)
-    filtered_data = filtered_data.loc[filtered_data['status_code'].astype(int) < 400]
-    # filter only inbound requests
-    filtered_data['direction'] = filtered_data['direction'].fillna("none")
-    filtered_data = filtered_data.loc[(filtered_data['direction'] != "outbound")]
     # count data points per iteration
     filtered_data['datapoint'] = filtered_data.groupby(["Iteration"]).cumcount() + 1
     custom['datapoint'] = custom.groupby(["Iteration"]).cumcount() + 1
@@ -207,6 +201,7 @@ def filter_data(directory: str) -> pd.DataFrame:
     # merge all tables
     res_data = pd.merge(filtered_data, filtered_custom_data, how='left', on=["Iteration", "pod"])
     res_data = pd.merge(res_data, variation, how='left', on=["Iteration", "pod"])
+    res_data["ratio"] = res_data["median_latency"] / res_data["rps"]
     # erase stuff
     res_data.drop(columns=["kube_deployment_spec_replicas", "kube_pod_container_resource_limits_cpu_cores",
                            "kube_pod_container_resource_limits_memory_bytes",
@@ -216,7 +211,7 @@ def filter_data(directory: str) -> pd.DataFrame:
     res_data.rename(
         columns={"cpu": "cpu usage", "memory": "memory usage", "CPU": "cpu limit", "Memory": "memory limit",
                  "Pods": "number of pods", "container_cpu_cfs_throttled_seconds_total": "cpu throttled total",
-                 "response_time": "average response time"},
+                 "response_time": "average response time", "median_latency": "median latency"},
         inplace=True)
     # filter for webui pod
     res_data = res_data.loc[(res_data['pod'] == "webui")]
@@ -251,18 +246,17 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
     os.mkdir(dir_path)
     # init x- and y-axis
     x_axis = ["cpu limit", "memory limit", "number of pods"]
-    y_axis = ["cpu usage", "memory usage", "average response time"]
+    y_axis = ["cpu usage", "memory usage", "average response time", "median latency", "latency95", "ratio"]
     # functions
     functions = [pd.DataFrame.min, pd.DataFrame.median, pd.DataFrame.max]
-    functions_reversed = list(reversed(functions))
     # create and save plots
     plot = None
-    for (i, fn), fn_r in zip(enumerate(functions), functions_reversed):
+    for fn in functions:
         for y in y_axis:
             for x in x_axis:
                 if x == "number of pods":
                     data_pods = data.loc[(data['memory limit'] == fn(data['memory limit'])) & (
-                            data['cpu limit'] == fn_r(data['cpu limit']))]
+                            data['cpu limit'] == fn(data['cpu limit']))]
                     plot = sns.lineplot(data=data_pods, x=x, y=y)
                 elif x == "memory limit":
                     data_memory = data.loc[(data['cpu limit'] == fn(data['cpu limit']))]
@@ -270,13 +264,10 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
                 elif x == "cpu limit":
                     data_cpu = data.loc[(data['memory limit'] == fn(data['memory limit']))]
                     plot = sns.lineplot(data=data_cpu, x=x, y=y, hue="number of pods")
-                # save plot
-                if x == "number of pods":
-                    name = f"{x}_{y}_{str(fn.__name__)}_{str(fn_r.__name__)}.png"
-                else:
-                    name = f"{x}_{y}_{i}.png"
+                name = f"{x}_{y}_{fn.__name__}.png"
                 plot.figure.savefig(os.path.join(dir_path, name))
                 plot.figure.clf()
+    # Requests per second
     plot = sns.lineplot(data=data, x="Iteration", y="rps")
     plot.figure.savefig(os.path.join(dir_path, "rps.png"))
     plot.figure.clf()

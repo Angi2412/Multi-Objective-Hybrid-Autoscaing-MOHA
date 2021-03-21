@@ -78,22 +78,35 @@ def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
                                                                               mode="RESOURCES", custom=False, hh=hh,
                                                                               mm=mm)
     # get custom resource metric data resources
+    # memory usage
     custom_memory = get_prometheus_metric(metric_name="memory", mode="RESOURCES", custom=True, hh=hh, mm=mm)
     custom_memory = MetricRangeDataFrame(custom_memory)
     custom_memory.insert(0, 'metric', "memory")
+    # cpu usage
     custom_cpu = get_prometheus_metric(metric_name="cpu", mode="RESOURCES", custom=True, hh=hh, mm=mm)
     custom_cpu = MetricRangeDataFrame(custom_cpu)
     custom_cpu.insert(0, 'metric', "cpu")
+    # rps
     custom_rps = get_prometheus_metric(metric_name="rps", mode="NETWORK", custom=True, hh=hh, mm=mm)
     custom_rps = MetricRangeDataFrame(custom_rps)
     custom_rps.insert(0, 'metric', "rps")
+    # average response time
     custom_latency = get_prometheus_metric(metric_name="response_time", mode="NETWORK", custom=True, hh=hh, mm=mm)
     custom_latency = MetricRangeDataFrame(custom_latency)
     custom_latency.insert(0, 'metric', "response_time")
+    # median response time
+    custom_med_latency = get_prometheus_metric(metric_name="median_latency", mode="NETWORK", custom=True, hh=hh, mm=mm)
+    custom_med_latency = MetricRangeDataFrame(custom_med_latency)
+    custom_med_latency.insert(0, 'metric', "median_latency")
+    # 95th percentile latency
+    custom_95_latency = get_prometheus_metric(metric_name="latency95", mode="NETWORK", custom=True, hh=hh, mm=mm)
+    custom_95_latency = MetricRangeDataFrame(custom_95_latency)
+    custom_95_latency.insert(0, 'metric', "latency95")
     # convert to dataframe
     metrics_data = resource_metrics_data
     metric_df = MetricRangeDataFrame(metrics_data)
-    custom_metrics_df = pd.concat([custom_cpu, custom_memory, custom_rps, custom_latency])
+    custom_metrics_df = pd.concat(
+        [custom_cpu, custom_memory, custom_rps, custom_latency, custom_med_latency, custom_95_latency])
     # write to csv file
     metric_df.to_csv(rf"{folder}\metrics_{iteration}.csv")
     custom_metrics_df.to_csv(rf"{folder}\custom_metrics_{iteration}.csv")
@@ -104,14 +117,14 @@ def get_status(pod: str) -> (list, list):
     prom_res = PrometheusConnect(url=os.getenv(f'PROMETHEUS_RESOURCES_HOST'), disable_ssl=True)
     prom_net = PrometheusConnect(url=os.getenv(f'PROMETHEUS_NETWORK_HOST'), disable_ssl=True)
     # custom queries
-    cpu_usage_query = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[5m])) by (pod, ' \
+    cpu_usage_query = '(sum(rate(container_cpu_usage_seconds_total{namespace="teastore", container!=""}[1m])) by (pod, ' \
                       'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
                       'container!=""}/container_spec_cpu_period{namespace="teastore", container!=""}) by (pod, ' \
                       'container) )*100'
     memory_usage_query = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",' \
                          'pod=~".*" }[' \
-                         '5m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
-    rps_query = 'sum(irate(request_total{deployment="teastore-webui", direction="inbound"}[30s]))'
+                         '1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
+    rps_query = 'sum(irate(request_total{deployment="teastore-webui", direction="inbound"}[1m]))'
     response_time = 'sum(response_latency_ms_sum{deployment="teastore-webui", direction="inbound"})/sum(' \
                     'response_latency_ms_count{deployment="teastore-webui", direction="inbound"}) '
     # target metrics
@@ -171,9 +184,13 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
                 'container) )*100'
     memory_usage = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",pod=~".*" }[' \
                    '1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
-    rps = 'sum(irate(request_total{deployment="teastore-webui", direction="inbound"}[30s]))'
+    rps = 'sum(irate(request_total{deployment="teastore-webui", direction="inbound"}[1m]))'
     response_time = 'sum(response_latency_ms_sum{deployment="teastore-webui", direction="inbound"})/sum(' \
                     'response_latency_ms_count{deployment="teastore-webui", direction="inbound"}) '
+    median_latency = 'histogram_quantile(0.5, sum(irate(response_latency_ms_bucket{deployment="teastore-webui", ' \
+                     'direction="inbound"}[30s])) by (le, replicaset)) '
+    latency95 = 'histogram_quantile(0.95, sum(irate(response_latency_ms_bucket{deployment="teastore-webui", ' \
+                'direction="inbound"}[30s])) by (le, replicaset)) '
     query = None
     # get data
     if custom:
@@ -185,6 +202,10 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
             query = rps
         elif metric_name == "response_time":
             query = response_time
+        elif metric_name == "median_latency":
+            query = median_latency
+        elif metric_name == "latency95":
+            query = latency95
         else:
             logging.error("Accepts cpu, memory or rps but received " + metric_name)
         metric_data = prom.custom_query_range(
@@ -509,7 +530,5 @@ def flattenNestedList(nestedList: list) -> list:
 
 
 if __name__ == '__main__':
-    for l in [False, True]:
-        for u in [5, 10]:
-            start_run(name="teastore", users=u, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
-                      custom_shape=False, history=False, sample=False, locust=l)
+    start_run(name="teastore", users=20, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
+              custom_shape=False, history=False, sample=False, locust=False)

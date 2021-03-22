@@ -188,9 +188,9 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
     response_time = 'sum(response_latency_ms_sum{deployment="teastore-webui", direction="inbound"})/sum(' \
                     'response_latency_ms_count{deployment="teastore-webui", direction="inbound"}) '
     median_latency = 'histogram_quantile(0.5, sum(irate(response_latency_ms_bucket{deployment="teastore-webui", ' \
-                     'direction="inbound"}[30s])) by (le, replicaset)) '
+                     'direction="inbound"}[1m])) by (le, replicaset)) '
     latency95 = 'histogram_quantile(0.95, sum(irate(response_latency_ms_bucket{deployment="teastore-webui", ' \
-                'direction="inbound"}[30s])) by (le, replicaset)) '
+                'direction="inbound"}[1m])) by (le, replicaset)) '
     query = None
     # get data
     if custom:
@@ -530,5 +530,6 @@ def flattenNestedList(nestedList: list) -> list:
 
 
 if __name__ == '__main__':
-    start_run(name="teastore", users=20, spawn_rate=1, expressions=3, step=100, pods_limit=3, runs=1,
-              custom_shape=False, history=False, sample=False, locust=False)
+    for u in [1, 5, 10, 20]:
+        start_run(name="teastore", users=u, spawn_rate=1, expressions=5, step=100, pods_limit=5, runs=1,
+                  custom_shape=False, history=False, sample=False, locust=False)

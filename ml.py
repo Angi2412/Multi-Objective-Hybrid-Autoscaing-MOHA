@@ -28,7 +28,7 @@ def linear_least_squares_model(target: str, save: bool) -> None:
     :param target: target name
     :return: None
     """
-    X_train, X_test, y_train, y_test = get_processed_data(target)
+    X_train, X_test, y_train, y_test = get_processed_data(target, save)
 
     # Create linear regression object
     regression = LinearRegression()
@@ -58,12 +58,13 @@ def linear_bayesian_model(target: str, save: bool, search: bool) -> None:
     :param search: grid search
     :return: None
     """
-    X_train, X_test, y_train, y_test = get_processed_data(target)
+    X_train, X_test, y_train, y_test = get_processed_data(target, save)
 
     if search:
-        params = {"lambda_1": np.logspace(-2, 10, 13, base=2), "lambda_2": np.logspace(-2, 10, 13, base=2)}
+        params = {"lambda_1": np.logspace(-2, 10, 13, base=2), "lambda_2": np.logspace(-2, 10, 13, base=2),
+                  "alpha_1": np.linspace(0.1, 1, 10), "alpha_2": np.linspace(0.1, 1, 10)}
         tic = time()
-        search = GridSearchCV(estimator=BayesianRidge(alpha_1=0.01, alpha_2=0.01), param_grid=params, verbose=1)
+        search = GridSearchCV(estimator=BayesianRidge(), param_grid=params, verbose=1)
         search.fit(X_train, y_train.ravel())
         gsh_time = time() - tic
         print(f"Training time: {gsh_time}")
@@ -71,7 +72,7 @@ def linear_bayesian_model(target: str, save: bool, search: bool) -> None:
     # Train the model using the training sets
     else:
         # Create linear regression object
-        regression = BayesianRidge(alpha_1=0.01, alpha_2=0.01, lambda_1=1024, lambda_2=1.0)
+        regression = BayesianRidge(alpha_1=1.0, alpha_2=0.01, lambda_1=128, lambda_2=1.0)
         tic = time()
         regression.fit(X_train, y_train.ravel())
         gsh_time = time() - tic
@@ -109,10 +110,11 @@ def svr_model(target: str, save: bool, search: bool) -> None:
     :return: None
     """
     # split data in to train and test sets
-    X_train, X_test, y_train, y_test = get_processed_data(target)
+    X_train, X_test, y_train, y_test = get_processed_data(target, save)
     if search:
         # SVRs with different kernels
-        params = {"C": np.logspace(-2, 10, 13, base=2), "gamma": np.logspace(1, 3, 13, base=2)}
+        params = {"C": np.logspace(-2, 10, 13, base=2), "gamma": np.logspace(1, 3, 13, base=2),
+                  "epsilon": np.linspace(0.1, 2.0, 10)}
         tic = time()
         search = GridSearchCV(estimator=SVR(kernel="rbf", cache_size=8000, epsilon=0.1), param_grid=params, verbose=1)
         search.fit(X_train, y_train.ravel())
@@ -144,7 +146,7 @@ def neural_network_model(target: str, search: bool, save: bool) -> None:
     :return: None
     """
     # split data
-    X_train, X_test, y_train, y_test = get_processed_data(target)
+    X_train, X_test, y_train, y_test = get_processed_data(target, save)
     # train neural network
     mlp = None
     if search:
@@ -195,7 +197,7 @@ def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
             if date in file and "mean" not in file:
                 data = pd.read_csv(os.path.join(path, file), delimiter=",")
                 data = data.reset_index()
-                X = data[['cpu limit', 'memory limit', 'number of pods', 'rps']].to_numpy()
+                X = data[['cpu limit', 'memory limit', 'number of pods', 'average rps']].to_numpy()
                 y = data[[target]].to_numpy()
                 logging.info(f"X: {X.shape} - y: {y.shape}")
                 return X, y
@@ -246,7 +248,7 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
         benchmark.parameter_variation("webui", cpu_limit - window * step, cpu_limit + window * step,
                                       memory_limit - window * step, memory_limit + window * step,
                                       number_of_pods - window, number_of_pods + window,
-                                      step, False, False, False).tolist())
+                                      step, False, False, False, int(rps)).tolist())
     # validate parameter variations
     for i, entry in enumerate(predict_window_list):
         predict_window_list[i] = validate_parameter(entry, rps)
@@ -358,7 +360,7 @@ def train_for_all_targets(date: str, kind: str) -> None:
     logging.info("All models are trained.")
 
 
-def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
+def get_processed_data(target: str, save: bool) -> (np.array, np.array, np.array, np.array):
     load_dotenv()
     X, y = get_data(os.getenv("LAST_DATA"), target, True)
     # scale dataset
@@ -366,8 +368,14 @@ def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
     y_scaling = MinMaxScaler()
     X = x_scaling.fit_transform(X)
     y = y_scaling.fit_transform(y)
-    # save y scaler
-    dump(y_scaling, os.path.join(os.getcwd(), "data", "models", "y_scaler.gz"))
+    if save:
+        # save y scaler
+        dump(y_scaling, os.path.join(os.getcwd(), "data", "models", "y_scaler.gz"))
     # split data in to train and test sets
     X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
     return X_train, X_test, y_train, y_test
+
+
+if __name__ == '__main__':
+    # linear_least_squares_model("average response time", False)
+    neural_network_model("average response time", True, False)

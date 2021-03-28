@@ -252,7 +252,7 @@ def evaluation(name: str, users: int, spawn_rate: int, hh: int, mm: int):
     logging.info("Finished Benchmark.")
 
 
-def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
+def benchmark(name: str, load: int, spawn_rate: int, expressions: int,
               step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool, history: bool,
               sample: bool, locust: bool) -> None:
     """
@@ -265,7 +265,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     :param pods_limit: pods limit
     :param step: size of step
     :param name: name of ms
-    :param users: number of users
+    :param load: number of users or rps
     :param spawn_rate: spawn rate
     :param sample: enable sample run
     :param locust: use locust or jmeter
@@ -286,13 +286,13 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                host=os.getenv("HOST"),
                node_port=k8s.k8s_get_app_port(),
                date=date,
-               users=users,
+               load=load,
                spawn_rate=spawn_rate
                )
     iteration = 1
     scale_only = "webui"
     # get variation
-    variations = parameter_variation_namespace(pods_limit, expressions, step, sample)
+    variations = parameter_variation_namespace(pods_limit, expressions, step, sample, load)
     c_max, m_max, p_max = variations[os.getenv("UI")].shape
 
     # benchmark
@@ -325,7 +325,7 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
                 if locust:
                     start_locust(iteration=iteration, folder=folder_path, history=history, custom_shape=custom_shape)
                 else:
-                    start_jmeter(iteration, date, True, users)
+                    start_jmeter(iteration, date, True, load)
                 # get prometheus data
                 get_prometheus_data(folder=folder_path, iteration=iteration, hh=int(os.getenv("HH")),
                                     mm=int(os.getenv("MM")))
@@ -334,9 +334,10 @@ def benchmark(name: str, users: int, spawn_rate: int, expressions: int,
     logging.info("Finished Benchmark.")
 
 
-def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, sample: bool) -> dict:
+def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, sample: bool, rps: int) -> dict:
     """
     Generates the parameter variation matrix for every deployment in a namespace with given values.
+    :param rps: requests per second
     :param pods_limit: pod limit
     :param expressions: number of expressions
     :param step: size of step
@@ -359,13 +360,13 @@ def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, 
             # parameter variation matrix
             variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
                                                p_memory_limit, 1, pods_limit, step, invert=False, sample=sample,
-                                               save=True)
+                                               save=True, rps=rps)
     return variation
 
 
 def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int,
                         pods_request: int,
-                        pods_limit: int, step: int, invert: bool, sample: bool, save: bool) -> np.array:
+                        pods_limit: int, step: int, invert: bool, sample: bool, save: bool, rps: int) -> np.array:
     """
     Calculates a matrix mit all combination of the parameters.
     :return: parameter variation matrix
@@ -388,7 +389,7 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     csv_path = os.path.join(os.getcwd(), "data", "raw", os.getenv("LAST_DATA"), f"{pod}_variation.csv")
     # init matrix
     variation_matrix = np.zeros((cpu.size, memory.size, pods.size),
-                                dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32)])
+                                dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32), ('rps', np.int32)])
     # fill matrix
     i = 1
     for c in range(0, cpu.size):
@@ -398,11 +399,12 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
                     if m != c:
                         print("here")
                         break
-                variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p])
+                variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p], rps)
                 # fill dataframe
                 df.at[i, 'CPU'] = cpu[c]
                 df.at[i, 'Memory'] = memory[m]
                 df.at[i, 'Pods'] = pods[p]
+                df.at[i, 'RPS'] = rps
                 i = i + 1
     logging.debug(df.head())
     if save:
@@ -530,6 +532,7 @@ def flattenNestedList(nestedList: list) -> list:
 
 
 if __name__ == '__main__':
-    for u in [1, 5, 10, 20]:
-        start_run(name="teastore", users=u, spawn_rate=1, expressions=5, step=100, pods_limit=5, runs=1,
+    user = [1, 25]
+    for u in user:
+        start_run(name="teastore", users=u, spawn_rate=1, expressions=5, step=50, pods_limit=5, runs=5,
                   custom_shape=False, history=False, sample=False, locust=False)

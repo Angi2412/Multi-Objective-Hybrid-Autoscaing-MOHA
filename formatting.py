@@ -1,19 +1,15 @@
-from gevent import monkey
-
-monkey.patch_all()
-import os
-
-import pandas as pd
-from dotenv import load_dotenv
-import seaborn as sns
 import logging
+import os
 import re
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from dotenv import load_dotenv
 
 # init
 load_dotenv()
-# init logger
 logging.getLogger().setLevel(logging.INFO)
 
 
@@ -41,7 +37,6 @@ def get_data(directory: str) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
     prometheus_data = None
     prometheus_custom_data = None
     locust_data = None
-    i, j, l = 0, 0, 0
     # check if folder exists
     data_path = os.path.join(os.getcwd(), "data", "raw", directory)
     if os.path.exists(data_path):
@@ -50,13 +45,14 @@ def get_data(directory: str) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
         for (dir_path, dir_names, filenames) in os.walk(data_path):
             for file in filenames:
                 if "metrics" in file and "custom_metrics" not in file:
-                    i = i + 1
+                    i = int(str(file).split("_")[1].rstrip(".csv"))
                     prometheus_data = get_data_helper(prometheus_data, file, i, directory)
                 elif "custom_metrics" in file:
-                    j = j + 1
+                    j = int(str(file).split("_")[2].rstrip(".csv"))
+                    print(j)
                     prometheus_custom_data = get_data_helper(prometheus_custom_data, file, j, directory)
                 elif "locust" in file and "stats" in file and "history" not in file:
-                    l = l + 1
+                    l = int(str(file).split("_")[2].rstrip(".csv"))
                     locust_data = get_data_helper(locust_data, file, l, directory)
     return prometheus_data, prometheus_custom_data, locust_data
 
@@ -165,7 +161,7 @@ def get_variation_matrix(directory: str) -> np.array:
                 name = str(file).split("-")[1].split("_")[0]
                 # read variation file
                 file_path = os.path.join(dir_path, file)
-                res = pd.read_csv(filepath_or_buffer=file_path, delimiter=',')
+                res = pd.read_csv(filepath_or_buffer=file_path, delimiter=';')
                 # edit table
                 res.insert(0, 'pod', name)
                 res.rename(columns={"Unnamed: 0": "Iteration"}, inplace=True)
@@ -195,13 +191,22 @@ def filter_data(directory: str) -> pd.DataFrame:
                                    values="value").reset_index()
     filtered_custom_data = pd.pivot_table(custom, index=["Iteration", "pod", "datapoint"], columns=["metric"],
                                           values="value").reset_index()
-    # calculate mean values
+    # calculate median values
     filtered_data = filtered_data.groupby(["Iteration", "pod"]).mean().reset_index()
     filtered_custom_data = filtered_custom_data.groupby(["Iteration", "pod"]).mean().reset_index()
+    filtered_custom_data.rename(columns={"rps": "average rps"}, inplace=True)
+    # outliers
+    filtered_custom_data["median_latency"] = np.where(
+        filtered_custom_data["median_latency"] < filtered_custom_data["median_latency"].quantile(0.10),
+        filtered_custom_data["median_latency"].quantile(0.10),
+        filtered_custom_data['median_latency'])
+    filtered_custom_data["median_latency"] = np.where(
+        filtered_custom_data["median_latency"] > filtered_custom_data["median_latency"].quantile(0.90),
+        filtered_custom_data["median_latency"].quantile(0.90),
+        filtered_custom_data['median_latency'])
     # merge all tables
     res_data = pd.merge(filtered_data, filtered_custom_data, how='left', on=["Iteration", "pod"])
     res_data = pd.merge(res_data, variation, how='left', on=["Iteration", "pod"])
-    res_data["ratio"] = res_data["median_latency"] / res_data["rps"]
     # erase stuff
     res_data.drop(columns=["kube_deployment_spec_replicas", "kube_pod_container_resource_limits_cpu_cores",
                            "kube_pod_container_resource_limits_memory_bytes",
@@ -213,10 +218,16 @@ def filter_data(directory: str) -> pd.DataFrame:
                  "Pods": "number of pods", "container_cpu_cfs_throttled_seconds_total": "cpu throttled total",
                  "response_time": "average response time", "median_latency": "median latency"},
         inplace=True)
+    # ratio
+    res_data["rps delta"] = (res_data["average rps"] - res_data["RPS"]) / res_data["RPS"]
+    res_data["ratio response time"] = res_data["median latency"] * (1 - res_data["rps delta"])
+    res_data["ratio cpu usage"] = res_data["cpu usage"] * (1 - res_data["rps delta"])
+    res_data["ratio memory usage"] = res_data["memory usage"] * (1 - res_data["rps delta"])
     # filter for webui pod
     res_data = res_data.loc[(res_data['pod'] == "webui")]
     res_data.reset_index(inplace=True)
     res_data.drop(columns=["index"], inplace=True)
+    # save
     save_data(res_data, directory, "filtered")
     return res_data
 
@@ -246,7 +257,8 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
     os.mkdir(dir_path)
     # init x- and y-axis
     x_axis = ["cpu limit", "memory limit", "number of pods"]
-    y_axis = ["cpu usage", "memory usage", "average response time", "median latency", "latency95", "ratio"]
+    y_axis = ["ratio response time", "ratio cpu usage",
+              "ratio memory usage"]
     # functions
     functions = [pd.DataFrame.min, pd.DataFrame.median, pd.DataFrame.max]
     # create and save plots
@@ -268,9 +280,11 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
                 plot.figure.savefig(os.path.join(dir_path, name))
                 plot.figure.clf()
     # Requests per second
-    plot = sns.lineplot(data=data, x="Iteration", y="rps")
-    plot.figure.savefig(os.path.join(dir_path, "rps.png"))
-    plot.figure.clf()
+    fig, ax = plt.subplots()
+    ax.plot(data["Iteration"], data["average rps"])
+    ax.plot(data["Iteration"], data["RPS"])
+    fig.savefig(os.path.join(dir_path, "rps.png"))
+    fig.clf()
 
 
 def format_for_extra_p() -> None:
@@ -279,23 +293,23 @@ def format_for_extra_p() -> None:
     :return: None
     """
     # init
+    load_dotenv()
     save_path = os.path.join(os.getcwd(), "data", "formatted", os.getenv('LAST_DATA'))
     # create directory if not existing
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     # get variation matrix
     variation = get_variation_matrix(os.getenv('LAST_DATA'))
-    print(variation.shape)
     m_max = variation["Memory"].nunique()
     # parameter and metrics
-    parameter = ["cpu limit", "memory limit", "number of pods"]
-    metrics = ["average response time", "cpu usage", "memory usage"]
+    parameter = ["cpu limit", "memory limit", "number of pods", "rps"]
+    targets = ["average response time", "cpu usage", "memory usage"]
     # get all filtered data
     filtered_data = list()
     for f in get_all_filtered_data():
         filtered_data.append(f)
     # write in txt file
-    for metric in metrics:
+    for metric in targets:
         m_name = (re.sub('[^a-zA-Z0-9 _]', '', metric)).rstrip().replace(' ', '_').lower()
         with open(os.path.join(save_path, f"{os.getenv('LAST_DATA')}_{m_name}_extra-p.txt"), "x") as file:
             # write parameters
@@ -309,10 +323,13 @@ def format_for_extra_p() -> None:
                     file.write("\n")
                     file.write("POINTS ")
                 row = variation.iloc[[i]]
-                file.write(f"( {row.iloc[0]['CPU']} {row.iloc[0]['Memory']} {row.iloc[0]['Pods']} ) ")
+                file.write(
+                    f"( {row.iloc[0]['CPU']} {row.iloc[0]['Memory']} {row.iloc[0]['Pods']} {row.iloc[0]['RPS']} ) ")
             file.write("\n")
-            file.write("REGION Test\n")
+            file.write("\n")
+            file.write(f"REGION {os.getenv('APP_NAME')}\n")
             file.write(f"METRIC {m_name}\n")
+            file.write("\n")
             # write data
             # for every datapoint
             for i in range(0, (filtered_data[0].index.max() + 1)):
@@ -334,7 +351,9 @@ def correlation_coefficient_matrix() -> None:
     if not os.path.exists(dir_path):
         os.mkdir(dir_path)
     df = pd.read_csv(os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv"))
-    df = df[["cpu limit", "memory limit", "number of pods", "cpu usage", "memory usage", "average response time"]]
+    df = df[
+        ["cpu limit", "memory limit", "number of pods", "ratio response time", "ratio cpu usage",
+         "ratio memory usage"]]
     df.dropna()
     corr = df.corr(method="pearson")
     save_data(corr, os.getenv("LAST_DATA"), os.path.join("correlation", os.getenv("LAST_DATA")))
@@ -392,8 +411,8 @@ def filter_run() -> None:
     """
     path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
     data = pd.read_csv(path, delimiter=",")
-    data = data.groupby(["Iteration", "pod"]).mean()
-    save_data(data, f"{os.getenv('LAST_DATA')}_mean", "combined")
+    data = data.groupby(["Iteration", "pod"]).median()
+    save_data(data, f"{os.getenv('LAST_DATA')}_median", "combined")
 
 
 def plot_run() -> None:
@@ -406,9 +425,9 @@ def plot_run() -> None:
     data = pd.read_csv(path, delimiter=",")
     plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined")
     # plot mean run
-    path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}_mean.csv")
+    path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}_median.csv")
     data = pd.read_csv(path, delimiter=",")
-    plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined_mean")
+    plot_filtered_data(data, f"{os.getenv('LAST_DATA')}_combined_median")
 
 
 def plot_all_data():
@@ -476,4 +495,4 @@ def process_all_runs() -> None:
 
 
 if __name__ == '__main__':
-    process_run()
+    format_for_extra_p()

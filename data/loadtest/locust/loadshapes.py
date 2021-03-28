@@ -18,8 +18,8 @@ class DoubleWave(LoadTestShape):
     """
     load_dotenv()
     min_users = int(os.getenv("SPAWN_RATE"))
-    peak_one_users = int(os.getenv("USERS"))/2
-    peak_two_users = int(os.getenv("USERS"))
+    peak_one_users = int(os.getenv("LOAD"))/2
+    peak_two_users = int(os.getenv("LOAD"))
     time_limit = (int(os.getenv("HH")) * 60 * 60) + (int(os.getenv("MM")) * 60)
 
     def tick(self):

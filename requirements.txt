@@ -16,3 +16,4 @@ pyyaml
 Flask
 scikit-criteria
 joblib
+scipy

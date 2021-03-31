@@ -161,7 +161,7 @@ def get_variation_matrix(directory: str) -> np.array:
                 name = str(file).split("-")[1].split("_")[0]
                 # read variation file
                 file_path = os.path.join(dir_path, file)
-                res = pd.read_csv(filepath_or_buffer=file_path, delimiter=';')
+                res = pd.read_csv(filepath_or_buffer=file_path, delimiter=',')
                 # edit table
                 res.insert(0, 'pod', name)
                 res.rename(columns={"Unnamed: 0": "Iteration"}, inplace=True)
@@ -294,12 +294,12 @@ def format_for_extra_p() -> None:
     """
     # init
     load_dotenv()
-    save_path = os.path.join(os.getcwd(), "data", "formatted", os.getenv('LAST_DATA'))
+    save_path = os.path.join(os.getcwd(), "data", "formatted", os.getenv("LAST_DATA"))
     # create directory if not existing
     if not os.path.exists(save_path):
         os.mkdir(save_path)
     # get variation matrix
-    variation = get_variation_matrix(os.getenv('LAST_DATA'))
+    variation = get_variation_matrix(os.getenv("LAST_DATA"))
     m_max = variation["Memory"].nunique()
     # parameter and metrics
     parameter = ["cpu limit", "memory limit", "number of pods", "rps"]
@@ -492,7 +492,3 @@ def process_all_runs() -> None:
     plot_run()
     format_for_extra_p()
     correlation_coefficient_matrix()
-
-
-if __name__ == '__main__':
-    format_for_extra_p()

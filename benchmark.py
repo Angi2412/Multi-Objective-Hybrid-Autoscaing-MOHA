@@ -245,14 +245,14 @@ def evaluation(name: str, users: int, spawn_rate: int, hh: int, mm: int):
     # evaluation
     logging.info("Starting Evaluation.")
     logging.info("Start Locust.")
-    start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True)
+    start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True, users=users, spawn_rate=spawn_rate)
     # get prometheus data
     get_prometheus_data(folder=folder_path, iteration=0, hh=hh, mm=mm)
     k8s.k8s_delete_namespace()
     logging.info("Finished Benchmark.")
 
 
-def benchmark(name: str, load: int, spawn_rate: int, expressions: int,
+def benchmark(name: str, load: list, spawn_rate: int, expressions: int,
               step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool, history: bool,
               sample: bool, locust: bool) -> None:
     """
@@ -293,51 +293,53 @@ def benchmark(name: str, load: int, spawn_rate: int, expressions: int,
     scale_only = "webui"
     # get variation
     variations = parameter_variation_namespace(pods_limit, expressions, step, sample, load)
-    c_max, m_max, p_max = variations[os.getenv("UI")].shape
+    c_max, m_max, p_max, l_max = variations[os.getenv("UI")].shape
 
     # benchmark
     logging.info("Starting Benchmark.")
     for c in range(0, c_max):
         for m in range(0, m_max):
             for p in range(0, p_max):
-                logging.info(
-                    f"Iteration: {iteration}/{c_max * m_max * p_max} run: {run}/ {run_max}")
-                # for every pod in deployment
-                for pod in variations.keys():
-                    # check that pod is scalable
-                    if scale_only in pod:
-                        # get parameter variation
-                        v = variations[pod][c, m, p]
-                        # check if variation is empty
-                        if v[0] == 0 or v[1] == 0 or v[2] == 0:
-                            break
-                        logging.info(f"{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}")
-                        # update resources of pod
-                        k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
-                                                  memory_limit=int(v[1]),
-                                                  number_of_replicas=int(v[2]), replace=True)
-                        # wait for deployment
-                        time.sleep(90)
-                        while not k8s.check_teastore_health():
-                            time.sleep(10)
-                # start load test
-                logging.info("Start Load.")
-                if locust:
-                    start_locust(iteration=iteration, folder=folder_path, history=history, custom_shape=custom_shape)
-                else:
-                    start_jmeter(iteration, date, True, load)
-                # get prometheus data
-                get_prometheus_data(folder=folder_path, iteration=iteration, hh=int(os.getenv("HH")),
-                                    mm=int(os.getenv("MM")))
-                iteration = iteration + 1
+                for l in range(0, l_max):
+                    logging.info(
+                        f"Iteration: {iteration}/{c_max * m_max * p_max} run: {run}/ {run_max}")
+                    # for every pod in deployment
+                    for pod in variations.keys():
+                        # check that pod is scalable
+                        if scale_only in pod:
+                            # get parameter variation
+                            v = variations[pod][c, m, p, l]
+                            # check if variation is empty
+                            if v[0] == 0 or v[1] == 0 or v[2] == 0:
+                                break
+                            logging.info(f"{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}")
+                            # update resources of pod
+                            k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
+                                                      memory_limit=int(v[1]),
+                                                      number_of_replicas=int(v[2]), replace=True)
+                            # wait for deployment
+                            time.sleep(90)
+                            while not k8s.check_teastore_health():
+                                time.sleep(10)
+                    # start load test
+                    logging.info("Start Load.")
+                    if locust:
+                        start_locust(iteration=iteration, folder=folder_path, history=history,
+                                     custom_shape=custom_shape, users=l, spawn_rate=spawn_rate)
+                    else:
+                        start_jmeter(iteration, date, True, l)
+                    # get prometheus data
+                    get_prometheus_data(folder=folder_path, iteration=iteration, hh=int(os.getenv("HH")),
+                                        mm=int(os.getenv("MM")))
+                    iteration = iteration + 1
     k8s.k8s_delete_namespace()
     logging.info("Finished Benchmark.")
 
 
-def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, sample: bool, rps: int) -> dict:
+def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, sample: bool, load: list) -> dict:
     """
     Generates the parameter variation matrix for every deployment in a namespace with given values.
-    :param rps: requests per second
+    :param load: load
     :param pods_limit: pod limit
     :param expressions: number of expressions
     :param step: size of step
@@ -360,13 +362,13 @@ def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, 
             # parameter variation matrix
             variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
                                                p_memory_limit, 1, pods_limit, step, invert=False, sample=sample,
-                                               save=True, rps=rps)
+                                               save=True, load=load)
     return variation
 
 
 def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int,
                         pods_request: int,
-                        pods_limit: int, step: int, invert: bool, sample: bool, save: bool, rps: int) -> np.array:
+                        pods_limit: int, step: int, invert: bool, sample: bool, save: bool, load: list) -> np.array:
     """
     Calculates a matrix mit all combination of the parameters.
     :return: parameter variation matrix
@@ -375,6 +377,7 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     cpu = np.arange(cpu_request, cpu_limit, step, np.int32)
     memory = np.arange(memory_request, memory_limit, step, np.int32)
     pods = np.arange(pods_request, pods_limit + 1, 1, np.int32)
+    load = np.array(load, np.int32)
     if invert:
         cpu = np.flip(cpu)
         memory = np.flip(memory)
@@ -388,24 +391,25 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     df = pd.DataFrame(index=iterations, columns=["CPU", "Memory", "Pods"])
     csv_path = os.path.join(os.getcwd(), "data", "raw", os.getenv("LAST_DATA"), f"{pod}_variation.csv")
     # init matrix
-    variation_matrix = np.zeros((cpu.size, memory.size, pods.size),
-                                dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32), ('rps', np.int32)])
+    variation_matrix = np.zeros((cpu.size, memory.size, pods.size, load.size),
+                                dtype=[('cpu', np.int32), ('memory', np.int32), ('pods', np.int32), ('load', np.int32)])
     # fill matrix
     i = 1
     for c in range(0, cpu.size):
         for m in range(0, memory.size):
             for p in range(0, pods.size):
-                if sample:
-                    if m != c:
-                        print("here")
-                        break
-                variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p], rps)
-                # fill dataframe
-                df.at[i, 'CPU'] = cpu[c]
-                df.at[i, 'Memory'] = memory[m]
-                df.at[i, 'Pods'] = pods[p]
-                df.at[i, 'RPS'] = rps
-                i = i + 1
+                for l in range(0, load.size):
+                    if sample:
+                        if m != c:
+                            print("here")
+                            break
+                    variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p], load[l])
+                    # fill dataframe
+                    df.at[i, 'CPU'] = cpu[c]
+                    df.at[i, 'Memory'] = memory[m]
+                    df.at[i, 'Pods'] = pods[p]
+                    df.at[i, 'RPS'] = load[l]
+                    i = i + 1
     logging.debug(df.head())
     if save:
         # save dataframe to csv
@@ -414,9 +418,11 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     return variation_matrix
 
 
-def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool) -> None:
+def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool, users: int, spawn_rate: int) -> None:
     """
     Start a locust load test.
+    :param spawn_rate: user spawn rate
+    :param users: number of users
     :param custom_shape: use custom load shape
     :param iteration: number of current iteration
     :param folder: name of folder
@@ -446,7 +452,7 @@ def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool)
     if custom_shape:
         env.runner.start_shape()
     else:
-        env.runner.start(user_count=int(os.getenv("USERS")), spawn_rate=int(os.getenv("SPAWN_RATE")))
+        env.runner.start(user_count=users, spawn_rate=spawn_rate)
     # stop the runner in a given time
     time_in_seconds = (int(os.getenv("HH")) * 60 * 60) + (int(os.getenv("MM")) * 60)
     gevent.spawn_later(time_in_seconds, lambda: env.runner.quit())
@@ -481,12 +487,12 @@ def get_persistence_data() -> None:
         json.dump(users, outfile)
 
 
-def start_run(name: str, users: int, spawn_rate: int, expressions: int, step: int, pods_limit: int, runs: int,
+def start_run(name: str, load: list, spawn_rate: int, expressions: int, step: int, pods_limit: int, runs: int,
               custom_shape: bool, history: bool, sample: bool, locust: bool) -> None:
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
-        benchmark(name, users, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape, history, sample,
+        benchmark(name, load, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape, history, sample,
                   locust)
 
 
@@ -529,10 +535,3 @@ def flattenNestedList(nestedList: list) -> list:
             # Append the element to the list
             flat.append(elem)
     return flat
-
-
-if __name__ == '__main__':
-    user = [1, 25]
-    for u in user:
-        start_run(name="teastore", users=u, spawn_rate=1, expressions=5, step=50, pods_limit=5, runs=5,
-                  custom_shape=False, history=False, sample=False, locust=False)

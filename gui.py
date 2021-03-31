@@ -54,6 +54,6 @@ while True:
             locust = False
         if values[8] == "Double Wave":
             custom = True
-        start_run(name="teastore", users=values[0], spawn_rate=values[1], expressions=values[5], step=values[6],
+        start_run(name="teastore", load=values[0], spawn_rate=values[1], expressions=values[5], step=values[6],
                   pods_limit=values[7], runs=values[4], custom_shape=custom, history=values[10], sample=False,
                   locust=locust)

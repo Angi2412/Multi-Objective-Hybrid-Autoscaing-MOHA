@@ -481,8 +481,9 @@ def get_combined_data() -> pd.DataFrame:
 def histogram() -> None:
     sns.set_style("whitegrid")
     data = get_combined_data()
-    ax = sns.histplot(data, x="median latency", bins=[0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600])
-    ax.set_xlabel("Median Latency [ms]")
+    ax = sns.histplot(data, x="average response time",
+                      bins=50, binrange=(250, 5000))
+    ax.set_xlabel("Average Response Time [ms]")
     plt.show()
 
 
@@ -519,3 +520,8 @@ def process_all_runs() -> None:
     plot_run()
     format_for_extra_p()
     correlation_coefficient_matrix()
+
+
+if __name__ == '__main__':
+    histogram()
+    stats("average response time")

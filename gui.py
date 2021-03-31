@@ -8,12 +8,13 @@ import PySimpleGUI as sg
 from benchmark import start_run, p
 from k8s_tools import k
 import logging
+import numpy as np
 
 sg.theme('Reddit')
 
 layout = [
     [sg.Text('Load')],
-    [sg.Text('Users:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=10, size=(4, 1))],
+    [sg.Text('Max Users:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=10, size=(4, 1))],
     [sg.Text('Spawn rate:', size=(15, 1)), sg.Spin([i for i in range(0000, 9999)], initial_value=1, size=(4, 1))],
     [sg.Text('_' * 30)],
     [sg.Text('Duration')],
@@ -54,6 +55,7 @@ while True:
             locust = False
         if values[8] == "Double Wave":
             custom = True
-        start_run(name="teastore", load=values[0], spawn_rate=values[1], expressions=values[5], step=values[6],
+        load = np.arange(1, values[0], 1).tolist()
+        start_run(name="teastore", load=load, spawn_rate=values[1], expressions=values[5], step=values[6],
                   pods_limit=values[7], runs=values[4], custom_shape=custom, history=values[10], sample=False,
                   locust=locust)

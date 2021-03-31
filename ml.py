@@ -1,3 +1,4 @@
+import datetime as dt
 import logging
 import math
 import os
@@ -11,7 +12,7 @@ from joblib import dump, load, numpy_pickle
 from skcriteria import Data, MIN, MAX
 from skcriteria.madm.closeness import TOPSIS
 from sklearn.linear_model import LinearRegression, BayesianRidge
-from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.metrics import mean_squared_error, r2_score, 
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import MinMaxScaler
@@ -28,8 +29,7 @@ def linear_least_squares_model(target: str, save: bool) -> None:
     :param target: target name
     :return: None
     """
-    X_train, X_test, y_train, y_test = get_processed_data(target, save)
-
+    X_train, X_test, y_train, y_test = get_processed_data(target)
     # Create linear regression object
     regression = LinearRegression()
 
@@ -38,16 +38,20 @@ def linear_least_squares_model(target: str, save: bool) -> None:
     regression.fit(X_train, y_train)
     gsh_time = time() - tic
     print("Linear Least Squares Regression")
+    print("Target: " + target)
     print(f"Training time: {gsh_time}")
     # Make predictions using the testing set
+    tic = time()
     y_pred = regression.predict(X_test)
+    pred_time = time() - tic
+    print(f"Prediction time: {pred_time}")
 
     # get metrics
     print("Metrics:")
     get_metrics(y_test, y_pred)
     # save model
     if save:
-        save_model(regression, target)
+        save_model(regression, target, "linear_lsq")
 
 
 def linear_bayesian_model(target: str, save: bool, search: bool) -> None:
@@ -58,7 +62,7 @@ def linear_bayesian_model(target: str, save: bool, search: bool) -> None:
     :param search: grid search
     :return: None
     """
-    X_train, X_test, y_train, y_test = get_processed_data(target, save)
+    X_train, X_test, y_train, y_test = get_processed_data(target)
 
     if search:
         params = {"lambda_1": np.logspace(-2, 10, 13, base=2), "lambda_2": np.logspace(-2, 10, 13, base=2),
@@ -72,20 +76,24 @@ def linear_bayesian_model(target: str, save: bool, search: bool) -> None:
     # Train the model using the training sets
     else:
         # Create linear regression object
-        regression = BayesianRidge(alpha_1=1.0, alpha_2=0.01, lambda_1=128, lambda_2=1.0)
+        regression = BayesianRidge(alpha_1=1.0, alpha_2=0.1, lambda_1=1024, lambda_2=4.0)
         tic = time()
         regression.fit(X_train, y_train.ravel())
         gsh_time = time() - tic
         print("Linear Bayesian Regression")
+        print("Target: " + target)
         print(f"Training time: {gsh_time}")
         # Make predictions using the testing set
+        tic = time()
         y_pred = regression.predict(X_test)
+        pred_time = time() - tic
+        print(f"Prediction time: {pred_time}")
         # get metrics
         print("Metrics:")
         get_metrics(y_test, y_pred)
         # save model
         if save:
-            save_model(regression, target)
+            save_model(regression, target, "linear_b")
 
 
 def get_metrics(test: np.array, pred: np.array) -> None:
@@ -96,6 +104,8 @@ def get_metrics(test: np.array, pred: np.array) -> None:
     :return: None
     """
     # The mean squared error
+    print('Mean squared error: %.2f' % mean_squared_error(test, pred))
+    # RMSE
     print('Mean squared error: %.2f' % mean_squared_error(test, pred))
     # The coefficient of determination: 1 is perfect prediction
     print('Coefficient of determination: %.2f' % r2_score(test, pred))
@@ -110,31 +120,35 @@ def svr_model(target: str, save: bool, search: bool) -> None:
     :return: None
     """
     # split data in to train and test sets
-    X_train, X_test, y_train, y_test = get_processed_data(target, save)
+    X_train, X_test, y_train, y_test = get_processed_data(target)
     if search:
         # SVRs with different kernels
         params = {"C": np.logspace(-2, 10, 13, base=2), "gamma": np.logspace(1, 3, 13, base=2),
                   "epsilon": np.linspace(0.1, 2.0, 10)}
         tic = time()
-        search = GridSearchCV(estimator=SVR(kernel="rbf", cache_size=8000, epsilon=0.1), param_grid=params, verbose=1)
+        search = GridSearchCV(estimator=SVR(kernel="rbf", cache_size=10000), param_grid=params, verbose=1)
         search.fit(X_train, y_train.ravel())
         gsh_time = time() - tic
         print(f"Training time: {gsh_time}")
         print(f"Best params: {search.best_params_}")
     else:
-        svr = SVR(kernel="rbf", C=4.0, gamma=8.0, cache_size=8000)
+        svr = SVR(kernel="rbf", C=2.0, epsilon=0.1, gamma=2.0, cache_size=10000)
         tic = time()
         svr.fit(X_train, y_train.ravel())
         gsh_time = time() - tic
         print("Support Vector Regression")
+        print("Target: " + target)
         print(f"Training time: {gsh_time}")
         # Make predictions using the testing set
+        tic = time()
         y_pred = svr.predict(X_test)
+        pred_time = time() - tic
+        print(f"Prediction time: {pred_time}")
         # print scores
         print("Metrics:")
         get_metrics(y_test, y_pred)
         if save:
-            save_model(svr, target)
+            save_model(svr, target, "svr")
 
 
 def neural_network_model(target: str, search: bool, save: bool) -> None:
@@ -146,36 +160,41 @@ def neural_network_model(target: str, search: bool, save: bool) -> None:
     :return: None
     """
     # split data
-    X_train, X_test, y_train, y_test = get_processed_data(target, save)
+    X_train, X_test, y_train, y_test = get_processed_data(target)
     # train neural network
     mlp = None
     if search:
         # SVRs with different kernels
-        params = {"solver": ["lbfgs", "adam", "sgd"], "activation": ["identity", "logistic", "tanh", "relu"],
-                  "alpha": np.logspace(-2, 10, 13, base=2), "tol": np.logspace(1, 3, 13, base=2)}
+        params = {"alpha": np.logspace(-2, 10, 13, base=2), "tol": np.logspace(1, 3, 13, base=2)}
         tic = time()
-        search = GridSearchCV(estimator=MLPRegressor(learning_rate="adaptive", max_iter=1000), param_grid=params,
-                              verbose=1)
+        search = GridSearchCV(
+            estimator=MLPRegressor(solver="adam", activation="relu", learning_rate="adaptive", max_iter=100000),
+            param_grid=params,
+            verbose=1)
         search.fit(X_train, y_train.ravel())
         gsh_time = time() - tic
         print(f"Training time: {gsh_time}")
         print(f"Best params: {search.best_params_}")
     else:
-        mlp = MLPRegressor(activation="relu", alpha=0.25, solver="adam", tol=2.244924096618746)
+        mlp = MLPRegressor(activation="relu", alpha=0.25, solver="adam", tol=2.8284271247461903)
         # make predictions using the testing set
         tic = time()
         mlp.fit(X_train, y_train.ravel())
         gsh_time = time() - tic
         print("Neural Network")
+        print("Target: " + target)
         print(f"Training time: {gsh_time}")
+        tic = time()
         y_pred = mlp.predict(X_test)
+        pred_time = time() - tic
+        print(f"Prediction time: {pred_time}")
         # print scores
         print("Metrics:")
         print(mlp.score(X_test, y_test))
         get_metrics(y_test, y_pred)
     # save model
     if save:
-        save_model(mlp, target)
+        save_model(mlp, target, "neural_network")
 
 
 def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
@@ -204,30 +223,35 @@ def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
     logging.warning(f"No filtered file with name {date} found.")
 
 
-def save_model(model, name: str) -> None:
+def save_model(model, name: str, alg: str) -> None:
     """
     Saves a model under a given name.
+    :param alg: used algorithm
     :param model: model
     :param name: model name
     :return: None
     """
-    save_path = os.path.join(os.getcwd(), "data", "models", f"{name}.joblib")
-    dump(model, save_path)
+    save_path = os.path.join(os.getcwd(), "data", "models", alg)
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    dump(model, os.path.join(save_path, f"{name}.joblib"))
 
 
-def load_model(name: str) -> numpy_pickle:
+def load_model(name: str, alg: str) -> numpy_pickle:
     """
     Loads a given model.
+    :param alg: algorithm used
     :param name: model name
     :return: model
     """
-    save_path = os.path.join(os.getcwd(), "data", "models", f"{name}.joblib")
+    save_path = os.path.join(os.getcwd(), "data", "models", alg, f"{name}.joblib")
     return load(save_path)
 
 
-def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int):
+def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int, alg: str):
     """
     Chooses the best values for the parameters in a given window for a given status.
+    :param alg: algorithm to use
     :param cpu_limit: current cpu limit
     :param memory_limit: current memory limit
     :param number_of_pods: current number of pods
@@ -237,7 +261,7 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
     """
     # init arrays
     step = int(os.getenv("STEP"))
-    models = get_models()
+    models = get_models(alg)
     possibilities = int(math.pow(2 * window + 1, 3))
     predictions = np.empty((len(models), possibilities))
     prediction_array = np.zeros([possibilities, len(models)], dtype=np.float64)
@@ -248,7 +272,7 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
         benchmark.parameter_variation("webui", cpu_limit - window * step, cpu_limit + window * step,
                                       memory_limit - window * step, memory_limit + window * step,
                                       number_of_pods - window, number_of_pods + window,
-                                      step, False, False, False, int(rps)).tolist())
+                                      step, False, False, False, [int(rps)]))
     # validate parameter variations
     for i, entry in enumerate(predict_window_list):
         predict_window_list[i] = validate_parameter(entry, rps)
@@ -320,7 +344,7 @@ def choose_best(mtx: np.array) -> int:
     return dec.best_alternative_
 
 
-def get_models() -> list:
+def get_models(alg: str) -> list:
     """
     Imports all models.
     :return: list of models
@@ -328,7 +352,7 @@ def get_models() -> list:
     targets = ["average response time", "cpu usage", "memory usage"]
     models = list()
     for t in targets:
-        model = os.path.join(os.getcwd(), "data", "models", f"{t}.joblib")
+        model = os.path.join(os.getcwd(), "data", "models", alg, f"{t}.joblib")
         if os.path.exists(model):
             models.append(load(model))
         else:
@@ -337,13 +361,13 @@ def get_models() -> list:
     return models
 
 
-def train_for_all_targets(date: str, kind: str) -> None:
+def train_for_all_targets(kind: str) -> None:
     """
     Trains a given model for all targets.
-    :param date: name of data
     :param kind: model type
     :return: None
     """
+    date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     targets = ["average response time", "cpu usage", "memory usage"]
     for t in targets:
         if kind == "neural":
@@ -360,22 +384,37 @@ def train_for_all_targets(date: str, kind: str) -> None:
     logging.info("All models are trained.")
 
 
-def get_processed_data(target: str, save: bool) -> (np.array, np.array, np.array, np.array):
+def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
+    d_path = os.path.join(os.getcwd(), "data", "models", "data", target)
+    d = [None, None, None, None]
+    for i in range(0, 4):
+        d[i] = np.load(os.path.join(d_path, f"{i}.npy"))
+    return d[0], d[1], d[2], d[3]
+
+
+def processes_data() -> None:
     load_dotenv()
-    X, y = get_data(os.getenv("LAST_DATA"), target, True)
-    # scale dataset
-    x_scaling = MinMaxScaler()
-    y_scaling = MinMaxScaler()
-    X = x_scaling.fit_transform(X)
-    y = y_scaling.fit_transform(y)
-    if save:
-        # save y scaler
-        dump(y_scaling, os.path.join(os.getcwd(), "data", "models", "y_scaler.gz"))
-    # split data in to train and test sets
-    X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
-    return X_train, X_test, y_train, y_test
+    for t in ["average response time", "cpu usage", "memory usage"]:
+        X, y = get_data(os.getenv("LAST_DATA"), t, True)
+        # scale dataset
+        x_scaling = MinMaxScaler()
+        y_scaling = MinMaxScaler()
+        X = x_scaling.fit_transform(X)
+        y = y_scaling.fit_transform(y)
+
+        dump(y_scaling, os.path.join(os.getcwd(), "data", "models", "data", "y_scaler.gz"))
+        # split data in to train and test sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+        logging.info(f"Training size: {X_train.shape}")
+        logging.info(f"Test size: {X_test.shape}")
+        d_path = os.path.join(os.getcwd(), "data", "models", "data", t)
+        for i, d in enumerate([X_train, X_test, y_train, y_test]):
+            np.save(os.path.join(d_path, str(i)), d)
 
 
 if __name__ == '__main__':
-    # linear_least_squares_model("average response time", False)
-    neural_network_model("average response time", True, False)
+    # processes_data()
+
+    train_for_all_targets("linear")
+    train_for_all_targets("neural")
+    train_for_all_targets("svr")

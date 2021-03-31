@@ -471,6 +471,33 @@ def plot_targets_4d(data: pd.DataFrame, name: str) -> None:
         fig.clf()
 
 
+def get_combined_data() -> pd.DataFrame:
+    # get last combined run
+    path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
+    data = pd.read_csv(path, delimiter=",")
+    return data
+
+
+def histogram() -> None:
+    sns.set_style("whitegrid")
+    data = get_combined_data()
+    ax = sns.histplot(data, x="median latency", bins=[0, 50, 100, 150, 200, 250, 300, 350, 400, 450, 500, 550, 600])
+    ax.set_xlabel("Median Latency [ms]")
+    plt.show()
+
+
+def boxplot() -> None:
+    data = get_combined_data()
+    ax = sns.boxplot(data=data[["cpu usage", "memory usage"]])
+    ax.set_ylabel("Usage [%]")
+    plt.show()
+
+
+def stats(column: str) -> None:
+    data = get_combined_data()
+    print(data[column].describe())
+
+
 def process_run() -> None:
     """
     Processes one single run.

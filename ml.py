@@ -277,11 +277,11 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
     for i, entry in enumerate(predict_window_list):
         predict_window_list[i] = validate_parameter(entry, rps)
     predict_window = np.array(predict_window_list, dtype=np.float64)
-    # get predictions
+    # scale data
     scaler = MinMaxScaler()
+    predict_window_scaled = scaler.fit_transform(predict_window)
+    # get predictions for each model
     for i, model in enumerate(models):
-        # scale data
-        predict_window_scaled = scaler.fit_transform(predict_window)
         # predict
         predictions[i] = model.predict(predict_window_scaled)
     # load target scaler
@@ -413,8 +413,4 @@ def processes_data() -> None:
 
 
 if __name__ == '__main__':
-    # processes_data()
-
-    train_for_all_targets("linear")
-    train_for_all_targets("neural")
-    train_for_all_targets("svr")
+    print(get_best_parameters(200, 500, 2, 5.2, 2, "svr"))

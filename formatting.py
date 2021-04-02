@@ -365,9 +365,9 @@ def correlation_coefficient_matrix() -> None:
     # Generate a custom diverging colormap
     cmap = sns.color_palette("coolwarm", as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
-    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=.3, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5},
-                annot=True, fmt=".1f")
-    f.savefig(os.path.join(dir_path, f"{os.getenv('LAST_DATA')}.png"))
+    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=1, vmin=-1, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5},
+                annot=True, fmt=".2f")
+    f.savefig(os.path.join(dir_path, f"{os.getenv('LAST_DATA')}.png"), bbox_inches='tight')
     plt.show()
 
 
@@ -523,5 +523,4 @@ def process_all_runs() -> None:
 
 
 if __name__ == '__main__':
-    histogram()
-    stats("average response time")
+    stats("cpu usage")

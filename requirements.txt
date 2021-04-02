@@ -1,7 +1,5 @@
 scikit-learn
 kubernetes
-prometheus-api-client
-extrap
 locust
 PySimpleGUI
 docker
@@ -14,6 +12,4 @@ seaborn
 matplotlib
 pyyaml
 Flask
-scikit-criteria
 joblib
-scipy

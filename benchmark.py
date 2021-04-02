@@ -114,6 +114,7 @@ def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
 
 def get_status(pod: str) -> (list, list):
     # init
+    k8s.set_prometheus_info()
     prom_res = PrometheusConnect(url=os.getenv(f'PROMETHEUS_RESOURCES_HOST'), disable_ssl=True)
     prom_net = PrometheusConnect(url=os.getenv(f'PROMETHEUS_NETWORK_HOST'), disable_ssl=True)
     # custom queries

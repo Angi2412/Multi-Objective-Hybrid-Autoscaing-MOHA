@@ -42,7 +42,7 @@ def scale():
     else:
         best_parameters = ml.get_best_parameters(cpu_limit=parameter_status[0], memory_limit=parameter_status[1],
                                                  number_of_pods=parameter_status[2], rps=parameter_status[3],
-                                                 window=int(os.getenv("WINDOW")))
+                                                 window=int(os.getenv("WINDOW")), alg=os.getenv("ALGORITHM"))
         k8s_update_deployment(os.getenv("SCALE_POD"), best_parameters[0], best_parameters[1],
                               best_parameters[2], replace=False)
         logging.info(
@@ -68,7 +68,7 @@ def improve() -> None:
     # combine old and new data
     formatting.combine_data([prev, curr], date)
     # train all models
-    ml.train_for_all_targets(date, "svr")
+    ml.train_for_all_targets(os.getenv("ALGORITHM"))
 
 
 def check_target_status(targets: list) -> bool:

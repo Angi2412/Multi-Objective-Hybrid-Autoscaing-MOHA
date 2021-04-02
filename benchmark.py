@@ -552,4 +552,4 @@ def start_jmeter(iteration: int, date: str, test: bool, rps: int):
 
 
 if __name__ == '__main__':
-    evaluation(10, 1, 0, 5)
+    evaluation(5, 1, 0, 10)

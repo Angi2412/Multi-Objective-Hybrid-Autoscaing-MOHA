@@ -19,7 +19,7 @@ import requests
 
 # environment
 load_dotenv(override=True)
-
+kube_config = os.path.join(os.getcwd(), "config")
 # init logger
 k = logging.getLogger()
 k.setLevel(logging.INFO)
@@ -67,7 +67,7 @@ def k8s_create_deployment_from_file(yaml_file: str) -> None:
     :return: None
     """
     # init
-    config.load_kube_config()
+    config.load_kube_config(config_file=kube_config)
     k8s_client = client.ApiClient()
     # create namespace
     os.system(f"kubectl create namespace {os.getenv('NAMESPACE')}")
@@ -162,7 +162,7 @@ def k8s_create_deployment(deployment: client.V1Deployment) -> None:
     :return: None
     """
     # init API
-    config.load_kube_config()
+    config.load_kube_config(config_file=kube_config)
     apps_v1 = client.AppsV1Api()
     try:
         api_response = apps_v1.create_namespaced_deployment(
@@ -184,7 +184,7 @@ def k8s_update_all_deployments_in_namespace(cpu_limit: int, memory_limit: int,
     """
     not_scalable = ["mysql", "mongodb", "redis", "rabbitmq"]
     # init API
-    config.load_kube_config()
+    config.load_kube_config(config_file=kube_config)
     apps_v1 = client.AppsV1Api()
     # read deployment
     counter = 0
@@ -215,7 +215,7 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
     :return: None
     """
     # init API
-    config.load_kube_config()
+    config.load_kube_config(config_file=kube_config)
     apps_v1 = client.AppsV1Api()
     # read deployment
     deployment = apps_v1.read_namespaced_deployment(name=deployment_name, namespace=os.getenv("NAMESPACE"))
@@ -272,7 +272,7 @@ def k8s_delete_namespace() -> None:
     :return: None
     """
     # init
-    config.load_kube_config()
+    config.load_kube_config(config_file=kube_config)
     v1 = client.CoreV1Api()
     try:
         resp = v1.list_namespace()
@@ -294,7 +294,7 @@ def k8s_get_app_port() -> int:
     :return: node port
     """
     # init
-    config.load_kube_config()
+    config.load_kube_config(config_file=kube_config)
     v1 = client.CoreV1Api()
     # iterate through namespaces services
     ret = v1.list_namespaced_service(namespace=os.getenv("NAMESPACE"))
@@ -345,27 +345,55 @@ def set_prometheus_info() -> None:
     :return: None
     """
     # init
-    config.load_kube_config()
+    config.load_kube_config(config_file=kube_config)
     v1 = client.CoreV1Api()
     # iterate through default namespaces services
     ret_default = v1.list_namespaced_service(namespace="default")
     for service in ret_default.items:
         if "prometheus-kube-prometheus-prometheus" in service.metadata.name:
             # set env variable
+            if os.getenv("PRODUCTION") == "True":
+                port = service.spec.ports[0].port
+                host = service.spec.cluster_ip
+            else:
+                port = service.spec.ports[0].node_port
+                host = "localhost"
             set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="PROMETHEUS_RESOURCES_HOST",
-                    value_to_set=f"http://localhost:{service.spec.ports[0].node_port}")
+                    value_to_set=f"http://{host}:{port}")
             break
     # iterate through linkerd namespaces services
     ret_linkerd = v1.list_namespaced_service(namespace="linkerd")
     for service in ret_linkerd.items:
         if "linkerd-prometheus" in service.metadata.name:
             # set env variable
+            if os.getenv("PRODUCTION") == "True":
+                port = service.spec.ports[0].port
+                host = service.spec.cluster_ip
+            else:
+                port = service.spec.ports[0].node_port
+                host = "localhost"
             set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="PROMETHEUS_NETWORK_HOST",
-                    value_to_set=f"http://localhost:{service.spec.ports[0].node_port}")
+                    value_to_set=f"http://{host}:{port}")
+            break
+    ret_teastore = v1.list_namespaced_service(namespace="teastore")
+    for service in ret_teastore.items:
+        if "webui" in service.metadata.name:
+            # set env variable
+            if os.getenv("PRODUCTION") == "True":
+                port = str(service.spec.ports[0].port)
+                host = str(service.spec.cluster_ip)
+            else:
+                port = str(service.spec.ports[0].node_port)
+                host = "localhost"
+            set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="HOST",
+                    value_to_set=host)
+            set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="NODE_PORT",
+                    value_to_set=port)
             break
     load_dotenv(override=True)
     logging.info(f"PROMETHEUS_RESOURCES_HOST: {os.getenv('PROMETHEUS_RESOURCES_HOST')}")
     logging.info(f"PROMETHEUS_NETWORK_HOST: {os.getenv('PROMETHEUS_NETWORK_HOST')}")
+    logging.info(f"Teastore: http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}")
 
 
 def get_resource_requests() -> dict:
@@ -374,7 +402,7 @@ def get_resource_requests() -> dict:
     :return: resource requests
     """
     # init API
-    config.load_kube_config()
+    config.load_kube_config(config_file=kube_config)
     apps_v1 = client.AppsV1Api()
     resource_requests = dict()
     # read deployment
@@ -406,8 +434,3 @@ def create_autoscaler() -> None:
         os.chdir(work_directory)
     except Exception as err:
         logging.error(f"Error while creating autoscaler: {err}")
-
-
-if __name__ == '__main__':
-    # k8s_create_teastore()
-    create_autoscaler()

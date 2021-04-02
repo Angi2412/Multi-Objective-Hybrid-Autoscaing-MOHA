@@ -520,7 +520,3 @@ def process_all_runs() -> None:
     plot_run()
     format_for_extra_p()
     correlation_coefficient_matrix()
-
-
-if __name__ == '__main__':
-    stats("cpu usage")

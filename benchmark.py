@@ -127,20 +127,40 @@ def get_status(pod: str) -> (list, list):
                          '1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
     rps_query = 'sum(irate(request_total{deployment="teastore-webui", direction="inbound"}[1m]))'
     response_time = 'sum(response_latency_ms_sum{deployment="teastore-webui", direction="inbound"})/sum(' \
-                    'response_latency_ms_count{deployment="teastore-webui", direction="inbound"}) '
+                    'response_latency_ms_count{deployment="teastore-webui", direction="inbound"})'
     # target metrics
+    cpu_usage = 0.0
+    memory_usage = 0.0
+    latency = 0.0
     # get cpu
-    cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage_query))
-    cpu_usage_data["pod"] = cpu_usage_data["pod"].str.split("-", n=2).str[1]
+    try:
+        cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage_query))
+        if 'pod' in cpu_usage_data.columns:
+            cpu_usage_data["pod"] = cpu_usage_data["pod"].str.split("-", n=2).str[1]
+            cpu_usage = cpu_usage_data.loc[(cpu_usage_data['pod'] == pod)].at[0, 'value']
+        else:
+            cpu_usage = cpu_usage_data.at[0, 'value']
+    except Exception as err:
+        logging.error("Error while gathering cpu usage")
     # get memory
-    memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage_query))
-    memory_usage_data["pod"] = memory_usage_data["pod"].str.split("-", n=2).str[1]
+    try:
+        memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage_query))
+        if 'pod' in memory_usage_data.columns:
+            memory_usage_data["pod"] = memory_usage_data["pod"].str.split("-", n=2).str[1]
+            memory_usage = memory_usage_data.loc[(memory_usage_data['pod'] == pod)].at[0, 'value']
+        else:
+            memory_usage = memory_usage_data.at[0, 'value']
+    except Exception as err:
+        logging.error("Error while gathering memory usage")
     # get average response time
-    latency_data = MetricSnapshotDataFrame(prom_net.custom_query(response_time))
-    latency = latency_data.at[0, 'value']
-    # filter
-    cpu_usage = cpu_usage_data.loc[(cpu_usage_data['pod'] == pod)].at[0, 'value']
-    memory_usage = memory_usage_data.loc[(memory_usage_data['pod'] == pod)].at[0, 'value']
+    try:
+        latency_data = MetricSnapshotDataFrame(prom_net.custom_query(response_time))
+        if not latency_data.empty:
+            latency = latency_data.at[0, 'value']
+        else:
+            raise Exception
+    except Exception as err:
+        logging.error("Error while gathering latency")
     targets = [float(cpu_usage), float(memory_usage), float(latency)]
     # parameter metrics
     # cpu
@@ -187,7 +207,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
                    '1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
     rps = 'sum(irate(request_total{deployment="teastore-webui", direction="inbound"}[1m]))'
     response_time = 'sum(response_latency_ms_sum{deployment="teastore-webui", direction="inbound"})/sum(' \
-                    'response_latency_ms_count{deployment="teastore-webui", direction="inbound"}) '
+                    'response_latency_ms_count{deployment="teastore-webui", direction="inbound"})'
     median_latency = 'histogram_quantile(0.5, sum(irate(response_latency_ms_bucket{deployment="teastore-webui", ' \
                      'direction="inbound"}[1m])) by (le, replicaset)) '
     latency95 = 'histogram_quantile(0.95, sum(irate(response_latency_ms_bucket{deployment="teastore-webui", ' \
@@ -223,7 +243,7 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
     return metric_data
 
 
-def evaluation(name: str, users: int, spawn_rate: int, hh: int, mm: int):
+def evaluation(users: int, spawn_rate: int, hh: int, mm: int):
     # init date
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     # create folder
@@ -234,15 +254,15 @@ def evaluation(name: str, users: int, spawn_rate: int, hh: int, mm: int):
     k8s.create_autoscaler()
     # config
     k8s.set_prometheus_info()
-    config_env(app_name=name,
-               host=os.getenv("HOST"),
-               node_port=k8s.k8s_get_app_port(),
-               date=date,
-               users=users,
-               spawn_rate=spawn_rate,
-               HH=hh,
-               MM=mm
-               )
+    config_env(
+        host=os.getenv("HOST"),
+        node_port=k8s.k8s_get_app_port(),
+        date=date,
+        users=users,
+        spawn_rate=spawn_rate,
+        HH=hh,
+        MM=mm
+    )
     # evaluation
     logging.info("Starting Evaluation.")
     logging.info("Start Locust.")
@@ -523,16 +543,5 @@ def start_jmeter(iteration: int, date: str, test: bool, rps: int):
     os.chdir(work_directory)
 
 
-def flattenNestedList(nestedList: list) -> list:
-    """ Converts a nested list to a flat list """
-    flat = []
-    # Iterate over all the elements in given list
-    for elem in nestedList:
-        # Check if type of element is list
-        if isinstance(elem, list):
-            # Extend the flat list by adding contents of this element (list)
-            flat.extend(flattenNestedList(elem))
-        else:
-            # Append the element to the list
-            flat.append(elem)
-    return flat
+if __name__ == '__main__':
+    evaluation(10, 1, 0, 5)

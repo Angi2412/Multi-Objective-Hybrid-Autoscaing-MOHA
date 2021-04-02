@@ -1,6 +1,5 @@
 import datetime as dt
 import logging
-import math
 import os
 from time import time
 
@@ -259,20 +258,20 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
     :param window: size of window
     :return: pes parameters
     """
-    # init arrays
+    # init
     step = int(os.getenv("STEP"))
     models = get_models(alg)
-    possibilities = int(math.pow(2 * window + 1, 3))
+    # get all possibilities in window
+    parameter_variations = benchmark.parameter_variation("webui", cpu_limit - window * step, cpu_limit + window * step,
+                                                         memory_limit - window * step, memory_limit + window * step,
+                                                         number_of_pods - window, number_of_pods + window,
+                                                         step, False, False, False, [int(rps)])
+    # flatten possibilities
+    predict_window_list = list(np.concatenate(parameter_variations).flat)
+    # init arrays
+    possibilities = len(predict_window_list)
     predictions = np.empty((len(models), possibilities))
     prediction_array = np.zeros([possibilities, len(models)], dtype=np.float64)
-
-    # current state
-    # get all possibilities in window
-    predict_window_list = benchmark.flattenNestedList(
-        benchmark.parameter_variation("webui", cpu_limit - window * step, cpu_limit + window * step,
-                                      memory_limit - window * step, memory_limit + window * step,
-                                      number_of_pods - window, number_of_pods + window,
-                                      step, False, False, False, [int(rps)]))
     # validate parameter variations
     for i, entry in enumerate(predict_window_list):
         predict_window_list[i] = validate_parameter(entry, rps)
@@ -285,12 +284,15 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
         # predict
         predictions[i] = model.predict(predict_window_scaled)
     # load target scaler
-    y_scaler = load(os.path.join(os.getcwd(), "data", "models", "y_scaler.gz"))
+    y_scaler = load(os.path.join(os.getcwd(), "data", "models", "data", "y_scaler.gz"))
     # format into array
     for i in range(0, possibilities):
         for j in range(0, len(models)):
             prediction_array[i, j] = y_scaler.inverse_transform(predictions[j, i].reshape(1, -1))
+    # concatenate targets and parameters
     prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
+    # delete rps parameter
+    prediction_array = np.delete(prediction_array, -1, 1)
     # get index of best outcome
     best_outcome_index = choose_best(prediction_array.tolist())
     # get parameters of best outcome
@@ -305,9 +307,7 @@ def validate_parameter(limits: tuple, rps: float) -> tuple:
     Validates if the given limits are below the requested resources.
     :return: validated resources
     """
-    cpu = limits[0]
-    memory = limits[1]
-    pods = limits[2]
+    cpu, memory, pods, tmp = limits
     request = k8s_tools.get_resource_requests()[os.getenv("SCALE_POD")]
     cpu_request = int(str(request["cpu"]).rstrip("m"))
     memory_request = int(str(request["memory"]).rstrip("Mi"))
@@ -337,10 +337,7 @@ def choose_best(mtx: np.array) -> int:
                         "number of pods"])
     # make decision
     dec = dm.decide(data)
-    # show result
-    data.plot("box")
-    plt.show()
-    print(f"index: {dec.best_alternative_}")
+    # print(f"index: {dec.best_alternative_}")
     return dec.best_alternative_
 
 
@@ -410,7 +407,3 @@ def processes_data() -> None:
         d_path = os.path.join(os.getcwd(), "data", "models", "data", t)
         for i, d in enumerate([X_train, X_test, y_train, y_test]):
             np.save(os.path.join(d_path, str(i)), d)
-
-
-if __name__ == '__main__':
-    print(get_best_parameters(200, 500, 2, 5.2, 2, "svr"))

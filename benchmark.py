@@ -122,8 +122,7 @@ def get_status(pod: str) -> (list, list):
                       'container) /sum(container_spec_cpu_quota{namespace="teastore", ' \
                       'container!=""}/container_spec_cpu_period{namespace="teastore", container!=""}) by (pod, ' \
                       'container) )*100'
-    memory_usage_query = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",' \
-                         'pod=~".*" }[' \
+    memory_usage_query = 'round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace="teastore",pod=~".*" }[' \
                          '1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)'
     rps_query = 'sum(irate(request_total{deployment="teastore-webui", direction="inbound"}[1m]))'
     response_time = 'sum(response_latency_ms_sum{deployment="teastore-webui", direction="inbound"})/sum(' \
@@ -133,8 +132,8 @@ def get_status(pod: str) -> (list, list):
     memory_usage = 0.0
     latency = 0.0
     # get cpu
+    cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage_query))
     try:
-        cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage_query))
         if 'pod' in cpu_usage_data.columns:
             cpu_usage_data["pod"] = cpu_usage_data["pod"].str.split("-", n=2).str[1]
             cpu_usage = cpu_usage_data.loc[(cpu_usage_data['pod'] == pod)].at[0, 'value']
@@ -142,6 +141,7 @@ def get_status(pod: str) -> (list, list):
             cpu_usage = cpu_usage_data.at[0, 'value']
     except Exception as err:
         logging.error("Error while gathering cpu usage")
+        print(cpu_usage_data)
     # get memory
     try:
         memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage_query))
@@ -177,10 +177,18 @@ def get_status(pod: str) -> (list, list):
     # rps
     rps_data = MetricSnapshotDataFrame(prom_net.custom_query(rps_query))
     # filter
-    cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)]['value'].iloc[0]
-    memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)]['value'].iloc[0]
-    number_of_pods = number_of_pods_data.loc[(number_of_pods_data['deployment'] == f"teastore-{pod}")]['value'].iloc[0]
-    rps = rps_data.at[0, 'value']
+    cpu_limit = 0
+    memory_limit = 0
+    number_of_pods = 0
+    rps = 0.0
+    try:
+        cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)]['value'].iloc[0]
+        memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)]['value'].iloc[0]
+        number_of_pods = \
+        number_of_pods_data.loc[(number_of_pods_data['deployment'] == f"teastore-{pod}")]['value'].iloc[0]
+        rps = rps_data.at[0, 'value']
+    except Exception as err:
+        logging.error("Error while gathering parameter")
     parameters = [int(float(cpu_limit) * 1000), int(float(memory_limit) / 1048576), int(number_of_pods), float(rps)]
     return parameters, targets
 

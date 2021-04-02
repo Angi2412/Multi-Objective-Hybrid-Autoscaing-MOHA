@@ -222,7 +222,6 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
     # get resource requests
     resource_requests = get_resource_requests()
     resource_requests = resource_requests[deployment_name]
-    print(resource_requests)
     # updates cpu and memory limits
     new_resources = client.V1ResourceRequirements(
         requests={"cpu": resource_requests["cpu"], "memory": resource_requests["memory"]},

@@ -284,11 +284,13 @@ def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, 
         # predict
         predictions[i] = model.predict(predict_window_scaled)
     # load target scaler
-    y_scaler = load(os.path.join(os.getcwd(), "data", "models", "data", "y_scaler.gz"))
+    y_scalers = list()
+    for t in ["average response time", "cpu usage", "memory usage"]:
+        y_scalers.append(load(os.path.join(os.getcwd(), "data", "models", "data", f"y_scaler_{t}.gz")))
     # format into array
     for i in range(0, possibilities):
         for j in range(0, len(models)):
-            prediction_array[i, j] = y_scaler.inverse_transform(predictions[j, i].reshape(1, -1))
+            prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
     # concatenate targets and parameters
     prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
     # delete rps parameter
@@ -398,8 +400,7 @@ def processes_data() -> None:
         y_scaling = MinMaxScaler()
         X = x_scaling.fit_transform(X)
         y = y_scaling.fit_transform(y)
-
-        dump(y_scaling, os.path.join(os.getcwd(), "data", "models", "data", "y_scaler.gz"))
+        dump(y_scaling, os.path.join(os.getcwd(), "data", "models", "data", f"y_scaler_{t}.gz"))
         # split data in to train and test sets
         X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
         logging.info(f"Training size: {X_train.shape}")
@@ -407,3 +408,7 @@ def processes_data() -> None:
         d_path = os.path.join(os.getcwd(), "data", "models", "data", t)
         for i, d in enumerate([X_train, X_test, y_train, y_test]):
             np.save(os.path.join(d_path, str(i)), d)
+
+
+if __name__ == '__main__':
+    processes_data()

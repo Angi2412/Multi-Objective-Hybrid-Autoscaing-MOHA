@@ -5,13 +5,14 @@ import sched
 import time
 
 from dotenv import load_dotenv
-from flask import Flask, jsonify
+from flask import jsonify
 
 import benchmark
 import formatting
 import ml
+from k8s_tools import k8s_update_deployment
 
-app = Flask(__name__)
+# app = Flask(__name__)
 s = sched.scheduler(time.time, time.sleep)
 # init logger
 logging.getLogger().setLevel(logging.INFO)
@@ -21,7 +22,6 @@ logging.basicConfig(
     datefmt='%Y-%m-%d %H:%M:%S')
 
 
-@app.route('/heartbeat')
 def heartbeat():
     """
     Sends heartbeat if application is running.
@@ -30,7 +30,6 @@ def heartbeat():
     return jsonify(success=True)
 
 
-@app.route('/scale')
 def scale():
     """
     Autoscaling loop.
@@ -41,20 +40,18 @@ def scale():
     logging.info(f"Parameter status: {parameter_status} ")
     logging.info(f"Target Status: {target_status}")
     if check_target_status(target_status):
-        return jsonify(success=True)
+        return
     else:
         best_parameters = ml.get_best_parameters(cpu_limit=parameter_status[0], memory_limit=parameter_status[1],
                                                  number_of_pods=parameter_status[2], rps=parameter_status[3],
                                                  window=int(os.getenv("WINDOW")), alg=os.getenv("ALGORITHM"))
-        # k8s_update_deployment(os.getenv("SCALE_POD"), best_parameters[0], best_parameters[1],
-        # best_parameters[2], replace=False)
+        k8s_update_deployment(os.getenv("SCALE_POD"), int(best_parameters[0]), int(best_parameters[1]),
+                              int(best_parameters[2]), replace=False)
         logging.info(
             f"Best parameters: cpu: {best_parameters[0]}m - memory: {best_parameters[1]}Mi - pods: {best_parameters[2]}")
         logging.info("Finished Autoscaling.")
-        return jsonify(success=True)
 
 
-@app.route('/improve')
 def improve() -> None:
     """
     Improves machine learning model in set period.
@@ -102,10 +99,11 @@ def check_target_status(targets: list) -> bool:
 
 def autoscale(sc):
     scale()
-    s.enter(60, 1, autoscale, (sc,))
+    s.enter(int(os.getenv("SCALING_TIME")), 1, autoscale, (sc,))
 
 
 if __name__ == '__main__':
-    #   app.run(host="localhost", port=5000, debug=False)
-    s.enter(60, 1, autoscale, (s,))
+    # app.run(host="localhost", port=5000, debug=False)
+    load_dotenv()
+    s.enter(int(os.getenv("SCALING_TIME")), 1, autoscale, (s,))
     s.run()

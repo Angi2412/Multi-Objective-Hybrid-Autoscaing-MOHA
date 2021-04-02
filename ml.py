@@ -330,7 +330,7 @@ def choose_best(mtx: np.array) -> int:
     """
     # min average response time, max cpu usage, max memory usage, min cpu limit, min memory limit, min number of pods
     criteria = [MIN, MAX, MAX, MIN, MIN, MIN]
-    weights = [0.3, 0.125, 0.125, 0.125, 0.125, 0.20]
+    weights = [0.4, 0.075, 0.075, 0.125, 0.125, 0.20]
     # create DecisionMaker
     dm = TOPSIS()
     # create data object
@@ -408,7 +408,3 @@ def processes_data() -> None:
         d_path = os.path.join(os.getcwd(), "data", "models", "data", t)
         for i, d in enumerate([X_train, X_test, y_train, y_test]):
             np.save(os.path.join(d_path, str(i)), d)
-
-
-if __name__ == '__main__':
-    processes_data()

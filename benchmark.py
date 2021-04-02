@@ -3,7 +3,7 @@ import subprocess
 
 from gevent import monkey
 
-from data.loadtest.locust.loadshapes import DoubleWave
+from data.loadtest.locust.loadshapes import DoubleWave, StagesShape
 
 monkey.patch_all()
 
@@ -185,7 +185,7 @@ def get_status(pod: str) -> (list, list):
         cpu_limit = cpu_limit_data.loc[(cpu_limit_data['pod'] == pod)]['value'].iloc[0]
         memory_limit = memory_limit_data.loc[(memory_limit_data['pod'] == pod)]['value'].iloc[0]
         number_of_pods = \
-        number_of_pods_data.loc[(number_of_pods_data['deployment'] == f"teastore-{pod}")]['value'].iloc[0]
+            number_of_pods_data.loc[(number_of_pods_data['deployment'] == f"teastore-{pod}")]['value'].iloc[0]
         rps = rps_data.at[0, 'value']
     except Exception as err:
         logging.error("Error while gathering parameter")
@@ -257,9 +257,9 @@ def evaluation(users: int, spawn_rate: int, hh: int, mm: int):
     # create folder
     folder_path = os.path.join(os.getcwd(), "data", "raw", f"{date}_eval")
     os.mkdir(folder_path)
-    # create deployment
+    # create deployments
     k8s.k8s_create_teastore()
-    k8s.create_autoscaler()
+    k8s.deploy_autoscaler_docker()
     # config
     k8s.set_prometheus_info()
     config_env(
@@ -274,9 +274,13 @@ def evaluation(users: int, spawn_rate: int, hh: int, mm: int):
     # evaluation
     logging.info("Starting Evaluation.")
     logging.info("Start Locust.")
-    start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True, users=users, spawn_rate=spawn_rate)
+    #start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True, users=users, spawn_rate=spawn_rate,
+    #             hh=hh, mm=mm)
+    start_jmeter(0, date, False, users)
     # get prometheus data
     get_prometheus_data(folder=folder_path, iteration=0, hh=hh, mm=mm)
+    # clean up
+    k8s.delete_autoscaler_docker()
     k8s.k8s_delete_namespace()
     logging.info("Finished Benchmark.")
 
@@ -354,7 +358,8 @@ def benchmark(name: str, load: list, spawn_rate: int, expressions: int,
                     logging.info("Start Load.")
                     if locust:
                         start_locust(iteration=iteration, folder=folder_path, history=history,
-                                     custom_shape=custom_shape, users=l, spawn_rate=spawn_rate)
+                                     custom_shape=custom_shape, users=l, spawn_rate=spawn_rate, hh=int(os.getenv("HH")),
+                                     mm=int(os.getenv("MM")))
                     else:
                         start_jmeter(iteration, date, True, l)
                     # get prometheus data
@@ -447,7 +452,8 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     return variation_matrix
 
 
-def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool, users: int, spawn_rate: int) -> None:
+def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool, users: int, spawn_rate: int, hh: int,
+                 mm: int) -> None:
     """
     Start a locust load test.
     :param spawn_rate: user spawn rate
@@ -461,7 +467,7 @@ def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool,
     load_dotenv(override=True)
     # setup Environment and Runner
 
-    env = Environment(user_classes=[UserBehavior], shape_class=DoubleWave(),
+    env = Environment(user_classes=[UserBehavior], shape_class=StagesShape,
                       host=f"http://{os.getenv('HOST')}:{os.getenv('NODE_PORT')}/{os.getenv('ROUTE')}")
     env.create_local_runner()
     # CSV writer
@@ -483,7 +489,7 @@ def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool,
     else:
         env.runner.start(user_count=users, spawn_rate=spawn_rate)
     # stop the runner in a given time
-    time_in_seconds = (int(os.getenv("HH")) * 60 * 60) + (int(os.getenv("MM")) * 60)
+    time_in_seconds = ((hh * 60 * 60) + mm * 60)
     gevent.spawn_later(time_in_seconds, lambda: env.runner.quit())
     # wait for the greenlets
     env.runner.greenlet.join()
@@ -541,9 +547,9 @@ def start_jmeter(iteration: int, date: str, test: bool, rps: int):
                "-Jport", os.getenv('NODE_PORT'), "-l", f"{date}_{iteration}.log",
                '-Jload_profile', f'const({rps},{int(os.getenv("MM")) * 60}s)', "-n"]
     else:
-        cmd = ["java", "-jar", "ApacheJMeter.jar", "-t", "teastore_browse_nogui.jmx", "-Jhostname", os.getenv("HOST"),
-               "-Jport", os.getenv('NODE_PORT'), "-JnumUser", "1", "-JrampUp", "0",
-               "-l", f"{date}_{iteration}.log", "-Jduration", os.getenv('MM'), "-Jload", os.getenv('USERS'), "-n"]
+        cmd = ["java", "-jar", "ApacheJMeter.jar", "-t", "teastore_browse_rps.jmx", "-Jhostname", os.getenv("HOST"),
+               "-Jport", os.getenv('NODE_PORT'), "-l", f"{date}_{iteration}.log",
+               '-Jload_profile', f'step(5,{rps},5,90s) const({rps},120s) step({rps},5,5,90s)', "-n"]
     logging.info(cmd)
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True) as p:
         for line in p.stdout:
@@ -552,4 +558,4 @@ def start_jmeter(iteration: int, date: str, test: bool, rps: int):
 
 
 if __name__ == '__main__':
-    evaluation(5, 1, 0, 10)
+    evaluation(50, 1, 0, 5)

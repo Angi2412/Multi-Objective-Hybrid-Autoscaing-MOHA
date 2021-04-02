@@ -1,0 +1,5 @@
+Method,Name,Error,Occurrences
+GET,/category,connection closed.,1
+GET,/product,connection closed.,1
+POST,/loginAction,URL http://localhost:30080/tools.descartes.teastore.webui/: code=500,1
+GET,/,URL http://localhost:30080/tools.descartes.teastore.webui/: code=500,2

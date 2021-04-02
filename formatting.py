@@ -365,7 +365,8 @@ def correlation_coefficient_matrix() -> None:
     # Generate a custom diverging colormap
     cmap = sns.color_palette("coolwarm", as_cmap=True)
     # Draw the heatmap with the mask and correct aspect ratio
-    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=1, vmin=-1, center=0, square=True, linewidths=.5, cbar_kws={"shrink": .5},
+    sns.heatmap(corr, mask=mask, cmap=cmap, vmax=1, vmin=-1, center=0, square=True, linewidths=.5,
+                cbar_kws={"shrink": .5},
                 annot=True, fmt=".2f")
     f.savefig(os.path.join(dir_path, f"{os.getenv('LAST_DATA')}.png"), bbox_inches='tight')
     plt.show()
@@ -520,3 +521,71 @@ def process_all_runs() -> None:
     plot_run()
     format_for_extra_p()
     correlation_coefficient_matrix()
+
+
+def formatting_evaluation(date: str) -> (pd.DataFrame, pd.DataFrame):
+    # get data
+    dir_path = os.path.join(os.getcwd(), "data", "raw", f"{date}_eval")
+    custom = pd.read_csv(os.path.join(dir_path, "custom_metrics_0.csv"), delimiter=',')
+    normal = pd.read_csv(os.path.join(dir_path, "metrics_0.csv"), delimiter=',')
+    # filter for namespace
+    filtered_data = pd.concat(objs=[normal[normal.namespace.eq(os.getenv("NAMESPACE"))]])
+    # filter for pod name
+    filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
+    custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
+    custom['pod'].fillna("webui", inplace=True)
+    # timestamps in seconds
+    filtered_data["timestamp"] = pd.to_datetime(filtered_data["timestamp"], unit='s', origin='unix')
+    filtered_data["timestamp"] = (filtered_data["timestamp"] - filtered_data["timestamp"].min())
+    custom["timestamp"] = pd.to_datetime(custom["timestamp"], unit='s', origin='unix')
+    custom["timestamp"] = (custom["timestamp"] - custom["timestamp"].min())
+    # filter for pod
+    filtered_data_a = filtered_data[filtered_data['deployment'] == "teastore-webui"]
+    filtered_data_b = filtered_data[filtered_data['pod'] == "webui"]
+    filtered_data = pd.concat([filtered_data_a, filtered_data_b])
+    filtered_data = filtered_data[(filtered_data["timestamp"].dt.seconds/60) <= 8.5]
+    custom = custom[(custom['pod'] == "webui")]
+    custom = custom[(custom["timestamp"].dt.seconds / 60) <= 8.5]
+    # pivot
+    filtered_data = pd.pivot_table(filtered_data, index=["timestamp"], columns=["__name__"],
+                                   values="value").reset_index()
+    filtered_custom_data = pd.pivot_table(custom, index=["timestamp"], columns=["metric"],
+                                          values="value").reset_index()
+    filtered_custom_data.set_index("timestamp")
+    # fix units
+    filtered_data["kube_pod_container_resource_limits_cpu_cores"] = filtered_data[
+                                                                        "kube_pod_container_resource_limits_cpu_cores"] * 1000
+    filtered_data["kube_pod_container_resource_limits_memory_bytes"] = filtered_data[
+                                                                           "kube_pod_container_resource_limits_memory_bytes"] / 1048576
+    return filtered_data, filtered_custom_data
+
+
+def plot_evaluation(date: str):
+    n, c = formatting_evaluation(date)
+    nfig, (nax1, nax2, nax3) = plt.subplots(nrows=3, ncols=1)
+    # cpu limit
+    sns.lineplot(data=n, x="timestamp", y="kube_pod_container_resource_limits_cpu_cores", ax=nax1)
+    nax1.set_ylabel("CPU limit [m]")
+    # memory limit
+    sns.lineplot(data=n, x="timestamp", y="kube_pod_container_resource_limits_memory_bytes", ax=nax2)
+    nax2.set_ylabel("Memory limit [Mi]")
+    # number of pods
+    sns.lineplot(data=n, x="timestamp", y="kube_deployment_spec_replicas", ax=nax3)
+    nax3.set_ylabel("Number of pods")
+    plt.show()
+
+    # custom
+    cfig, (cax1, cax2, cax3) = plt.subplots(nrows=3, ncols=1)
+    # average response time
+    sns.lineplot(data=c, x="timestamp", y="response_time", ax=cax1)
+    cax1.set_ylabel("Response time [ms]")
+    # cpu
+    sns.lineplot(data=c, x="timestamp", y="cpu", ax=cax2)
+    cax2.set_ylabel("CPU usage [%]")
+    # memory
+    sns.lineplot(data=c, x="timestamp", y="memory", ax=cax3)
+    cax3.set_ylabel("Memory usage [%]")
+    plt.show()
+
+if __name__ == '__main__':
+    plot_evaluation("20210402-203442")

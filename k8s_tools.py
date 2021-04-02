@@ -434,3 +434,14 @@ def create_autoscaler() -> None:
         os.chdir(work_directory)
     except Exception as err:
         logging.error(f"Error while creating autoscaler: {err}")
+
+
+def deploy_autoscaler_docker():
+    client = docker.from_env()
+    client.containers.run(image="angi2412/autoscaler", name="autoscaler", detach=True)
+
+
+def delete_autoscaler_docker():
+    client = docker.from_env()
+    c = client.containers.get("autoscaler")
+    c.remove(force=True)

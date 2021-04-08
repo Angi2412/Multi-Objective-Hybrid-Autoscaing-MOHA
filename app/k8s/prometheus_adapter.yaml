@@ -1,0 +1,10 @@
+prometheus:
+  url: http://linkerd-prometheus.linkerd.svc
+rules:
+  external: []
+  default: false
+  custom:
+    - seriesQuery: 'response_latency_ms_sum{deployment="teastore-webui", direction="inbound"}'
+      name:
+        as: "${1}_time"
+      metricsQuery: sum(<<.Series>>) sum('response_latency_ms_count{deployment="teastore-webui", direction="inbound"})

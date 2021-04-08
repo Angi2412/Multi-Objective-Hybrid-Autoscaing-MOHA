@@ -1,0 +1,42 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: autoscaler
+  namespace: teastore
+spec:
+  replicas: 1
+  revisionHistoryLimit: 1
+  selector:
+    matchLabels:
+      app: teastore
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: teastore
+      namespace: default
+    spec:
+      containers:
+        - image: angi2412/autoscaler
+          imagePullPolicy: IfNotPresent
+          name: autoscaler
+          ports:
+            - containerPort: 5000
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: autoscaler
+  labels:
+    app: teastore
+    run: autoscaler
+spec:
+  type: NodePort
+  ports:
+    - port: 5000
+      nodePort: 30050
+      protocol: TCP
+  selector:
+    run: autoscaler

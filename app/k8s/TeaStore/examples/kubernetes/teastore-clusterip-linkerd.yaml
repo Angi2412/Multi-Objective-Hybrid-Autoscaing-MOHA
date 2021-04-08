@@ -1,0 +1,299 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teastore-db
+spec:
+  selector:
+    matchLabels:
+      app: teastore
+      run: teastore-db
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: teastore
+        run: teastore-db
+    spec:
+      containers:
+        - image: descartesresearch/teastore-db
+          name: teastore-db
+          ports:
+            - containerPort: 3306
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teastore-db
+  labels:
+    app: teastore
+    run: teastore-db
+spec:
+  ports:
+    - port: 3306
+      protocol: TCP
+  selector:
+    run: teastore-db
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teastore-registry
+spec:
+  selector:
+    matchLabels:
+      app: teastore
+      run: teastore-registry
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: teastore
+        run: teastore-registry
+    spec:
+      containers:
+        - image: descartesresearch/teastore-registry
+          name: teastore-registry
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teastore-registry
+  labels:
+    app: teastore
+    run: teastore-registry
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  selector:
+    run: teastore-registry
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teastore-persistence
+spec:
+  selector:
+    matchLabels:
+      app: teastore
+      run: teastore-persistence
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: teastore
+        run: teastore-persistence
+    spec:
+      containers:
+        - env:
+            - name: HOST_NAME
+              value: teastore-persistence
+            - name: REGISTRY_HOST
+              value: teastore-registry
+            - name: DB_HOST
+              value: teastore-db
+            - name: DB_PORT
+              value: "3306"
+          image: descartesresearch/teastore-persistence
+          name: teastore-persistence
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teastore-persistence
+  labels:
+    app: teastore
+    run: teastore-persistence
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      nodePort: 30090
+      protocol: TCP
+  selector:
+    run: teastore-persistence
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teastore-auth
+spec:
+  selector:
+    matchLabels:
+      app: teastore
+      run: teastore-auth
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: teastore
+        run: teastore-auth
+    spec:
+      containers:
+        - env:
+            - name: HOST_NAME
+              value: teastore-auth
+            - name: REGISTRY_HOST
+              value: teastore-registry
+          image: descartesresearch/teastore-auth
+          name: teastore-auth
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teastore-auth
+  labels:
+    app: teastore
+    run: teastore-auth
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  selector:
+    run: teastore-auth
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teastore-image
+spec:
+  selector:
+    matchLabels:
+      app: teastore
+      run: teastore-image
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: teastore
+        run: teastore-image
+    spec:
+      containers:
+        - env:
+            - name: HOST_NAME
+              value: teastore-image
+            - name: REGISTRY_HOST
+              value: teastore-registry
+          image: descartesresearch/teastore-image
+          name: teastore-image
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teastore-image
+  labels:
+    app: teastore
+    run: teastore-image
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  selector:
+    run: teastore-image
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teastore-recommender
+spec:
+  selector:
+    matchLabels:
+      app: teastore
+      run: teastore-recommender
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: teastore
+        run: teastore-recommender
+    spec:
+      containers:
+        - env:
+            - name: HOST_NAME
+              value: teastore-recommender
+            - name: REGISTRY_HOST
+              value: teastore-registry
+          image: descartesresearch/teastore-recommender
+          name: teastore-recommender
+          ports:
+            - containerPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teastore-recommender
+  labels:
+    app: teastore
+    run: teastore-recommender
+spec:
+  ports:
+    - port: 8080
+      protocol: TCP
+  selector:
+    run: teastore-recommender
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: teastore-webui
+spec:
+  selector:
+    matchLabels:
+      app: teastore
+      run: teastore-webui
+  template:
+    metadata:
+      annotations:
+        linkerd.io/inject: enabled
+      labels:
+        app: teastore
+        run: teastore-webui
+    spec:
+      containers:
+        - env:
+            - name: HOST_NAME
+              value: teastore-webui
+            - name: REGISTRY_HOST
+              value: teastore-registry
+          image: descartesresearch/teastore-webui
+          name: teastore-webui
+          ports:
+            - containerPort: 8080
+          resources:
+            limits:
+              cpu: 300m
+              memory: 400Mi
+            requests:
+              cpu: 300m
+              memory: 400Mi
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: teastore-webui
+  labels:
+    app: teastore
+    run: teastore-webui
+spec:
+  type: NodePort
+  ports:
+    - port: 8080
+      nodePort: 30080
+      protocol: TCP
+  selector:
+    run: teastore-webui
+---

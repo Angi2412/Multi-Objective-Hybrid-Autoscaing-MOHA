@@ -131,9 +131,10 @@ def svr_model(target: str, save: bool, search: bool) -> None:
     X_train, X_test, y_train, y_test = get_processed_data(target)
     if search:
         # SVRs with different kernels
-        params = {"epsilon": np.arange(0.1,1,0.01)}
+        params = {"epsilon": np.arange(0.1, 1, 0.01)}
         tic = time()
-        search = GridSearchCV(estimator=SVR(kernel="rbf", C=2.0, gamma=2.0, cache_size=12000), param_grid=params, verbose=1)
+        search = GridSearchCV(estimator=SVR(kernel="rbf", C=2.0, gamma=2.0, cache_size=12000), param_grid=params,
+                              verbose=1)
         search.fit(X_train, y_train.ravel())
         gsh_time = time() - tic
         print(f"Training time: {gsh_time}")
@@ -176,7 +177,8 @@ def neural_network_model(target: str, search: bool, save: bool) -> None:
         params = {"alpha": np.arange(0.1, 2, 0.01)}
         tic = time()
         search = GridSearchCV(
-            estimator=MLPRegressor(solver="adam", tol=2.8284271247461903, activation="tanh", learning_rate="adaptive", max_iter=100000),
+            estimator=MLPRegressor(solver="adam", tol=2.8284271247461903, activation="tanh", learning_rate="adaptive",
+                                   max_iter=100000),
             param_grid=params,
             verbose=1)
         search.fit(X_train, y_train.ravel())
@@ -185,7 +187,8 @@ def neural_network_model(target: str, search: bool, save: bool) -> None:
         print(f"Best params: {search.best_params_}")
     else:
         # mlp = MLPRegressor(solver="adam", tol=2.8284271247461903, activation="tanh", learning_rate="adaptive", max_iter=100000)
-        mlp = MLPRegressor(solver="adam", alpha=0.49, tol=2.8284271247461903, activation="tanh", learning_rate="adaptive",
+        mlp = MLPRegressor(solver="adam", alpha=0.49, tol=2.8284271247461903, activation="tanh",
+                           learning_rate="adaptive",
                            max_iter=100000)
         # make predictions using the testing set
         tic = time()

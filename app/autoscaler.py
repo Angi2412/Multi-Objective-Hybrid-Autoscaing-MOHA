@@ -6,14 +6,12 @@ import sched
 import time
 
 from dotenv import load_dotenv
-from flask import jsonify
 
 import benchmark
 import formatting
 import ml
 from k8s_tools import k8s_update_deployment, set_prometheus_info
 
-# app = Flask(__name__)
 s = sched.scheduler(time.time, time.sleep)
 # init logger
 logging.getLogger().setLevel(logging.INFO)
@@ -28,7 +26,7 @@ def heartbeat():
     Sends heartbeat if application is running.
     :return: heartbeat
     """
-    return jsonify(success=True)
+    return True
 
 
 def scale():

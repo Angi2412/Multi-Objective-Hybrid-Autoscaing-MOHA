@@ -528,7 +528,7 @@ def choose_best(mtx: np.array, method: bool, hpa: bool) -> int:
         weights = [0.80, 0.05, 0.05, 0.10]
     else:
         criteria = [MIN, MAX, MAX, MIN, MIN, MIN]
-        weights = [0.50, 0.10, 0.10, 0.10, 0.10, 0.10]
+        weights = [0.8, 0.04, 0.04, 0.04, 0.04, 0.04]
     # create DecisionMaker
     if method:
         dm = TOPSIS()

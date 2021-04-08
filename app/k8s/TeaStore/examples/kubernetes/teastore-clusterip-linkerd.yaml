@@ -280,6 +280,14 @@ spec:
             requests:
               cpu: 300m
               memory: 400Mi
+          readinessProbe:
+            httpGet:
+              path: /tools.descartes.teastore.webui/rest/ready/isready
+              port: 8080
+              scheme: HTTP
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            successThreshold: 1
 ---
 apiVersion: v1
 kind: Service

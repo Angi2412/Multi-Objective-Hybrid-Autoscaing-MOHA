@@ -18,6 +18,7 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
+import seaborn as sns
 
 import benchmark
 import k8s_tools
@@ -92,15 +93,7 @@ def linear_bayesian_model(target: str, save: bool, search: bool) -> None:
         # get metrics
         print("Metrics:")
         get_metrics(y_test, y_pred)
-        # test
-        data = list()
-        data.append((300, 400, 1, 0.5))
-        data.append((300, 400, 1, 1.0))
-        data_np = np.array(data, dtype=np.float64)
-        s = MinMaxScaler()
-        data_np = s.fit_transform(data_np)
-        pred = regression.predict(data_np)
-        print(pred)
+        plot_prediction(y_test, y_pred, "linear", target)
         # save model
         if save:
             save_model(regression, target, "linear_b")
@@ -131,9 +124,10 @@ def svr_model(target: str, save: bool, search: bool) -> None:
     X_train, X_test, y_train, y_test = get_processed_data(target)
     if search:
         # SVRs with different kernels
-        params = {"epsilon": np.arange(0.1,1,0.01)}
+        params = {"epsilon": np.arange(0.1, 1, 0.01)}
         tic = time()
-        search = GridSearchCV(estimator=SVR(kernel="rbf", C=2.0, gamma=2.0, cache_size=12000), param_grid=params, verbose=1)
+        search = GridSearchCV(estimator=SVR(kernel="rbf", C=2.0, gamma=2.0, cache_size=12000), param_grid=params,
+                              verbose=1)
         search.fit(X_train, y_train.ravel())
         gsh_time = time() - tic
         print(f"Training time: {gsh_time}")
@@ -155,8 +149,18 @@ def svr_model(target: str, save: bool, search: bool) -> None:
         # print scores
         print("Metrics:")
         get_metrics(y_test, y_pred)
+        plot_prediction(y_test, y_pred, "svr", target)
         if save:
             save_model(svr, target, "svr")
+
+
+def plot_prediction(y_train, y_pred, alg, target):
+    # regplot
+    ax = sns.regplot(x=y_train, y=y_pred, scatter=True, fit_reg=True)
+    ax.set_xlabel("Expected values")
+    ax.set_ylabel("Predicted values")
+    ax.figure.savefig(os.path.join(os.getcwd(), "data", "plots", f"{alg}_{target}.png"))
+    plt.show()
 
 
 def neural_network_model(target: str, search: bool, save: bool) -> None:
@@ -176,7 +180,8 @@ def neural_network_model(target: str, search: bool, save: bool) -> None:
         params = {"alpha": np.arange(0.1, 2, 0.01)}
         tic = time()
         search = GridSearchCV(
-            estimator=MLPRegressor(solver="adam", tol=2.8284271247461903, activation="tanh", learning_rate="adaptive", max_iter=100000),
+            estimator=MLPRegressor(solver="adam", tol=2.8284271247461903, activation="tanh", learning_rate="adaptive",
+                                   max_iter=100000),
             param_grid=params,
             verbose=1)
         search.fit(X_train, y_train.ravel())
@@ -184,8 +189,8 @@ def neural_network_model(target: str, search: bool, save: bool) -> None:
         print(f"Training time: {gsh_time}")
         print(f"Best params: {search.best_params_}")
     else:
-        # mlp = MLPRegressor(solver="adam", tol=2.8284271247461903, activation="tanh", learning_rate="adaptive", max_iter=100000)
-        mlp = MLPRegressor(solver="adam", alpha=0.49, tol=2.8284271247461903, activation="tanh", learning_rate="adaptive",
+        mlp = MLPRegressor(solver="adam", alpha=0.49, tol=2.8284271247461903, activation="tanh",
+                           learning_rate="adaptive",
                            max_iter=100000)
         # make predictions using the testing set
         tic = time()
@@ -201,6 +206,7 @@ def neural_network_model(target: str, search: bool, save: bool) -> None:
         # print scores
         print("Metrics:")
         get_metrics(y_test, y_pred)
+        plot_prediction(y_test, y_pred, "neural", target)
     # save model
     if save:
         save_model(mlp, target, "neural_network")
@@ -284,7 +290,7 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
     memory_limits.pop(1)
 
     # make parameter variation
-    parameter_variations = benchmark.parameter_variation_array(cpu_limits, memory_limits, pod_limits, rps)
+    parameter_variations = benchmark.parameter_variation_array([cpu_limit], [memory_limit], pod_limits, rps)
     # flatten possibilities
     predict_window_list = list(np.concatenate(parameter_variations).flat)
     # validate parameter variations
@@ -337,8 +343,8 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
         return None
 
 
-def get_best_parameters(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int, alg: str,
-                        hpa: bool, response_time: float, cpu_usage: float, memory_usage: float) -> np.array:
+def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int,
+                               alg: str, hpa: bool, response_time: float, cpu_usage: float, memory_usage: float) -> np.array:
     """
     Chooses the best values for the parameters in a given window for a given status.
     :param memory_usage: current memory usage
@@ -522,7 +528,7 @@ def choose_best(mtx: np.array, method: bool, hpa: bool) -> int:
         weights = [0.80, 0.05, 0.05, 0.10]
     else:
         criteria = [MIN, MAX, MAX, MIN, MIN, MIN]
-        weights = [0.90, 0.02, 0.02, 0.02, 0.02, 0.2]
+        weights = [0.50, 0.10, 0.10, 0.10, 0.10, 0.10]
     # create DecisionMaker
     if method:
         dm = TOPSIS()
@@ -624,7 +630,3 @@ def test_plot(alg: str):
     prediction_inversed = y_scaler.inverse_transform(data_predicted.reshape(-1, 1))
     plt.scatter(data[:, 2], prediction_inversed)
     plt.show()
-
-
-if __name__ == '__main__':
-    svr_model("average response time", False, True)

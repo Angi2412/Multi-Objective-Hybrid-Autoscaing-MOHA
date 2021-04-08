@@ -132,11 +132,11 @@ def autoscale(sc, hpa):
         scale_hpa()
     else:
         scale()
-    s.enter(int(os.getenv("SCALING_TIME")), 1, autoscale, (sc, True,))
+    s.enter(int(os.getenv("SCALING_TIME")), 1, autoscale, (sc, False,))
 
 
 if __name__ == '__main__':
     load_dotenv()
     set_prometheus_info()
-    s.enter(int(os.getenv("SCALING_TIME")), 1, autoscale, (s, True,))
+    s.enter(int(os.getenv("SCALING_TIME")), 1, autoscale, (s, False,))
     s.run()

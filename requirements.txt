@@ -1,0 +1,15 @@
+python-dotenv
+prometheus-api-client
+gevent
+locust
+numpy
+pandas
+requests
+matplotlib
+seaborn
+docker
+pyyaml
+kubernetes
+scikit-criteria
+joblib
+sklearn

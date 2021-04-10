@@ -448,5 +448,8 @@ def delete_autoscaler_docker():
     c.remove(force=True)
 
 
-if __name__ == '__main__':
-    k8s_create_teastore()
+def buil_autoscaler_docker():
+    client = docker.from_env()
+    logging.info("Building image...")
+    build = client.images.build(path=os.path.join(os.getcwd()), tag="angi2412/autoscaler")
+    logging.info(list(build))

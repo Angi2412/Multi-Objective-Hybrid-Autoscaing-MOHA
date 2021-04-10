@@ -26,6 +26,7 @@ import numpy as np
 import pandas as pd
 import k8s_tools as k8s
 import requests
+from formatting import plot_all_evaluation
 
 # environment
 load_dotenv(override=True)
@@ -277,6 +278,7 @@ def evaluation(users: int, spawn_rate: int, hh: int, mm: int):
     #             hh=hh, mm=mm)
     start_jmeter(0, date, False, users)
     # get prometheus data
+    time.sleep(30)
     get_prometheus_data(folder=folder_path, iteration=0, hh=hh, mm=mm)
     # clean up
     k8s.delete_autoscaler_docker()
@@ -560,9 +562,10 @@ def start_jmeter(iteration: int, date: str, test: bool, rps: int):
                "-Jport", os.getenv('NODE_PORT'), "-l", f"{date}_{iteration}.log",
                '-Jload_profile', f'const({rps},{int(os.getenv("MM")) * 60}s)', "-n"]
     else:
+        # f'-Jload_profile=step(2,{rps},2,180s) const({rps},240s) step({rps},2,2,180s)'
         cmd = ["java", "-jar", "ApacheJMeter.jar", "-t", "teastore_browse_rps.jmx", "-Jhostname", os.getenv("HOST"),
                "-Jport", os.getenv('NODE_PORT'), "-l", f"{date}_{iteration}.log",
-               '-Jload_profile', f'step(1,{rps},2,180s) const({rps},240s) step({rps},1,2,180s)', "-n"]
+               "-Jjmeterengine.force.system.exit=true", "-n"]
     logging.info(cmd)
     with subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True) as p:
         for line in p.stdout:
@@ -570,5 +573,29 @@ def start_jmeter(iteration: int, date: str, test: bool, rps: int):
     os.chdir(work_directory)
 
 
+def change_build(alg: str, hpa: bool, weights: str):
+    # change environment variables
+    if alg in ["svr", "neural_network", "linear_b"]:
+        set_key(os.path.join(os.getcwd(), "prod.env"), "ALGORITHM", alg)
+        set_key(os.path.join(os.getcwd(), ".env"), "ALGORITHM", alg)
+    if hpa:
+        set_key(os.path.join(os.getcwd(), "prod.env"), "HPA", "True")
+        set_key(os.path.join(os.getcwd(), ".env"), "HPA", "True")
+    else:
+        set_key(os.path.join(os.getcwd(), "prod.env"), "HPA", "False")
+        set_key(os.path.join(os.getcwd(), ".env"), "HPA", "False")
+    if alg == "svr":
+        set_key(os.path.join(os.getcwd(), "prod.env"), "WEIGHTS", weights)
+        set_key(os.path.join(os.getcwd(), ".env"), "WEIGHTS", weights)
+    # build docker image
+    k8s.buil_autoscaler_docker()
+    logging.info(f"Changed build. alg: {alg} - hpa:{hpa} - w: {weights}")
+
+
 if __name__ == '__main__':
-    evaluation(15, 1, 0, 10)
+    # for a, hpa, w in zip(["svr", "svr", "svr", "linear_b", "neural_network"], [True, True, False, False, False],
+    #                      ["t", "r", "b", "b", "b"]):
+    #     change_build(a, hpa, w)
+    #     evaluation(5, 1, 0, 10)
+    #     plot_all_evaluation()
+    evaluation(5, 1, 0, 10)

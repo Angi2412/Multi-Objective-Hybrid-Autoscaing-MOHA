@@ -539,13 +539,13 @@ def formatting_evaluation(date: str) -> (pd.DataFrame, pd.DataFrame):
     filtered_data["timestamp"] = (filtered_data["timestamp"] - filtered_data["timestamp"].min())
     custom["timestamp"] = pd.to_datetime(custom["timestamp"], unit='s', origin='unix')
     custom["timestamp"] = (custom["timestamp"] - custom["timestamp"].min())
+    filtered_data["timestamp"] = (filtered_data.timestamp / np.timedelta64(1, 'm'))
+    custom["timestamp"] = (custom.timestamp / np.timedelta64(1, 'm'))
     # filter for pod
     filtered_data_a = filtered_data[filtered_data['deployment'] == "teastore-webui"]
     filtered_data_b = filtered_data[filtered_data['pod'] == "webui"]
     filtered_data = pd.concat([filtered_data_a, filtered_data_b])
-    filtered_data = filtered_data[(filtered_data["timestamp"].dt.seconds / 60) <= 8.5]
     custom = custom[(custom['pod'] == "webui")]
-    custom = custom[(custom["timestamp"].dt.seconds / 60) <= 8.5]
     # pivot
     filtered_data = pd.pivot_table(filtered_data, index=["timestamp"], columns=["__name__"],
                                    values="value").reset_index()
@@ -557,6 +557,8 @@ def formatting_evaluation(date: str) -> (pd.DataFrame, pd.DataFrame):
                                                                         "kube_pod_container_resource_limits_cpu_cores"] * 1000
     filtered_data["kube_pod_container_resource_limits_memory_bytes"] = filtered_data[
                                                                            "kube_pod_container_resource_limits_memory_bytes"] / 1048576
+    filtered_data.to_csv(os.path.join(dir_path, "filtered.csv"))
+    filtered_custom_data.to_csv(os.path.join(dir_path, "filtered_custom.csv"))
     return filtered_data, filtered_custom_data, dir_path
 
 
@@ -599,12 +601,18 @@ def plot_evaluation(date: str):
         fig = ax.get_figure()
         fig.savefig(os.path.join(dir_path, f"{t}_histogram.png"))
         fig.clf()
+    # rps
+    ax = sns.lineplot(data=c, x="timestamp", y="rps")
+    ax.set_xlabel("Minutes")
+    ax.set_ylabel("Requests per second")
+    ax.figure.savefig(os.path.join(dir_path, "rps.png"))
+    cfig.clf()
     calc_eval_metrics(c, n, dir_path)
 
 
 def calc_eval_metrics(c: pd.DataFrame, n: pd.DataFrame, dir_path: str):
     # init thresholds
-    r = int(os.getenv("MAX_RESPONSE"))
+    r = int(os.getenv("TARGET_RESPONSE"))
     min_usage = int(os.getenv("MIN_USAGE"))
     max_usage = int(os.getenv("MAX_USAGE"))
     # validate
@@ -626,7 +634,7 @@ def calc_eval_metrics(c: pd.DataFrame, n: pd.DataFrame, dir_path: str):
     result["average memory limit"] = n["kube_pod_container_resource_limits_memory_bytes"].mean()
     result["average pods"] = n["kube_deployment_spec_replicas"].mean()
     result["metric 50/50"] = 0.5 * response_time_exceeded + 0.5 * (cpu_out_threshold + memory_out_threshold) * n["kube_deployment_spec_replicas"].mean()
-    result["average response time"] = c["response_time"].mean()
+    result["median response time"] = c["response_time"].median()
     result["average cpu usage"] = c["cpu"].mean()
     result["average memory usage"] = c["memory"].mean()
     result.to_csv(os.path.join(dir_path, "results.csv"))

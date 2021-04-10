@@ -271,14 +271,14 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
     memory_limits = list()
     pod_limits = list()
     # thresholds
-    thresholds = [int(os.getenv("MAX_RESPONSE")), (int(os.getenv("MAX_USAGE")) + int(os.getenv("MIN_USAGE"))) / 2,
+    thresholds = [int(os.getenv("TARGET_RESPONSE")), (int(os.getenv("MAX_USAGE")) + int(os.getenv("MIN_USAGE"))) / 2,
                   (int(os.getenv("MAX_USAGE")) + int(os.getenv("MIN_USAGE"))) / 2]
     status = [response_time, cpu_usage, memory_usage]
     # if nan
     if math.isnan(cpu_limit):
-        cpu_limit = 300
+        cpu_limit = 500
     if math.isnan(memory_limit):
-        memory_limit = 400
+        memory_limit = 500
     if math.isnan(number_of_pods):
         number_of_pods = 1
     # calculate possible limits
@@ -288,12 +288,15 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
         pod_limits.append(math.ceil(number_of_pods * (s / t)))
     cpu_limits.pop(-1)
     memory_limits.pop(1)
-
+    if os.getenv("HPA") == "True":
+        cpu_limits = [cpu_limit]
+        memory_limits = [memory_limit]
     # make parameter variation
-    parameter_variations = benchmark.parameter_variation_array([cpu_limit], [memory_limit], pod_limits, rps)
+    parameter_variations = benchmark.parameter_variation_array(cpu_limits, memory_limits, pod_limits, rps)
     # flatten possibilities
     predict_window_list = list(np.concatenate(parameter_variations).flat)
     # validate parameter variations
+    logging.info(predict_window_list)
     predict_window_list = validate_parameter(predict_window_list, rps, cpu_limit, memory_limit, number_of_pods, False)
     # init arrays
     possibilities = len(predict_window_list)
@@ -303,48 +306,55 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
     # load parameter scaler
     x_scaler = load(os.path.join(os.getcwd(), "data", "models", "data", f"x_scaler_average response time.gz"))
     # scale data
-    predict_window_scaled = x_scaler.transform(predict_window)
-    for i, model in enumerate(models):
-        # predict
-        predictions[i] = model.predict(predict_window_scaled)
-    # load target scaler
-    y_scalers = list()
-    for t in ["average response time", "cpu usage", "memory usage"]:
-        y_scalers.append(load(os.path.join(os.getcwd(), "data", "models", "data", f"y_scaler_{t}.gz")))
-    # format into array
-    for i in range(0, possibilities):
-        for j in range(0, len(models)):
-            prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
-    # concatenate targets and parameters
-    prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
-    # validate targets
-    if len(prediction_array) > 1:
-        # delete rps parameter
-        prediction_array = np.delete(prediction_array, -1, 1)
-        # get index of best outcome
-        # if horizontal scaling only delete cpu and memory limit
-        best_outcome_index = choose_best(prediction_array.tolist(), True, False)
-        # get parameters of best outcome
-        best_parameters = prediction_array[best_outcome_index]
-        logging.info(
-            f"Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}")
-        logging.info(
-            f"Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%")
-        return best_parameters
-    elif len(prediction_array) == 1:
-        best_outcome_index = 0
-        best_parameters = prediction_array[best_outcome_index]
-        logging.info(
-            f"Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}")
-        logging.info(
-            f"Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%")
-        return best_parameters
+    logging.info(predict_window)
+    if predict_window.size != 0:
+        if predict_window.size == 1:
+            predict_window = predict_window.reshape(1, -1)
+        predict_window_scaled = x_scaler.transform(predict_window)
+        for i, model in enumerate(models):
+            # predict
+            predictions[i] = model.predict(predict_window_scaled)
+        # load target scaler
+        y_scalers = list()
+        for t in ["average response time", "cpu usage", "memory usage"]:
+            y_scalers.append(load(os.path.join(os.getcwd(), "data", "models", "data", f"y_scaler_{t}.gz")))
+        # format into array
+        for i in range(0, possibilities):
+            for j in range(0, len(models)):
+                prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
+        # concatenate targets and parameters
+        prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
+        # validate targets
+        if len(prediction_array) > 1:
+            # delete rps parameter
+            prediction_array = np.delete(prediction_array, -1, 1)
+            # get index of best outcome
+            # if horizontal scaling only delete cpu and memory limit
+            best_outcome_index = choose_best(prediction_array.tolist(), False)
+            # get parameters of best outcome
+            best_parameters = prediction_array[best_outcome_index]
+            logging.info(
+                f"Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}")
+            logging.info(
+                f"Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%")
+            return best_parameters
+        elif len(prediction_array) == 1:
+            best_outcome_index = 0
+            best_parameters = prediction_array[best_outcome_index]
+            logging.info(
+                f"Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}")
+            logging.info(
+                f"Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%")
+            return best_parameters
+        else:
+            return None
     else:
         return None
 
 
 def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int,
-                               alg: str, hpa: bool, response_time: float, cpu_usage: float, memory_usage: float) -> np.array:
+                               alg: str, hpa: bool, response_time: float, cpu_usage: float,
+                               memory_usage: float) -> np.array:
     """
     Chooses the best values for the parameters in a given window for a given status.
     :param memory_usage: current memory usage
@@ -415,9 +425,9 @@ def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods
         if hpa:
             prediction_array_mod = np.delete(prediction_array, 3, 1)
             prediction_array_mod = np.delete(prediction_array_mod, 3, 1)
-            best_outcome_index = choose_best(prediction_array_mod.tolist(), True, True)
+            best_outcome_index = choose_best(prediction_array_mod.tolist(), True)
         else:
-            best_outcome_index = choose_best(prediction_array.tolist(), True, False)
+            best_outcome_index = choose_best(prediction_array.tolist(), True)
         # get parameters of best outcome
         best_parameters = prediction_array[best_outcome_index]
         logging.info(
@@ -482,8 +492,8 @@ def validate_parameter(data: list, rps: float, c_cpu: int, c_memory: int, c_pods
     request = k8s_tools.get_resource_requests()[os.getenv("SCALE_POD")]
     cpu_request = int(str(request["cpu"]).rstrip("m"))
     memory_request = int(str(request["memory"]).rstrip("Mi"))
-    cpu_limit = 500
-    memory_limit = 500
+    cpu_limit = 700
+    memory_limit = 700
     # init
     validated = list()
     for entry in data:
@@ -506,6 +516,7 @@ def validate_parameter(data: list, rps: float, c_cpu: int, c_memory: int, c_pods
             memory = memory_request
             v = True
         if cpu == c_cpu and memory == c_memory and pods == c_pods:
+            logging.info("No need to scale.")
             v = False
         if v:
             validated.append((cpu, memory, pods, rps))
@@ -514,21 +525,23 @@ def validate_parameter(data: list, rps: float, c_cpu: int, c_memory: int, c_pods
     return validated
 
 
-def choose_best(mtx: np.array, method: bool, hpa: bool) -> int:
+def choose_best(mtx: np.array, method: bool) -> int:
     """
     Chooses the best alternative from given alternatives with multiple criteria.
-    :param hpa: if hpa is used
     :param method: which mcdm method to use
     :param mtx: alternatives
     :return: index of best alternative
     """
     # min average response time, max cpu usage, max memory usage, min cpu limit, min memory limit, min number of pods
-    if hpa:
-        criteria = [MIN, MAX, MAX, MIN]
-        weights = [0.80, 0.05, 0.05, 0.10]
+    load_dotenv()
+    criteria = [MIN, MAX, MAX, MIN, MIN, MIN]
+    # b is default
+    if os.getenv("WEIGHTS") == "t":
+        weights = [0.9, 0.02, 0.02, 0.02, 0.02, 0.02]
+    elif os.getenv("WEIGHTS") == "r":
+        weights = [0.1, 0.18, 0.18, 0.18, 0.18, 0.18]
     else:
-        criteria = [MIN, MAX, MAX, MIN, MIN, MIN]
-        weights = [0.8, 0.04, 0.04, 0.04, 0.04, 0.04]
+        weights = [0.5, 0.1, 0.1, 0.1, 0.1, 0.1]
     # create DecisionMaker
     if method:
         dm = TOPSIS()

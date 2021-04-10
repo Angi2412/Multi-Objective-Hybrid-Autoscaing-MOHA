@@ -7,6 +7,7 @@ from time import time
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import seaborn as sns
 from dotenv import load_dotenv, set_key
 from joblib import dump, load, numpy_pickle
 from skcriteria import Data, MIN, MAX
@@ -18,7 +19,6 @@ from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.neural_network import MLPRegressor
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.svm import SVR
-import seaborn as sns
 
 import benchmark
 import k8s_tools
@@ -264,7 +264,7 @@ def load_model(name: str, alg: str) -> numpy_pickle:
 
 
 def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, alg: str,
-                            response_time: float, cpu_usage: float, memory_usage: float):
+                            response_time: float, cpu_usage: float, memory_usage: float, extrap: bool):
     # init
     models = get_models(alg)
     cpu_limits = list()
@@ -303,25 +303,30 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
     predictions = np.empty((len(models), possibilities))
     prediction_array = np.zeros([possibilities, len(models)], dtype=np.float64)
     predict_window = np.array(predict_window_list, dtype=np.float64)
-    # load parameter scaler
-    x_scaler = load(os.path.join(os.getcwd(), "data", "models", "data", f"x_scaler_average response time.gz"))
-    # scale data
-    logging.info(predict_window)
-    if predict_window.size != 0:
-        if predict_window.size == 1:
-            predict_window = predict_window.reshape(1, -1)
-        predict_window_scaled = x_scaler.transform(predict_window)
-        for i, model in enumerate(models):
-            # predict
-            predictions[i] = model.predict(predict_window_scaled)
-        # load target scaler
-        y_scalers = list()
-        for t in ["average response time", "cpu usage", "memory usage"]:
-            y_scalers.append(load(os.path.join(os.getcwd(), "data", "models", "data", f"y_scaler_{t}.gz")))
-        # format into array
-        for i in range(0, possibilities):
-            for j in range(0, len(models)):
-                prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
+    if extrap:
+        prediction_array = predict_extrap(predict_window_list)
+    else:
+        # load parameter scaler
+        x_scaler = load(os.path.join(os.getcwd(), "data", "models", "data", f"x_scaler_average response time.gz"))
+        # scale data
+        logging.info(predict_window)
+        if predict_window.size != 0:
+            if predict_window.size == 1:
+                predict_window = predict_window.reshape(1, -1)
+            predict_window_scaled = x_scaler.transform(predict_window)
+            for i, model in enumerate(models):
+                # predict
+                predictions[i] = model.predict(predict_window_scaled)
+            # load target scaler
+            y_scalers = list()
+            for t in ["average response time", "cpu usage", "memory usage"]:
+                y_scalers.append(load(os.path.join(os.getcwd(), "data", "models", "data", f"y_scaler_{t}.gz")))
+            # format into array
+            for i in range(0, possibilities):
+                for j in range(0, len(models)):
+                    prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
+        else:
+            return None
         # concatenate targets and parameters
         prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
         # validate targets
@@ -348,8 +353,22 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
             return best_parameters
         else:
             return None
-    else:
-        return None
+
+
+def predict_extrap(parameters: list) -> np.array:
+    predicted = list()
+    for c, m, p, rps in parameters:
+        desired_c = 25714.32539236546 - 2502.3032054616065 * math.log(c, 2) - 222.9076387765515 * math.log(m,
+                                                                                                           2) - 877.3839295358297 * math.log(
+            p, 2) + 82.33195028589898 * math.pow(math.log(rps, 2), 2)
+        desired_m = 207.24043369071322 - 18.358570566154665 * math.log(c, 2) - 15.099670589384738 * math.log(p,
+                                                                                                             2) + 2.224919774965972 * math.pow(
+            math.log(rps, 2), 3 / 2)
+        desired_p = 453.9128240678697 - 44.393604901442515 * math.log(m, 2) + 5.716589705683245 * math.log(p,
+                                                                                                           1 / 2) + 0.44049840226376347 * math.pow(
+            math.log(rps, 2), 2)
+        predicted.append((desired_c, desired_m, desired_p))
+    return np.array(predicted, dtype=np.float64)
 
 
 def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int,

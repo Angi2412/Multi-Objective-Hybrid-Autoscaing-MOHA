@@ -26,7 +26,7 @@
       <com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroup guiclass="com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroupGui" testclass="com.blazemeter.jmeter.threads.concurrency.ConcurrencyThreadGroup" testname="bzm - Concurrency Thread Group" enabled="true">
         <elementProp name="ThreadGroup.main_controller" elementType="com.blazemeter.jmeter.control.VirtualUserController"/>
         <stringProp name="ThreadGroup.on_sample_error">continue</stringProp>
-        <stringProp name="TargetLevel">${__tstFeedback(blazemeter-timer,1,100,10)}</stringProp>
+        <stringProp name="TargetLevel">${__tstFeedback(blazemeter-timer,1,40,10)}</stringProp>
         <stringProp name="RampUp"></stringProp>
         <stringProp name="Steps"></stringProp>
         <stringProp name="Hold">600</stringProp>
@@ -37,40 +37,20 @@
       <hashTree>
         <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="blazemeter-timer" enabled="true">
           <collectionProp name="load_profile">
-            <collectionProp name="82899207">
+            <collectionProp name="-693422235">
               <stringProp name="1">1</stringProp>
-              <stringProp name="51">3</stringProp>
-              <stringProp name="1722">60</stringProp>
+              <stringProp name="1598">20</stringProp>
+              <stringProp name="49617">210</stringProp>
             </collectionProp>
-            <collectionProp name="1925910028">
-              <stringProp name="51">3</stringProp>
-              <stringProp name="51">3</stringProp>
-              <stringProp name="48687">120</stringProp>
+            <collectionProp name="1546187201">
+              <stringProp name="1598">20</stringProp>
+              <stringProp name="1598">20</stringProp>
+              <stringProp name="48873">180</stringProp>
             </collectionProp>
-            <collectionProp name="141323636">
-              <stringProp name="51">3</stringProp>
-              <stringProp name="53">5</stringProp>
-              <stringProp name="1722">60</stringProp>
-            </collectionProp>
-            <collectionProp name="1925985420">
-              <stringProp name="53">5</stringProp>
-              <stringProp name="53">5</stringProp>
-              <stringProp name="48687">120</stringProp>
-            </collectionProp>
-            <collectionProp name="85432112">
-              <stringProp name="53">5</stringProp>
-              <stringProp name="51">3</stringProp>
-              <stringProp name="60">60</stringProp>
-            </collectionProp>
-            <collectionProp name="1925910028">
-              <stringProp name="51">3</stringProp>
-              <stringProp name="51">3</stringProp>
-              <stringProp name="48687">120</stringProp>
-            </collectionProp>
-            <collectionProp name="85332633">
-              <stringProp name="51">3</stringProp>
+            <collectionProp name="-185776017">
+              <stringProp name="1598">20</stringProp>
               <stringProp name="49">1</stringProp>
-              <stringProp name="60">60</stringProp>
+              <stringProp name="49617">210</stringProp>
             </collectionProp>
           </collectionProp>
         </kg.apc.jmeter.timers.VariableThroughputTimer>

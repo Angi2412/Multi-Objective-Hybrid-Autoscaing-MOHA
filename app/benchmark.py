@@ -593,9 +593,8 @@ def change_build(alg: str, hpa: bool, weights: str):
 
 
 if __name__ == '__main__':
-    # for a, hpa, w in zip(["svr", "svr", "svr", "linear_b", "neural_network"], [True, True, False, False, False],
-    #                      ["t", "r", "b", "b", "b"]):
+    # for a, hpa, w in zip(["svr", "linear_b", "neural_network"], [False, False, False],
+    #                      ["b", "b", "b"]):
     #     change_build(a, hpa, w)
-    #     evaluation(5, 1, 0, 10)
-    #     plot_all_evaluation()
     evaluation(5, 1, 0, 10)
+    plot_all_evaluation()

@@ -37,40 +37,20 @@
       <hashTree>
         <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="blazemeter-timer" enabled="true">
           <collectionProp name="load_profile">
-            <collectionProp name="82901563">
+            <collectionProp name="-693531014">
               <stringProp name="1">1</stringProp>
-              <stringProp name="53">5</stringProp>
-              <stringProp name="1722">60</stringProp>
-            </collectionProp>
-            <collectionProp name="1925985420">
-              <stringProp name="53">5</stringProp>
-              <stringProp name="53">5</stringProp>
-              <stringProp name="48687">120</stringProp>
-            </collectionProp>
-            <collectionProp name="1874247475">
-              <stringProp name="53">5</stringProp>
               <stringProp name="1567">10</stringProp>
-              <stringProp name="1722">60</stringProp>
+              <stringProp name="49617">210</stringProp>
             </collectionProp>
-            <collectionProp name="1542636268">
+            <collectionProp name="1542706273">
               <stringProp name="1567">10</stringProp>
               <stringProp name="1567">10</stringProp>
-              <stringProp name="48687">120</stringProp>
+              <stringProp name="48873">180</stringProp>
             </collectionProp>
-            <collectionProp name="-2030765487">
+            <collectionProp name="-189148166">
               <stringProp name="1567">10</stringProp>
-              <stringProp name="53">5</stringProp>
-              <stringProp name="60">60</stringProp>
-            </collectionProp>
-            <collectionProp name="1925985420">
-              <stringProp name="53">5</stringProp>
-              <stringProp name="53">5</stringProp>
-              <stringProp name="48687">120</stringProp>
-            </collectionProp>
-            <collectionProp name="85405669">
-              <stringProp name="53">5</stringProp>
               <stringProp name="49">1</stringProp>
-              <stringProp name="60">60</stringProp>
+              <stringProp name="49617">210</stringProp>
             </collectionProp>
           </collectionProp>
         </kg.apc.jmeter.timers.VariableThroughputTimer>

@@ -276,9 +276,9 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
     status = [response_time, cpu_usage, memory_usage]
     # if nan
     if math.isnan(cpu_limit):
-        cpu_limit = 500
+        cpu_limit = 400
     if math.isnan(memory_limit):
-        memory_limit = 500
+        memory_limit = 400
     if math.isnan(number_of_pods):
         number_of_pods = 1
     # calculate possible limits
@@ -297,7 +297,7 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
     predict_window_list = list(np.concatenate(parameter_variations).flat)
     # validate parameter variations
     logging.info(predict_window_list)
-    predict_window_list = validate_parameter(predict_window_list, rps, cpu_limit, memory_limit, number_of_pods, False)
+    predict_window_list = validate_parameter(predict_window_list, rps)
     # init arrays
     possibilities = len(predict_window_list)
     predictions = np.empty((len(models), possibilities))
@@ -309,7 +309,6 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
         # load parameter scaler
         x_scaler = load(os.path.join(os.getcwd(), "data", "models", "data", f"x_scaler_average response time.gz"))
         # scale data
-        logging.info(predict_window)
         if predict_window.size != 0:
             if predict_window.size == 1:
                 predict_window = predict_window.reshape(1, -1)
@@ -327,47 +326,49 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
                     prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
         else:
             return None
-        # concatenate targets and parameters
-        prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
-        # validate targets
-        if len(prediction_array) > 1:
-            # delete rps parameter
-            prediction_array = np.delete(prediction_array, -1, 1)
-            # get index of best outcome
-            # if horizontal scaling only delete cpu and memory limit
-            best_outcome_index = choose_best(prediction_array.tolist(), False)
-            # get parameters of best outcome
-            best_parameters = prediction_array[best_outcome_index]
-            logging.info(
-                f"Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}")
-            logging.info(
-                f"Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%")
-            return best_parameters
-        elif len(prediction_array) == 1:
-            best_outcome_index = 0
-            best_parameters = prediction_array[best_outcome_index]
-            logging.info(
-                f"Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}")
-            logging.info(
-                f"Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%")
-            return best_parameters
-        else:
-            return None
+    logging.info(prediction_array)
+    # concatenate targets and parameters
+    prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
+    # validate targets
+    if len(prediction_array) > 1:
+        # delete rps parameter
+        prediction_array = np.delete(prediction_array, -1, 1)
+        # get index of best outcome
+        # if horizontal scaling only delete cpu and memory limit
+        best_outcome_index = choose_best(prediction_array.tolist(), False)
+        # get parameters of best outcome
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f"Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}")
+        logging.info(
+            f"Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%")
+        return best_parameters
+    elif len(prediction_array) == 1:
+        best_outcome_index = 0
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f"Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}")
+        logging.info(
+            f"Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%")
+        return best_parameters
+    else:
+        return None
 
 
 def predict_extrap(parameters: list) -> np.array:
     predicted = list()
     for c, m, p, rps in parameters:
-        desired_c = 25714.32539236546 - 2502.3032054616065 * math.log(c, 2) - 222.9076387765515 * math.log(m,
-                                                                                                           2) - 877.3839295358297 * math.log(
+        response_time = 25714.32539236546 - 2502.3032054616065 * math.log(c, 2) - 222.9076387765515 * math.log(m,
+                                                                                                               2) - 877.3839295358297 * math.log(
             p, 2) + 82.33195028589898 * math.pow(math.log(rps, 2), 2)
-        desired_m = 207.24043369071322 - 18.358570566154665 * math.log(c, 2) - 15.099670589384738 * math.log(p,
+        cpu_usage = 207.24043369071322 - 18.358570566154665 * math.log(c, 2) - 15.099670589384738 * math.log(p,
                                                                                                              2) + 2.224919774965972 * math.pow(
             math.log(rps, 2), 3 / 2)
-        desired_p = 453.9128240678697 - 44.393604901442515 * math.log(m, 2) + 5.716589705683245 * math.log(p,
-                                                                                                           1 / 2) + 0.44049840226376347 * math.pow(
+        memory_usage = 453.9128240678697 - 44.393604901442515 * math.log(m, 2) + 5.716589705683245 * math.log(p,
+                                                                                                              1 / 2) + 0.44049840226376347 * math.pow(
             math.log(rps, 2), 2)
-        predicted.append((desired_c, desired_m, desired_p))
+        predicted.append((response_time, cpu_usage, memory_usage))
+    logging.info(predicted)
     return np.array(predicted, dtype=np.float64)
 
 
@@ -400,7 +401,7 @@ def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods
     # flatten possibilities
     predict_window_list = list(np.concatenate(parameter_variations).flat)
     # validate parameter variations
-    predict_window_list = validate_parameter(predict_window_list, rps, cpu_limit, memory_limit, number_of_pods, hpa)
+    predict_window_list = validate_parameter(predict_window_list, rps)
     # init arrays
     possibilities = len(predict_window_list)
     predictions = np.empty((len(models), possibilities))
@@ -502,7 +503,7 @@ def validate_targets(predictions: np.ndarray, curr_pred: np.array, curr: np.arra
     return np.array(validated)
 
 
-def validate_parameter(data: list, rps: float, c_cpu: int, c_memory: int, c_pods: int, hpa: bool) -> list:
+def validate_parameter(data: list, rps: float) -> list:
     """
     Validates if the given limits are below the requested resources.
     :return: validated resources
@@ -530,13 +531,6 @@ def validate_parameter(data: list, rps: float, c_cpu: int, c_memory: int, c_pods
             pods = 1
         if pods > int(os.getenv("MAX_PODS")):
             pods = int(os.getenv("MAX_PODS"))
-        if hpa:
-            cpu = cpu_request
-            memory = memory_request
-            v = True
-        if cpu == c_cpu and memory == c_memory and pods == c_pods:
-            logging.info("No need to scale.")
-            v = False
         if v:
             validated.append((cpu, memory, pods, rps))
     # remove duplicates

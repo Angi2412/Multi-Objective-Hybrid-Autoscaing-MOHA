@@ -47,7 +47,7 @@ def scale():
                                                      number_of_pods=parameter_status[2], rps=parameter_status[3],
                                                      alg=os.getenv("ALGORITHM"),
                                                      response_time=target_status[2], cpu_usage=target_status[0],
-                                                     memory_usage=target_status[1])
+                                                     memory_usage=target_status[1], extrap=True)
         # scale if not the same
         if best_parameters is not None:
             k8s_update_deployment(os.getenv("SCALE_POD"), int(best_parameters[3]), int(best_parameters[4]),

@@ -275,11 +275,11 @@ spec:
             - containerPort: 8080
           resources:
             limits:
-              cpu: 500m
-              memory: 500Mi
+              cpu: 400m
+              memory: 400Mi
             requests:
-              cpu: 500m
-              memory: 500Mi
+              cpu: 400m
+              memory: 400Mi
           readinessProbe:
             httpGet:
               path: /tools.descartes.teastore.webui/rest/ready/isready

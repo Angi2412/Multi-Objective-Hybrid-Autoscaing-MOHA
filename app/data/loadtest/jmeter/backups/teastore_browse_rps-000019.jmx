@@ -29,7 +29,7 @@
         <stringProp name="TargetLevel">${__tstFeedback(blazemeter-timer,1,100,10)}</stringProp>
         <stringProp name="RampUp"></stringProp>
         <stringProp name="Steps"></stringProp>
-        <stringProp name="Hold">630</stringProp>
+        <stringProp name="Hold">600</stringProp>
         <stringProp name="LogFilename"></stringProp>
         <stringProp name="Iterations"></stringProp>
         <stringProp name="Unit">S</stringProp>
@@ -37,20 +37,20 @@
       <hashTree>
         <kg.apc.jmeter.timers.VariableThroughputTimer guiclass="kg.apc.jmeter.timers.VariableThroughputTimerGui" testclass="kg.apc.jmeter.timers.VariableThroughputTimer" testname="blazemeter-timer" enabled="true">
           <collectionProp name="load_profile">
-            <collectionProp name="-694526200">
+            <collectionProp name="-693422235">
               <stringProp name="1">1</stringProp>
-              <stringProp name="1572">15</stringProp>
+              <stringProp name="1598">20</stringProp>
+              <stringProp name="49617">210</stringProp>
+            </collectionProp>
+            <collectionProp name="1546187201">
+              <stringProp name="1598">20</stringProp>
+              <stringProp name="1598">20</stringProp>
               <stringProp name="48873">180</stringProp>
             </collectionProp>
-            <collectionProp name="1544726091">
-              <stringProp name="1572">15</stringProp>
-              <stringProp name="1572">15</stringProp>
-              <stringProp name="49710">240</stringProp>
-            </collectionProp>
-            <collectionProp name="-189244042">
-              <stringProp name="1572">15</stringProp>
+            <collectionProp name="-185776017">
+              <stringProp name="1598">20</stringProp>
               <stringProp name="49">1</stringProp>
-              <stringProp name="48873">180</stringProp>
+              <stringProp name="49617">210</stringProp>
             </collectionProp>
           </collectionProp>
         </kg.apc.jmeter.timers.VariableThroughputTimer>

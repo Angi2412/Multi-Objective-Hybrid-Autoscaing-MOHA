@@ -541,6 +541,8 @@ def formatting_evaluation(date: str) -> (pd.DataFrame, pd.DataFrame):
     custom["timestamp"] = (custom["timestamp"] - custom["timestamp"].min())
     filtered_data["timestamp"] = (filtered_data.timestamp / np.timedelta64(1, 'm'))
     custom["timestamp"] = (custom.timestamp / np.timedelta64(1, 'm'))
+    filtered_data["timestamp"] = filtered_data["timestamp"] + 0.5
+    custom["timestamp"] = custom["timestamp"] + 0.5
     # filter for pod
     filtered_data_a = filtered_data[filtered_data['deployment'] == "teastore-webui"]
     filtered_data_b = filtered_data[filtered_data['pod'] == "webui"]

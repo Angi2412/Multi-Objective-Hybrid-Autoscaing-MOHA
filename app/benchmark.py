@@ -584,17 +584,17 @@ def change_build(alg: str, hpa: bool, weights: str):
     else:
         set_key(os.path.join(os.getcwd(), "prod.env"), "HPA", "False")
         set_key(os.path.join(os.getcwd(), ".env"), "HPA", "False")
-    if alg == "svr":
-        set_key(os.path.join(os.getcwd(), "prod.env"), "WEIGHTS", weights)
-        set_key(os.path.join(os.getcwd(), ".env"), "WEIGHTS", weights)
+    # set weights
+    set_key(os.path.join(os.getcwd(), "prod.env"), "WEIGHTS", weights)
+    set_key(os.path.join(os.getcwd(), ".env"), "WEIGHTS", weights)
     # build docker image
     k8s.buil_autoscaler_docker()
     logging.info(f"Changed build. alg: {alg} - hpa:{hpa} - w: {weights}")
 
 
 if __name__ == '__main__':
-    # for a, hpa, w in zip(["svr", "linear_b", "neural_network"], [False, False, False],
-    #                      ["b", "b", "b"]):
-    #     change_build(a, hpa, w)
+    set_key(os.path.join(os.getcwd(), "prod.env"), "SCALING_TIME", "60")
+    set_key(os.path.join(os.getcwd(), ".env"), "SCALING_TIME", "60")
+    k8s.buil_autoscaler_docker()
     evaluation(5, 1, 0, 10)
     plot_all_evaluation()

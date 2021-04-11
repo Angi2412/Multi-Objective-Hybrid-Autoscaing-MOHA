@@ -335,7 +335,7 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
         prediction_array = np.delete(prediction_array, -1, 1)
         # get index of best outcome
         # if horizontal scaling only delete cpu and memory limit
-        best_outcome_index = choose_best(prediction_array.tolist(), False)
+        best_outcome_index = choose_best(prediction_array.tolist(), True)
         # get parameters of best outcome
         best_parameters = prediction_array[best_outcome_index]
         logging.info(

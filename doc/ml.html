@@ -1,0 +1,2153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>app.ml API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.ml</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import datetime as dt
+import logging
+import math
+import os
+from time import time
+
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import seaborn as sns
+from dotenv import load_dotenv, set_key
+from joblib import dump, load, numpy_pickle
+from skcriteria import Data, MIN, MAX
+from skcriteria.madm.closeness import TOPSIS
+from skcriteria.madm.simple import WeightedSum
+from sklearn.linear_model import LinearRegression, BayesianRidge
+from sklearn.metrics import mean_squared_error, r2_score
+from sklearn.model_selection import train_test_split, GridSearchCV
+from sklearn.neural_network import MLPRegressor
+from sklearn.preprocessing import MinMaxScaler
+from sklearn.svm import SVR
+
+import benchmark
+import k8s_tools
+
+
+def linear_least_squares_model(target: str, save: bool) -&gt; None:
+    &#34;&#34;&#34;Linear Regression model with given data.
+
+    Args:
+      save: if should save
+      target: target name
+      target: str: 
+      save: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    X_train, X_test, y_train, y_test = get_processed_data(target)
+    # Create linear regression object
+    regression = LinearRegression()
+
+    tic = time()
+    # Train the model using the training sets
+    regression.fit(X_train, y_train)
+    gsh_time = time() - tic
+    print(&#34;Linear Least Squares Regression&#34;)
+    print(&#34;Target: &#34; + target)
+    print(f&#34;Training time: {gsh_time}&#34;)
+    # Make predictions using the testing set
+    tic = time()
+    y_pred = regression.predict(X_test)
+    pred_time = time() - tic
+    print(f&#34;Prediction time: {pred_time}&#34;)
+
+    # get metrics
+    print(&#34;Metrics:&#34;)
+    get_metrics(y_test, y_pred)
+    # save model
+    if save:
+        save_model(regression, target, &#34;linear_lsq&#34;)
+
+
+def linear_bayesian_model(target: str, save: bool, search: bool) -&gt; None:
+    &#34;&#34;&#34;Linear Regression model with given data.
+
+    Args:
+      save: if should save
+      target: target name
+      search: grid search
+      target: str: 
+      save: bool: 
+      search: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    X_train, X_test, y_train, y_test = get_processed_data(target)
+
+    if search:
+        params = {&#34;lambda_1&#34;: np.logspace(-2, 10, 13, base=2), &#34;lambda_2&#34;: np.logspace(-2, 10, 13, base=2),
+                  &#34;alpha_1&#34;: np.linspace(0.1, 1, 10), &#34;alpha_2&#34;: np.linspace(0.1, 1, 10)}
+        tic = time()
+        search = GridSearchCV(estimator=BayesianRidge(), param_grid=params, verbose=1)
+        search.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(f&#34;Training time: {gsh_time}&#34;)
+        print(f&#34;Best params: {search.best_params_}&#34;)
+    # Train the model using the training sets
+    else:
+        # Create linear regression object
+        regression = BayesianRidge(alpha_1=1.0, alpha_2=0.1, lambda_1=1024, lambda_2=4.0)
+        tic = time()
+        regression.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(&#34;Linear Bayesian Regression&#34;)
+        print(&#34;Target: &#34; + target)
+        print(f&#34;Training time: {gsh_time}&#34;)
+        # Make predictions using the testing set
+        tic = time()
+        y_pred = regression.predict(X_test)
+        pred_time = time() - tic
+        print(f&#34;Prediction time: {pred_time}&#34;)
+        # get metrics
+        print(&#34;Metrics:&#34;)
+        get_metrics(y_test, y_pred)
+        plot_prediction(y_test, y_pred, &#34;linear&#34;, target)
+        # save model
+        if save:
+            save_model(regression, target, &#34;linear_b&#34;)
+
+
+def get_metrics(test: np.array, pred: np.array) -&gt; None:
+    &#34;&#34;&#34;Prints mean squared error and r2 score.
+
+    Args:
+      test: test data
+      pred: predicted data
+      test: np.array: 
+      pred: np.array: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # The mean squared error
+    print(&#39;Mean squared error: %.2f&#39; % mean_squared_error(test, pred))
+    # The coefficient of determination: 1 is perfect prediction
+    print(&#39;Coefficient of determination: %.2f&#39; % r2_score(test, pred))
+
+
+def svr_model(target: str, save: bool, search: bool) -&gt; None:
+    &#34;&#34;&#34;Several SVR models with different kernel functions from given data.
+
+    Args:
+      save: if should save
+      target: target name
+      search: search for hyper parameter
+      target: str: 
+      save: bool: 
+      search: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # split data in to train and test sets
+    X_train, X_test, y_train, y_test = get_processed_data(target)
+    if search:
+        # SVRs with different kernels
+        params = {&#34;epsilon&#34;: np.arange(0.1, 1, 0.01)}
+        tic = time()
+        search = GridSearchCV(estimator=SVR(kernel=&#34;rbf&#34;, C=2.0, gamma=2.0, cache_size=12000), param_grid=params,
+                              verbose=1)
+        search.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(f&#34;Training time: {gsh_time}&#34;)
+        print(&#34;The best parameters are %s with a score of %0.2f&#34;
+              % (search.best_params_, search.best_score_))
+    else:
+        svr = SVR(kernel=&#34;rbf&#34;, C=2.0, gamma=2.0, cache_size=12000)
+        tic = time()
+        svr.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(&#34;Support Vector Regression&#34;)
+        print(&#34;Target: &#34; + target)
+        print(f&#34;Training time: {gsh_time}&#34;)
+        # Make predictions using the testing set
+        tic = time()
+        y_pred = svr.predict(X_test)
+        pred_time = time() - tic
+        print(f&#34;Prediction time: {pred_time}&#34;)
+        # print scores
+        print(&#34;Metrics:&#34;)
+        get_metrics(y_test, y_pred)
+        plot_prediction(y_test, y_pred, &#34;svr&#34;, target)
+        if save:
+            save_model(svr, target, &#34;svr&#34;)
+
+
+def plot_prediction(y_test, y_pred, alg, target) -&gt; None:
+    &#34;&#34;&#34;Plot the predicted and expected values of a model.
+
+    Args:
+      y_test: expected values
+      y_pred: predicted values
+      alg: used model
+      target: target metric
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # regplot
+    ax = sns.regplot(x=y_test, y=y_pred, scatter=True, fit_reg=True)
+    ax.set_xlabel(&#34;Expected values&#34;)
+    ax.set_ylabel(&#34;Predicted values&#34;)
+    ax.figure.savefig(os.path.join(os.getcwd(), &#34;data&#34;, &#34;plots&#34;, f&#34;{alg}_{target}.png&#34;))
+    plt.show()
+
+
+def neural_network_model(target: str, search: bool, save: bool) -&gt; None:
+    &#34;&#34;&#34;MLPRegressor neural network with given data.
+
+    Args:
+      search: use search
+      save: should save
+      target: target name
+      target: str: 
+      search: bool: 
+      save: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # split data
+    X_train, X_test, y_train, y_test = get_processed_data(target)
+    # train neural network
+    mlp = None
+    if search:
+        # SVRs with different kernels
+        params = {&#34;alpha&#34;: np.arange(0.1, 2, 0.01)}
+        tic = time()
+        search = GridSearchCV(
+            estimator=MLPRegressor(solver=&#34;adam&#34;, tol=2.8284271247461903, activation=&#34;tanh&#34;, learning_rate=&#34;adaptive&#34;,
+                                   max_iter=100000),
+            param_grid=params,
+            verbose=1)
+        search.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(f&#34;Training time: {gsh_time}&#34;)
+        print(f&#34;Best params: {search.best_params_}&#34;)
+    else:
+        mlp = MLPRegressor(solver=&#34;adam&#34;, alpha=0.49, tol=2.8284271247461903, activation=&#34;tanh&#34;,
+                           learning_rate=&#34;adaptive&#34;,
+                           max_iter=100000)
+        # make predictions using the testing set
+        tic = time()
+        mlp.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(&#34;Neural Network&#34;)
+        print(&#34;Target: &#34; + target)
+        print(f&#34;Training time: {gsh_time}&#34;)
+        tic = time()
+        y_pred = mlp.predict(X_test)
+        pred_time = time() - tic
+        print(f&#34;Prediction time: {pred_time}&#34;)
+        # print scores
+        print(&#34;Metrics:&#34;)
+        get_metrics(y_test, y_pred)
+        plot_prediction(y_test, y_pred, &#34;neural&#34;, target)
+    # save model
+    if save:
+        save_model(mlp, target, &#34;neural_network&#34;)
+
+
+def get_data(date: str, target: str, combined: bool) -&gt; (np.array, np.array):
+    &#34;&#34;&#34;Gets filtered data and converts it to a numpy array.
+
+    Args:
+      combined: combined or filtered
+      target: name of target
+      date: name of filtered data
+      date: str: 
+      target: str: 
+      combined: bool) -&gt; (np.array: 
+      np.array: 
+
+    Returns:
+      X, y
+
+    &#34;&#34;&#34;
+    # init path
+    if combined:
+        path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;combined&#34;)
+    else:
+        path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;filtered&#34;)
+    # get data
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if date in file and &#34;mean&#34; not in file:
+                data = pd.read_csv(os.path.join(path, file), delimiter=&#34;,&#34;)
+                data = data.reset_index()
+                X = data[[&#39;cpu limit&#39;, &#39;memory limit&#39;, &#39;number of pods&#39;, &#39;average rps&#39;]].to_numpy()
+                y = data[[target]].to_numpy()
+                logging.info(f&#34;X: {X.shape} - y: {y.shape}&#34;)
+                return X, y
+    logging.warning(f&#34;No filtered file with name {date} found.&#34;)
+
+
+def save_model(model, name: str, alg: str) -&gt; None:
+    &#34;&#34;&#34;Saves a model under a given name.
+
+    Args:
+      alg: used algorithm
+      model: model
+      name: model name
+      name: str: 
+      alg: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    save_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, alg)
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    dump(model, os.path.join(save_path, f&#34;{name}.joblib&#34;))
+
+
+def load_model(name: str, alg: str) -&gt; numpy_pickle:
+    &#34;&#34;&#34;Loads a given model.
+
+    Args:
+      alg: algorithm used
+      name: model name
+      name: str: 
+      alg: str: 
+
+    Returns:
+      model
+
+    &#34;&#34;&#34;
+    save_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, alg, f&#34;{name}.joblib&#34;)
+    return load(save_path)
+
+
+def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, alg: str,
+                            response_time: float, cpu_usage: float, memory_usage: float, extrap: bool) -&gt; np.array:
+    &#34;&#34;&#34;Resource Estimation based on Kubernetes HPA.
+
+    Args:
+      cpu_limit: current CPU limit
+      memory_limit: current memory limit
+      number_of_pods: current number of pods
+      rps: current load
+      alg: used model
+      response_time: current response time
+      cpu_usage: current CPU usage
+      memory_usage: current memory usage
+      extrap: If Extra-p should be used
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_pods: int: 
+      rps: float: 
+      alg: str: 
+      response_time: float: 
+      cpu_usage: float: 
+      memory_usage: float: 
+      extrap: bool: 
+
+    Returns:
+      best parameters
+
+    &#34;&#34;&#34;
+    # init
+    models = get_models(alg)
+    cpu_limits = list()
+    memory_limits = list()
+    pod_limits = list()
+    # thresholds
+    thresholds = [int(os.getenv(&#34;TARGET_RESPONSE&#34;)), (int(os.getenv(&#34;MAX_USAGE&#34;)) + int(os.getenv(&#34;MIN_USAGE&#34;))) / 2,
+                  (int(os.getenv(&#34;MAX_USAGE&#34;)) + int(os.getenv(&#34;MIN_USAGE&#34;))) / 2]
+    status = [response_time, cpu_usage, memory_usage]
+    # if nan
+    if math.isnan(cpu_limit):
+        cpu_limit = 400
+    if math.isnan(memory_limit):
+        memory_limit = 400
+    if math.isnan(number_of_pods):
+        number_of_pods = 1
+    # calculate possible limits
+    for t, s in zip(thresholds, status):
+        cpu_limits.append(math.ceil(cpu_limit * (s / t)))
+        memory_limits.append(math.ceil(memory_limit * (s / t)))
+        pod_limits.append(math.ceil(number_of_pods * (s / t)))
+    cpu_limits.pop(-1)
+    memory_limits.pop(1)
+    if os.getenv(&#34;HPA&#34;) == &#34;True&#34;:
+        cpu_limits = [cpu_limit]
+        memory_limits = [memory_limit]
+    # make parameter variation
+    parameter_variations = benchmark.parameter_variation_array(cpu_limits, memory_limits, pod_limits, rps)
+    # flatten possibilities
+    predict_window_list = list(np.concatenate(parameter_variations).flat)
+    # validate parameter variations
+    logging.info(predict_window_list)
+    predict_window_list = validate_parameter(predict_window_list, rps)
+    # init arrays
+    possibilities = len(predict_window_list)
+    predictions = np.empty((len(models), possibilities))
+    prediction_array = np.zeros([possibilities, len(models)], dtype=np.float64)
+    predict_window = np.array(predict_window_list, dtype=np.float64)
+    if extrap:
+        prediction_array = predict_extrap(predict_window_list)
+    else:
+        # load parameter scaler
+        x_scaler = load(os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;x_scaler_average response time.gz&#34;))
+        # scale data
+        if predict_window.size != 0:
+            if predict_window.size == 1:
+                predict_window = predict_window.reshape(1, -1)
+            predict_window_scaled = x_scaler.transform(predict_window)
+            for i, model in enumerate(models):
+                # predict
+                predictions[i] = model.predict(predict_window_scaled)
+            # load target scaler
+            y_scalers = list()
+            for t in [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]:
+                y_scalers.append(load(os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;y_scaler_{t}.gz&#34;)))
+            # format into array
+            for i in range(0, possibilities):
+                for j in range(0, len(models)):
+                    prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
+        else:
+            return None
+    logging.info(prediction_array)
+    # concatenate targets and parameters
+    prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
+    # validate targets
+    if len(prediction_array) &gt; 1:
+        # delete rps parameter
+        prediction_array = np.delete(prediction_array, -1, 1)
+        # get index of best outcome
+        # if horizontal scaling only delete cpu and memory limit
+        best_outcome_index = choose_best(prediction_array.tolist(), True)
+        # get parameters of best outcome
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f&#34;Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}&#34;)
+        logging.info(
+            f&#34;Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%&#34;)
+        return best_parameters
+    elif len(prediction_array) == 1:
+        best_outcome_index = 0
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f&#34;Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}&#34;)
+        logging.info(
+            f&#34;Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%&#34;)
+        return best_parameters
+    else:
+        return None
+
+
+def predict_extrap(parameters: list) -&gt; np.array:
+    &#34;&#34;&#34;Resource estimation with Extra-P.
+
+    Args:
+      parameters: current parameters
+      parameters: list: 
+
+    Returns:
+      resource prediction
+
+    &#34;&#34;&#34;
+    predicted = list()
+    for c, m, p, rps in parameters:
+        response_time = 25714.32539236546 - 2502.3032054616065 * math.log(c, 2) - 222.9076387765515 * math.log(m,
+                                                                                                               2) - 877.3839295358297 * math.log(
+            p, 2) + 82.33195028589898 * math.pow(math.log(rps, 2), 2)
+        cpu_usage = 207.24043369071322 - 18.358570566154665 * math.log(c, 2) - 15.099670589384738 * math.log(p,
+                                                                                                             2) + 2.224919774965972 * math.pow(
+            math.log(rps, 2), 3 / 2)
+        memory_usage = 453.9128240678697 - 44.393604901442515 * math.log(m, 2) + 5.716589705683245 * math.log(p,
+                                                                                                              1 / 2) + 0.44049840226376347 * math.pow(
+            math.log(rps, 2), 2)
+        predicted.append((response_time, cpu_usage, memory_usage))
+    logging.info(predicted)
+    return np.array(predicted, dtype=np.float64)
+
+
+def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int,
+                               alg: str, hpa: bool, response_time: float, cpu_usage: float,
+                               memory_usage: float) -&gt; np.array:
+    &#34;&#34;&#34;Chooses the best values for the parameters in a given window for a given status.
+
+    Args:
+      memory_usage: current memory usage
+      cpu_usage: current cpu usage
+      response_time: current average response time
+      hpa: only horizontal scaling
+      alg: algorithm to use
+      cpu_limit: current cpu limit
+      memory_limit: current memory limit
+      number_of_pods: current number of pods
+      rps: requests per second
+      window: size of window
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_pods: int: 
+      rps: float: 
+      window: int: 
+      alg: str: 
+      hpa: bool: 
+      response_time: float: 
+      cpu_usage: float: 
+      memory_usage: float: 
+
+    Returns:
+      pes parameters
+
+    &#34;&#34;&#34;
+    # init
+    step = int(os.getenv(&#34;STEP&#34;))
+    models = get_models(alg)
+    # get all possibilities in window
+    current_status = np.array((cpu_limit, memory_limit, number_of_pods, rps), dtype=np.float64)
+    parameter_variations = benchmark.parameter_variation(&#34;webui&#34;, cpu_limit - window * step, cpu_limit + window * step,
+                                                         memory_limit - window * step, memory_limit + window * step,
+                                                         number_of_pods - window, number_of_pods + window,
+                                                         step, False, False, False, [int(rps)])
+    # flatten possibilities
+    predict_window_list = list(np.concatenate(parameter_variations).flat)
+    # validate parameter variations
+    predict_window_list = validate_parameter(predict_window_list, rps)
+    # init arrays
+    possibilities = len(predict_window_list)
+    predictions = np.empty((len(models), possibilities))
+    prediction_array = np.zeros([possibilities, len(models)], dtype=np.float64)
+    predict_window = np.array(predict_window_list, dtype=np.float64)
+    current_status_predicted = np.empty((len(models), 3))
+    status_prediction = np.zeros([3, len(models)], dtype=np.float64)
+    # load parameter scaler
+    x_scaler = load(os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;x_scaler_average response time.gz&#34;))
+    # scale data
+    predict_window_scaled = x_scaler.transform(predict_window)
+    # get predictions for each model
+    current_status_scaled = x_scaler.transform(current_status.reshape(1, -1))
+    for i, model in enumerate(models):
+        # predict
+        predictions[i] = model.predict(predict_window_scaled)
+        current_status_predicted[i] = model.predict(current_status_scaled)
+    # load target scaler
+    y_scalers = list()
+    for t in [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]:
+        y_scalers.append(load(os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;y_scaler_{t}.gz&#34;)))
+    # format into array
+    for i in range(0, possibilities):
+        for j in range(0, len(models)):
+            prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
+
+    for j in range(0, len(models)):
+        status_prediction[j] = y_scalers[j].inverse_transform(current_status_predicted[j, 0].reshape(1, -1))
+    # concatenate targets and parameters
+    prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
+    # validate targets
+    logging.info(f&#34;Targets: {len(prediction_array)}&#34;)
+    prediction_array = validate_targets(prediction_array, status_prediction,
+                                        np.array((response_time, cpu_usage, memory_usage), dtype=np.float64))
+    # logging.info(f&#34;Validated Targets: {len(prediction_array)}&#34;)
+    if len(prediction_array) &gt; 1:
+        # delete rps parameter
+        prediction_array = np.delete(prediction_array, -1, 1)
+        # get index of best outcome
+        # if horizontal scaling only delete cpu and memory limit
+        if hpa:
+            prediction_array_mod = np.delete(prediction_array, 3, 1)
+            prediction_array_mod = np.delete(prediction_array_mod, 3, 1)
+            best_outcome_index = choose_best(prediction_array_mod.tolist(), True)
+        else:
+            best_outcome_index = choose_best(prediction_array.tolist(), True)
+        # get parameters of best outcome
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f&#34;Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}&#34;)
+        logging.info(
+            f&#34;Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%&#34;)
+        return best_parameters
+    elif len(prediction_array) == 1:
+        best_outcome_index = 0
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f&#34;Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}&#34;)
+        logging.info(
+            f&#34;Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%&#34;)
+        return best_parameters
+    else:
+        return None
+
+
+def validate_targets(predictions: np.ndarray, curr_pred: np.array, curr: np.array) -&gt; np.array:
+    &#34;&#34;&#34;Validates predicted targets.
+
+    Args:
+      predictions: predicted targets
+      curr_pred: current target prediction
+      curr: current target status
+      predictions: np.ndarray: 
+      curr_pred: np.array: 
+      curr: np.array: 
+
+    Returns:
+      validated targets
+
+    &#34;&#34;&#34;
+    # init
+    load_dotenv()
+    i, j = predictions.shape
+    validated = list()
+    # calculate difference
+    print(curr)
+    print(curr_pred)
+    r_diff = curr[0] - curr_pred[0, 0]
+    c_diff = curr[1] - curr_pred[1, 0]
+    m_diff = curr[2] - curr_pred[2, 0]
+    logging.info(f&#34;Diff: {r_diff}ms - {c_diff}% - {m_diff}%&#34;)
+    # check every entry
+    for ix in range(0, i):
+        logging.info(f&#34;Before: {predictions[ix]}&#34;)
+        v = True
+        for jx in range(0, j):
+            # average response time:
+            if jx == 0:
+                predictions[ix, jx] = predictions[ix, jx] + r_diff
+                if predictions[ix, jx] &gt; curr[0]:
+                    v = False
+            # cpu usage
+            elif jx == 1:
+                predictions[ix, jx] = predictions[ix, jx] + c_diff
+            # memory usage
+            elif jx == 2:
+                predictions[ix, jx] = predictions[ix, jx] + m_diff
+        # append validated predictions
+        logging.info(f&#34;After: {predictions[ix]}&#34;)
+        if v:
+            validated.append(predictions[ix])
+    # return list as array
+    return np.array(validated)
+
+
+def validate_parameter(data: list, rps: float) -&gt; list:
+    &#34;&#34;&#34;Validates if the given limits are below the requested resources.
+    :return: validated resources
+
+    Args:
+      data: list: 
+      rps: float: 
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # get requests
+    request = k8s_tools.get_resource_requests()[os.getenv(&#34;SCALE_POD&#34;)]
+    cpu_request = int(str(request[&#34;cpu&#34;]).rstrip(&#34;m&#34;))
+    memory_request = int(str(request[&#34;memory&#34;]).rstrip(&#34;Mi&#34;))
+    cpu_limit = 700
+    memory_limit = 700
+    # init
+    validated = list()
+    for entry in data:
+        v = True
+        cpu, memory, pods, tmp = entry
+        if cpu &lt; cpu_request:
+            cpu = cpu_request
+        if cpu &gt; cpu_limit:
+            cpu = cpu_limit
+        if memory &gt; memory_limit:
+            memory = memory_limit
+        if memory &lt; memory_request:
+            memory = memory_request
+        if pods &lt; 1:
+            pods = 1
+        if pods &gt; int(os.getenv(&#34;MAX_PODS&#34;)):
+            pods = int(os.getenv(&#34;MAX_PODS&#34;))
+        if v:
+            validated.append((cpu, memory, pods, rps))
+    # remove duplicates
+    validated = list(dict.fromkeys(validated))
+    return validated
+
+
+def choose_best(mtx: np.array, method: bool) -&gt; int:
+    &#34;&#34;&#34;Chooses the best alternative from given alternatives with multiple criteria.
+
+    Args:
+      method: which mcdm method to use
+      mtx: alternatives
+      mtx: np.array: 
+      method: bool: 
+
+    Returns:
+      index of best alternative
+
+    &#34;&#34;&#34;
+    # min average response time, max cpu usage, max memory usage, min cpu limit, min memory limit, min number of pods
+    load_dotenv()
+    criteria = [MIN, MAX, MAX, MIN, MIN, MIN]
+    # b is default
+    if os.getenv(&#34;WEIGHTS&#34;) == &#34;t&#34;:
+        weights = [0.9, 0.02, 0.02, 0.02, 0.02, 0.02]
+    elif os.getenv(&#34;WEIGHTS&#34;) == &#34;r&#34;:
+        weights = [0.1, 0.18, 0.18, 0.18, 0.18, 0.18]
+    else:
+        weights = [0.5, 0.1, 0.1, 0.1, 0.1, 0.1]
+    # create DecisionMaker
+    if method:
+        dm = TOPSIS()
+    else:
+        dm = WeightedSum()
+    # create data object
+    data = Data(mtx=mtx, criteria=criteria, weights=weights)
+    # make decision
+    dec = dm.decide(data)
+    logging.info(f&#34;decisions: {dec}&#34;)
+    return dec.best_alternative_
+
+
+def get_models(alg: str) -&gt; list:
+    &#34;&#34;&#34;Imports all models.
+    :return: list of models
+
+    Args:
+      alg: str: 
+
+    Returns:
+
+    &#34;&#34;&#34;
+    targets = [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]
+    models = list()
+    for t in targets:
+        model = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, alg, f&#34;{t}.joblib&#34;)
+        if os.path.exists(model):
+            models.append(load(model))
+        else:
+            logging.error(f&#34;No model found with name {t}&#34;)
+    print(models)
+    return models
+
+
+def train_for_all_targets(kind: str) -&gt; None:
+    &#34;&#34;&#34;Trains a given model for all targets.
+
+    Args:
+      kind: model type
+      kind: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    date = dt.datetime.now().strftime(&#34;%Y%m%d-%H%M%S&#34;)
+    targets = [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]
+    for t in targets:
+        if kind == &#34;neural&#34;:
+            neural_network_model(t, False, True)
+        elif kind == &#34;linear&#34;:
+            linear_least_squares_model(t, True)
+            linear_bayesian_model(t, True, False)
+        elif kind == &#34;svr&#34;:
+            svr_model(t, True, False)
+        else:
+            logging.warning(&#34;There is no model type: &#34; + kind)
+            return
+    set_key(os.getenv(os.getcwd(), &#34;.env&#34;), &#34;LAST_TRAINED_DATA&#34;, date)
+    logging.info(&#34;All models are trained.&#34;)
+
+
+def get_processed_data(target: str) -&gt; (np.array, np.array, np.array, np.array):
+    &#34;&#34;&#34;Returns scaled and split training- and test datasets.
+
+    Args:
+      target: target metric
+      target: str) -&gt; (np.array: 
+      np.array: 
+
+    Returns:
+      training- and test datasets
+
+    &#34;&#34;&#34;
+    d_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, target)
+    d = [None, None, None, None]
+    for i in range(0, 4):
+        d[i] = np.load(os.path.join(d_path, f&#34;{i}.npy&#34;))
+    return d[0], d[1], d[2], d[3]
+
+
+def processes_data() -&gt; None:
+    &#34;&#34;&#34;Scales and splits dataset into training- and test datasets.
+    Saves scalers.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    load_dotenv()
+    for t in [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]:
+        X, y = get_data(os.getenv(&#34;LAST_DATA&#34;), t, True)
+        # split data in to train and test sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+        # scale dataset
+        x_scaling = MinMaxScaler()
+        y_scaling = MinMaxScaler()
+        X_train = x_scaling.fit_transform(X_train)
+        y_train = y_scaling.fit_transform(y_train)
+        X_test = x_scaling.transform(X_test)
+        y_test = y_scaling.transform(y_test)
+        # save scaler
+        dump(y_scaling, os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;y_scaler_{t}.gz&#34;))
+        dump(x_scaling, os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;x_scaler_{t}.gz&#34;))
+        # Save data
+        logging.info(f&#34;Training size: {X_train.shape}&#34;)
+        logging.info(f&#34;Test size: {X_test.shape}&#34;)
+        d_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, t)
+        for i, d in enumerate([X_train, X_test, y_train, y_test]):
+            np.save(os.path.join(d_path, str(i)), d)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="app.ml.choose_best"><code class="name flex">
+<span>def <span class="ident">choose_best</span></span>(<span>mtx: <built-in function array>, method: bool) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Chooses the best alternative from given alternatives with multiple criteria.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>method</code></strong></dt>
+<dd>which mcdm method to use</dd>
+<dt><strong><code>mtx</code></strong></dt>
+<dd>alternatives</dd>
+<dt><strong><code>mtx</code></strong></dt>
+<dd>np.array: </dd>
+<dt><strong><code>method</code></strong></dt>
+<dd>bool: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>index of best alternative</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def choose_best(mtx: np.array, method: bool) -&gt; int:
+    &#34;&#34;&#34;Chooses the best alternative from given alternatives with multiple criteria.
+
+    Args:
+      method: which mcdm method to use
+      mtx: alternatives
+      mtx: np.array: 
+      method: bool: 
+
+    Returns:
+      index of best alternative
+
+    &#34;&#34;&#34;
+    # min average response time, max cpu usage, max memory usage, min cpu limit, min memory limit, min number of pods
+    load_dotenv()
+    criteria = [MIN, MAX, MAX, MIN, MIN, MIN]
+    # b is default
+    if os.getenv(&#34;WEIGHTS&#34;) == &#34;t&#34;:
+        weights = [0.9, 0.02, 0.02, 0.02, 0.02, 0.02]
+    elif os.getenv(&#34;WEIGHTS&#34;) == &#34;r&#34;:
+        weights = [0.1, 0.18, 0.18, 0.18, 0.18, 0.18]
+    else:
+        weights = [0.5, 0.1, 0.1, 0.1, 0.1, 0.1]
+    # create DecisionMaker
+    if method:
+        dm = TOPSIS()
+    else:
+        dm = WeightedSum()
+    # create data object
+    data = Data(mtx=mtx, criteria=criteria, weights=weights)
+    # make decision
+    dec = dm.decide(data)
+    logging.info(f&#34;decisions: {dec}&#34;)
+    return dec.best_alternative_</code></pre>
+</details>
+</dd>
+<dt id="app.ml.get_best_parameters_hpa"><code class="name flex">
+<span>def <span class="ident">get_best_parameters_hpa</span></span>(<span>cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, alg: str, response_time: float, cpu_usage: float, memory_usage: float, extrap: bool) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Resource Estimation based on Kubernetes HPA.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>current CPU limit</dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>current memory limit</dd>
+<dt><strong><code>number_of_pods</code></strong></dt>
+<dd>current number of pods</dd>
+<dt><strong><code>rps</code></strong></dt>
+<dd>current load</dd>
+<dt><strong><code>alg</code></strong></dt>
+<dd>used model</dd>
+<dt><strong><code>response_time</code></strong></dt>
+<dd>current response time</dd>
+<dt><strong><code>cpu_usage</code></strong></dt>
+<dd>current CPU usage</dd>
+<dt><strong><code>memory_usage</code></strong></dt>
+<dd>current memory usage</dd>
+<dt><strong><code>extrap</code></strong></dt>
+<dd>If Extra-p should be used</dd>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>number_of_pods</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>rps</code></strong></dt>
+<dd>float: </dd>
+<dt><strong><code>alg</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>response_time</code></strong></dt>
+<dd>float: </dd>
+<dt><strong><code>cpu_usage</code></strong></dt>
+<dd>float: </dd>
+<dt><strong><code>memory_usage</code></strong></dt>
+<dd>float: </dd>
+<dt><strong><code>extrap</code></strong></dt>
+<dd>bool: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>best parameters</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, alg: str,
+                            response_time: float, cpu_usage: float, memory_usage: float, extrap: bool) -&gt; np.array:
+    &#34;&#34;&#34;Resource Estimation based on Kubernetes HPA.
+
+    Args:
+      cpu_limit: current CPU limit
+      memory_limit: current memory limit
+      number_of_pods: current number of pods
+      rps: current load
+      alg: used model
+      response_time: current response time
+      cpu_usage: current CPU usage
+      memory_usage: current memory usage
+      extrap: If Extra-p should be used
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_pods: int: 
+      rps: float: 
+      alg: str: 
+      response_time: float: 
+      cpu_usage: float: 
+      memory_usage: float: 
+      extrap: bool: 
+
+    Returns:
+      best parameters
+
+    &#34;&#34;&#34;
+    # init
+    models = get_models(alg)
+    cpu_limits = list()
+    memory_limits = list()
+    pod_limits = list()
+    # thresholds
+    thresholds = [int(os.getenv(&#34;TARGET_RESPONSE&#34;)), (int(os.getenv(&#34;MAX_USAGE&#34;)) + int(os.getenv(&#34;MIN_USAGE&#34;))) / 2,
+                  (int(os.getenv(&#34;MAX_USAGE&#34;)) + int(os.getenv(&#34;MIN_USAGE&#34;))) / 2]
+    status = [response_time, cpu_usage, memory_usage]
+    # if nan
+    if math.isnan(cpu_limit):
+        cpu_limit = 400
+    if math.isnan(memory_limit):
+        memory_limit = 400
+    if math.isnan(number_of_pods):
+        number_of_pods = 1
+    # calculate possible limits
+    for t, s in zip(thresholds, status):
+        cpu_limits.append(math.ceil(cpu_limit * (s / t)))
+        memory_limits.append(math.ceil(memory_limit * (s / t)))
+        pod_limits.append(math.ceil(number_of_pods * (s / t)))
+    cpu_limits.pop(-1)
+    memory_limits.pop(1)
+    if os.getenv(&#34;HPA&#34;) == &#34;True&#34;:
+        cpu_limits = [cpu_limit]
+        memory_limits = [memory_limit]
+    # make parameter variation
+    parameter_variations = benchmark.parameter_variation_array(cpu_limits, memory_limits, pod_limits, rps)
+    # flatten possibilities
+    predict_window_list = list(np.concatenate(parameter_variations).flat)
+    # validate parameter variations
+    logging.info(predict_window_list)
+    predict_window_list = validate_parameter(predict_window_list, rps)
+    # init arrays
+    possibilities = len(predict_window_list)
+    predictions = np.empty((len(models), possibilities))
+    prediction_array = np.zeros([possibilities, len(models)], dtype=np.float64)
+    predict_window = np.array(predict_window_list, dtype=np.float64)
+    if extrap:
+        prediction_array = predict_extrap(predict_window_list)
+    else:
+        # load parameter scaler
+        x_scaler = load(os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;x_scaler_average response time.gz&#34;))
+        # scale data
+        if predict_window.size != 0:
+            if predict_window.size == 1:
+                predict_window = predict_window.reshape(1, -1)
+            predict_window_scaled = x_scaler.transform(predict_window)
+            for i, model in enumerate(models):
+                # predict
+                predictions[i] = model.predict(predict_window_scaled)
+            # load target scaler
+            y_scalers = list()
+            for t in [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]:
+                y_scalers.append(load(os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;y_scaler_{t}.gz&#34;)))
+            # format into array
+            for i in range(0, possibilities):
+                for j in range(0, len(models)):
+                    prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
+        else:
+            return None
+    logging.info(prediction_array)
+    # concatenate targets and parameters
+    prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
+    # validate targets
+    if len(prediction_array) &gt; 1:
+        # delete rps parameter
+        prediction_array = np.delete(prediction_array, -1, 1)
+        # get index of best outcome
+        # if horizontal scaling only delete cpu and memory limit
+        best_outcome_index = choose_best(prediction_array.tolist(), True)
+        # get parameters of best outcome
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f&#34;Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}&#34;)
+        logging.info(
+            f&#34;Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%&#34;)
+        return best_parameters
+    elif len(prediction_array) == 1:
+        best_outcome_index = 0
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f&#34;Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}&#34;)
+        logging.info(
+            f&#34;Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%&#34;)
+        return best_parameters
+    else:
+        return None</code></pre>
+</details>
+</dd>
+<dt id="app.ml.get_best_parameters_window"><code class="name flex">
+<span>def <span class="ident">get_best_parameters_window</span></span>(<span>cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int, alg: str, hpa: bool, response_time: float, cpu_usage: float, memory_usage: float) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Chooses the best values for the parameters in a given window for a given status.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>memory_usage</code></strong></dt>
+<dd>current memory usage</dd>
+<dt><strong><code>cpu_usage</code></strong></dt>
+<dd>current cpu usage</dd>
+<dt><strong><code>response_time</code></strong></dt>
+<dd>current average response time</dd>
+<dt><strong><code>hpa</code></strong></dt>
+<dd>only horizontal scaling</dd>
+<dt><strong><code>alg</code></strong></dt>
+<dd>algorithm to use</dd>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>current cpu limit</dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>current memory limit</dd>
+<dt><strong><code>number_of_pods</code></strong></dt>
+<dd>current number of pods</dd>
+<dt><strong><code>rps</code></strong></dt>
+<dd>requests per second</dd>
+<dt><strong><code>window</code></strong></dt>
+<dd>size of window</dd>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>number_of_pods</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>rps</code></strong></dt>
+<dd>float: </dd>
+<dt><strong><code>window</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>alg</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>hpa</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>response_time</code></strong></dt>
+<dd>float: </dd>
+<dt><strong><code>cpu_usage</code></strong></dt>
+<dd>float: </dd>
+<dt><strong><code>memory_usage</code></strong></dt>
+<dd>float: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>pes parameters</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int,
+                               alg: str, hpa: bool, response_time: float, cpu_usage: float,
+                               memory_usage: float) -&gt; np.array:
+    &#34;&#34;&#34;Chooses the best values for the parameters in a given window for a given status.
+
+    Args:
+      memory_usage: current memory usage
+      cpu_usage: current cpu usage
+      response_time: current average response time
+      hpa: only horizontal scaling
+      alg: algorithm to use
+      cpu_limit: current cpu limit
+      memory_limit: current memory limit
+      number_of_pods: current number of pods
+      rps: requests per second
+      window: size of window
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_pods: int: 
+      rps: float: 
+      window: int: 
+      alg: str: 
+      hpa: bool: 
+      response_time: float: 
+      cpu_usage: float: 
+      memory_usage: float: 
+
+    Returns:
+      pes parameters
+
+    &#34;&#34;&#34;
+    # init
+    step = int(os.getenv(&#34;STEP&#34;))
+    models = get_models(alg)
+    # get all possibilities in window
+    current_status = np.array((cpu_limit, memory_limit, number_of_pods, rps), dtype=np.float64)
+    parameter_variations = benchmark.parameter_variation(&#34;webui&#34;, cpu_limit - window * step, cpu_limit + window * step,
+                                                         memory_limit - window * step, memory_limit + window * step,
+                                                         number_of_pods - window, number_of_pods + window,
+                                                         step, False, False, False, [int(rps)])
+    # flatten possibilities
+    predict_window_list = list(np.concatenate(parameter_variations).flat)
+    # validate parameter variations
+    predict_window_list = validate_parameter(predict_window_list, rps)
+    # init arrays
+    possibilities = len(predict_window_list)
+    predictions = np.empty((len(models), possibilities))
+    prediction_array = np.zeros([possibilities, len(models)], dtype=np.float64)
+    predict_window = np.array(predict_window_list, dtype=np.float64)
+    current_status_predicted = np.empty((len(models), 3))
+    status_prediction = np.zeros([3, len(models)], dtype=np.float64)
+    # load parameter scaler
+    x_scaler = load(os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;x_scaler_average response time.gz&#34;))
+    # scale data
+    predict_window_scaled = x_scaler.transform(predict_window)
+    # get predictions for each model
+    current_status_scaled = x_scaler.transform(current_status.reshape(1, -1))
+    for i, model in enumerate(models):
+        # predict
+        predictions[i] = model.predict(predict_window_scaled)
+        current_status_predicted[i] = model.predict(current_status_scaled)
+    # load target scaler
+    y_scalers = list()
+    for t in [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]:
+        y_scalers.append(load(os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;y_scaler_{t}.gz&#34;)))
+    # format into array
+    for i in range(0, possibilities):
+        for j in range(0, len(models)):
+            prediction_array[i, j] = y_scalers[j].inverse_transform(predictions[j, i].reshape(1, -1))
+
+    for j in range(0, len(models)):
+        status_prediction[j] = y_scalers[j].inverse_transform(current_status_predicted[j, 0].reshape(1, -1))
+    # concatenate targets and parameters
+    prediction_array = np.concatenate((prediction_array, predict_window), axis=1)
+    # validate targets
+    logging.info(f&#34;Targets: {len(prediction_array)}&#34;)
+    prediction_array = validate_targets(prediction_array, status_prediction,
+                                        np.array((response_time, cpu_usage, memory_usage), dtype=np.float64))
+    # logging.info(f&#34;Validated Targets: {len(prediction_array)}&#34;)
+    if len(prediction_array) &gt; 1:
+        # delete rps parameter
+        prediction_array = np.delete(prediction_array, -1, 1)
+        # get index of best outcome
+        # if horizontal scaling only delete cpu and memory limit
+        if hpa:
+            prediction_array_mod = np.delete(prediction_array, 3, 1)
+            prediction_array_mod = np.delete(prediction_array_mod, 3, 1)
+            best_outcome_index = choose_best(prediction_array_mod.tolist(), True)
+        else:
+            best_outcome_index = choose_best(prediction_array.tolist(), True)
+        # get parameters of best outcome
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f&#34;Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}&#34;)
+        logging.info(
+            f&#34;Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%&#34;)
+        return best_parameters
+    elif len(prediction_array) == 1:
+        best_outcome_index = 0
+        best_parameters = prediction_array[best_outcome_index]
+        logging.info(
+            f&#34;Best Parameter: {prediction_array[best_outcome_index, 3]}m - {prediction_array[best_outcome_index, 4]}Mi - {prediction_array[best_outcome_index, 5]}&#34;)
+        logging.info(
+            f&#34;Best Targets: {prediction_array[best_outcome_index, 0]}ms - {prediction_array[best_outcome_index, 1]}% - {prediction_array[best_outcome_index, 2]}%&#34;)
+        return best_parameters
+    else:
+        return None</code></pre>
+</details>
+</dd>
+<dt id="app.ml.get_data"><code class="name flex">
+<span>def <span class="ident">get_data</span></span>(<span>date: str, target: str, combined: bool) ‑> (<built-in function array>, <built-in function array>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets filtered data and converts it to a numpy array.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>combined</code></strong></dt>
+<dd>combined or filtered</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>name of target</dd>
+<dt><strong><code>date</code></strong></dt>
+<dd>name of filtered data</dd>
+<dt><strong><code>date</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>combined</code></strong></dt>
+<dd>bool) -&gt; (np.array: </dd>
+</dl>
+<p>np.array: </p>
+<h2 id="returns">Returns</h2>
+<p>X, y</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_data(date: str, target: str, combined: bool) -&gt; (np.array, np.array):
+    &#34;&#34;&#34;Gets filtered data and converts it to a numpy array.
+
+    Args:
+      combined: combined or filtered
+      target: name of target
+      date: name of filtered data
+      date: str: 
+      target: str: 
+      combined: bool) -&gt; (np.array: 
+      np.array: 
+
+    Returns:
+      X, y
+
+    &#34;&#34;&#34;
+    # init path
+    if combined:
+        path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;combined&#34;)
+    else:
+        path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;filtered&#34;)
+    # get data
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            if date in file and &#34;mean&#34; not in file:
+                data = pd.read_csv(os.path.join(path, file), delimiter=&#34;,&#34;)
+                data = data.reset_index()
+                X = data[[&#39;cpu limit&#39;, &#39;memory limit&#39;, &#39;number of pods&#39;, &#39;average rps&#39;]].to_numpy()
+                y = data[[target]].to_numpy()
+                logging.info(f&#34;X: {X.shape} - y: {y.shape}&#34;)
+                return X, y
+    logging.warning(f&#34;No filtered file with name {date} found.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.ml.get_metrics"><code class="name flex">
+<span>def <span class="ident">get_metrics</span></span>(<span>test: <built-in function array>, pred: <built-in function array>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Prints mean squared error and r2 score.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>test</code></strong></dt>
+<dd>test data</dd>
+<dt><strong><code>pred</code></strong></dt>
+<dd>predicted data</dd>
+<dt><strong><code>test</code></strong></dt>
+<dd>np.array: </dd>
+<dt><strong><code>pred</code></strong></dt>
+<dd>np.array: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_metrics(test: np.array, pred: np.array) -&gt; None:
+    &#34;&#34;&#34;Prints mean squared error and r2 score.
+
+    Args:
+      test: test data
+      pred: predicted data
+      test: np.array: 
+      pred: np.array: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # The mean squared error
+    print(&#39;Mean squared error: %.2f&#39; % mean_squared_error(test, pred))
+    # The coefficient of determination: 1 is perfect prediction
+    print(&#39;Coefficient of determination: %.2f&#39; % r2_score(test, pred))</code></pre>
+</details>
+</dd>
+<dt id="app.ml.get_models"><code class="name flex">
+<span>def <span class="ident">get_models</span></span>(<span>alg: str) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Imports all models.
+:return: list of models</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>alg</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_models(alg: str) -&gt; list:
+    &#34;&#34;&#34;Imports all models.
+    :return: list of models
+
+    Args:
+      alg: str: 
+
+    Returns:
+
+    &#34;&#34;&#34;
+    targets = [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]
+    models = list()
+    for t in targets:
+        model = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, alg, f&#34;{t}.joblib&#34;)
+        if os.path.exists(model):
+            models.append(load(model))
+        else:
+            logging.error(f&#34;No model found with name {t}&#34;)
+    print(models)
+    return models</code></pre>
+</details>
+</dd>
+<dt id="app.ml.get_processed_data"><code class="name flex">
+<span>def <span class="ident">get_processed_data</span></span>(<span>target: str) ‑> (<built-in function array>, <built-in function array>, <built-in function array>, <built-in function array>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns scaled and split training- and test datasets.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>target</code></strong></dt>
+<dd>target metric</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>str) -&gt; (np.array: </dd>
+</dl>
+<p>np.array: </p>
+<h2 id="returns">Returns</h2>
+<p>training- and test datasets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_processed_data(target: str) -&gt; (np.array, np.array, np.array, np.array):
+    &#34;&#34;&#34;Returns scaled and split training- and test datasets.
+
+    Args:
+      target: target metric
+      target: str) -&gt; (np.array: 
+      np.array: 
+
+    Returns:
+      training- and test datasets
+
+    &#34;&#34;&#34;
+    d_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, target)
+    d = [None, None, None, None]
+    for i in range(0, 4):
+        d[i] = np.load(os.path.join(d_path, f&#34;{i}.npy&#34;))
+    return d[0], d[1], d[2], d[3]</code></pre>
+</details>
+</dd>
+<dt id="app.ml.linear_bayesian_model"><code class="name flex">
+<span>def <span class="ident">linear_bayesian_model</span></span>(<span>target: str, save: bool, search: bool) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Linear Regression model with given data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>save</code></strong></dt>
+<dd>if should save</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>target name</dd>
+<dt><strong><code>search</code></strong></dt>
+<dd>grid search</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>save</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>search</code></strong></dt>
+<dd>bool: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def linear_bayesian_model(target: str, save: bool, search: bool) -&gt; None:
+    &#34;&#34;&#34;Linear Regression model with given data.
+
+    Args:
+      save: if should save
+      target: target name
+      search: grid search
+      target: str: 
+      save: bool: 
+      search: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    X_train, X_test, y_train, y_test = get_processed_data(target)
+
+    if search:
+        params = {&#34;lambda_1&#34;: np.logspace(-2, 10, 13, base=2), &#34;lambda_2&#34;: np.logspace(-2, 10, 13, base=2),
+                  &#34;alpha_1&#34;: np.linspace(0.1, 1, 10), &#34;alpha_2&#34;: np.linspace(0.1, 1, 10)}
+        tic = time()
+        search = GridSearchCV(estimator=BayesianRidge(), param_grid=params, verbose=1)
+        search.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(f&#34;Training time: {gsh_time}&#34;)
+        print(f&#34;Best params: {search.best_params_}&#34;)
+    # Train the model using the training sets
+    else:
+        # Create linear regression object
+        regression = BayesianRidge(alpha_1=1.0, alpha_2=0.1, lambda_1=1024, lambda_2=4.0)
+        tic = time()
+        regression.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(&#34;Linear Bayesian Regression&#34;)
+        print(&#34;Target: &#34; + target)
+        print(f&#34;Training time: {gsh_time}&#34;)
+        # Make predictions using the testing set
+        tic = time()
+        y_pred = regression.predict(X_test)
+        pred_time = time() - tic
+        print(f&#34;Prediction time: {pred_time}&#34;)
+        # get metrics
+        print(&#34;Metrics:&#34;)
+        get_metrics(y_test, y_pred)
+        plot_prediction(y_test, y_pred, &#34;linear&#34;, target)
+        # save model
+        if save:
+            save_model(regression, target, &#34;linear_b&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.ml.linear_least_squares_model"><code class="name flex">
+<span>def <span class="ident">linear_least_squares_model</span></span>(<span>target: str, save: bool) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Linear Regression model with given data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>save</code></strong></dt>
+<dd>if should save</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>target name</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>save</code></strong></dt>
+<dd>bool: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def linear_least_squares_model(target: str, save: bool) -&gt; None:
+    &#34;&#34;&#34;Linear Regression model with given data.
+
+    Args:
+      save: if should save
+      target: target name
+      target: str: 
+      save: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    X_train, X_test, y_train, y_test = get_processed_data(target)
+    # Create linear regression object
+    regression = LinearRegression()
+
+    tic = time()
+    # Train the model using the training sets
+    regression.fit(X_train, y_train)
+    gsh_time = time() - tic
+    print(&#34;Linear Least Squares Regression&#34;)
+    print(&#34;Target: &#34; + target)
+    print(f&#34;Training time: {gsh_time}&#34;)
+    # Make predictions using the testing set
+    tic = time()
+    y_pred = regression.predict(X_test)
+    pred_time = time() - tic
+    print(f&#34;Prediction time: {pred_time}&#34;)
+
+    # get metrics
+    print(&#34;Metrics:&#34;)
+    get_metrics(y_test, y_pred)
+    # save model
+    if save:
+        save_model(regression, target, &#34;linear_lsq&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.ml.load_model"><code class="name flex">
+<span>def <span class="ident">load_model</span></span>(<span>name: str, alg: str) ‑> <module 'joblib.numpy_pickle' from 'c:\\users\\y509019\\onedrive - software ag\\documents\\projekte\\podautoscalingkubernetes\\venv\\lib\\site-packages\\joblib\\numpy_pickle.py'></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Loads a given model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>alg</code></strong></dt>
+<dd>algorithm used</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>model name</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>alg</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>model</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def load_model(name: str, alg: str) -&gt; numpy_pickle:
+    &#34;&#34;&#34;Loads a given model.
+
+    Args:
+      alg: algorithm used
+      name: model name
+      name: str: 
+      alg: str: 
+
+    Returns:
+      model
+
+    &#34;&#34;&#34;
+    save_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, alg, f&#34;{name}.joblib&#34;)
+    return load(save_path)</code></pre>
+</details>
+</dd>
+<dt id="app.ml.neural_network_model"><code class="name flex">
+<span>def <span class="ident">neural_network_model</span></span>(<span>target: str, search: bool, save: bool) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>MLPRegressor neural network with given data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>search</code></strong></dt>
+<dd>use search</dd>
+<dt><strong><code>save</code></strong></dt>
+<dd>should save</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>target name</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>search</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>save</code></strong></dt>
+<dd>bool: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def neural_network_model(target: str, search: bool, save: bool) -&gt; None:
+    &#34;&#34;&#34;MLPRegressor neural network with given data.
+
+    Args:
+      search: use search
+      save: should save
+      target: target name
+      target: str: 
+      search: bool: 
+      save: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # split data
+    X_train, X_test, y_train, y_test = get_processed_data(target)
+    # train neural network
+    mlp = None
+    if search:
+        # SVRs with different kernels
+        params = {&#34;alpha&#34;: np.arange(0.1, 2, 0.01)}
+        tic = time()
+        search = GridSearchCV(
+            estimator=MLPRegressor(solver=&#34;adam&#34;, tol=2.8284271247461903, activation=&#34;tanh&#34;, learning_rate=&#34;adaptive&#34;,
+                                   max_iter=100000),
+            param_grid=params,
+            verbose=1)
+        search.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(f&#34;Training time: {gsh_time}&#34;)
+        print(f&#34;Best params: {search.best_params_}&#34;)
+    else:
+        mlp = MLPRegressor(solver=&#34;adam&#34;, alpha=0.49, tol=2.8284271247461903, activation=&#34;tanh&#34;,
+                           learning_rate=&#34;adaptive&#34;,
+                           max_iter=100000)
+        # make predictions using the testing set
+        tic = time()
+        mlp.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(&#34;Neural Network&#34;)
+        print(&#34;Target: &#34; + target)
+        print(f&#34;Training time: {gsh_time}&#34;)
+        tic = time()
+        y_pred = mlp.predict(X_test)
+        pred_time = time() - tic
+        print(f&#34;Prediction time: {pred_time}&#34;)
+        # print scores
+        print(&#34;Metrics:&#34;)
+        get_metrics(y_test, y_pred)
+        plot_prediction(y_test, y_pred, &#34;neural&#34;, target)
+    # save model
+    if save:
+        save_model(mlp, target, &#34;neural_network&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.ml.plot_prediction"><code class="name flex">
+<span>def <span class="ident">plot_prediction</span></span>(<span>y_test, y_pred, alg, target) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Plot the predicted and expected values of a model.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>y_test</code></strong></dt>
+<dd>expected values</dd>
+<dt><strong><code>y_pred</code></strong></dt>
+<dd>predicted values</dd>
+<dt><strong><code>alg</code></strong></dt>
+<dd>used model</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>target metric</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def plot_prediction(y_test, y_pred, alg, target) -&gt; None:
+    &#34;&#34;&#34;Plot the predicted and expected values of a model.
+
+    Args:
+      y_test: expected values
+      y_pred: predicted values
+      alg: used model
+      target: target metric
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # regplot
+    ax = sns.regplot(x=y_test, y=y_pred, scatter=True, fit_reg=True)
+    ax.set_xlabel(&#34;Expected values&#34;)
+    ax.set_ylabel(&#34;Predicted values&#34;)
+    ax.figure.savefig(os.path.join(os.getcwd(), &#34;data&#34;, &#34;plots&#34;, f&#34;{alg}_{target}.png&#34;))
+    plt.show()</code></pre>
+</details>
+</dd>
+<dt id="app.ml.predict_extrap"><code class="name flex">
+<span>def <span class="ident">predict_extrap</span></span>(<span>parameters: list) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Resource estimation with Extra-P.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>parameters</code></strong></dt>
+<dd>current parameters</dd>
+<dt><strong><code>parameters</code></strong></dt>
+<dd>list: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>resource prediction</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def predict_extrap(parameters: list) -&gt; np.array:
+    &#34;&#34;&#34;Resource estimation with Extra-P.
+
+    Args:
+      parameters: current parameters
+      parameters: list: 
+
+    Returns:
+      resource prediction
+
+    &#34;&#34;&#34;
+    predicted = list()
+    for c, m, p, rps in parameters:
+        response_time = 25714.32539236546 - 2502.3032054616065 * math.log(c, 2) - 222.9076387765515 * math.log(m,
+                                                                                                               2) - 877.3839295358297 * math.log(
+            p, 2) + 82.33195028589898 * math.pow(math.log(rps, 2), 2)
+        cpu_usage = 207.24043369071322 - 18.358570566154665 * math.log(c, 2) - 15.099670589384738 * math.log(p,
+                                                                                                             2) + 2.224919774965972 * math.pow(
+            math.log(rps, 2), 3 / 2)
+        memory_usage = 453.9128240678697 - 44.393604901442515 * math.log(m, 2) + 5.716589705683245 * math.log(p,
+                                                                                                              1 / 2) + 0.44049840226376347 * math.pow(
+            math.log(rps, 2), 2)
+        predicted.append((response_time, cpu_usage, memory_usage))
+    logging.info(predicted)
+    return np.array(predicted, dtype=np.float64)</code></pre>
+</details>
+</dd>
+<dt id="app.ml.processes_data"><code class="name flex">
+<span>def <span class="ident">processes_data</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Scales and splits dataset into training- and test datasets.
+Saves scalers.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def processes_data() -&gt; None:
+    &#34;&#34;&#34;Scales and splits dataset into training- and test datasets.
+    Saves scalers.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    load_dotenv()
+    for t in [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]:
+        X, y = get_data(os.getenv(&#34;LAST_DATA&#34;), t, True)
+        # split data in to train and test sets
+        X_train, X_test, y_train, y_test = train_test_split(X, y, random_state=1)
+        # scale dataset
+        x_scaling = MinMaxScaler()
+        y_scaling = MinMaxScaler()
+        X_train = x_scaling.fit_transform(X_train)
+        y_train = y_scaling.fit_transform(y_train)
+        X_test = x_scaling.transform(X_test)
+        y_test = y_scaling.transform(y_test)
+        # save scaler
+        dump(y_scaling, os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;y_scaler_{t}.gz&#34;))
+        dump(x_scaling, os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, f&#34;x_scaler_{t}.gz&#34;))
+        # Save data
+        logging.info(f&#34;Training size: {X_train.shape}&#34;)
+        logging.info(f&#34;Test size: {X_test.shape}&#34;)
+        d_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, &#34;data&#34;, t)
+        for i, d in enumerate([X_train, X_test, y_train, y_test]):
+            np.save(os.path.join(d_path, str(i)), d)</code></pre>
+</details>
+</dd>
+<dt id="app.ml.save_model"><code class="name flex">
+<span>def <span class="ident">save_model</span></span>(<span>model, name: str, alg: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Saves a model under a given name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>alg</code></strong></dt>
+<dd>used algorithm</dd>
+<dt><strong><code>model</code></strong></dt>
+<dd>model</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>model name</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>alg</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def save_model(model, name: str, alg: str) -&gt; None:
+    &#34;&#34;&#34;Saves a model under a given name.
+
+    Args:
+      alg: used algorithm
+      model: model
+      name: model name
+      name: str: 
+      alg: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    save_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;models&#34;, alg)
+    if not os.path.exists(save_path):
+        os.mkdir(save_path)
+    dump(model, os.path.join(save_path, f&#34;{name}.joblib&#34;))</code></pre>
+</details>
+</dd>
+<dt id="app.ml.svr_model"><code class="name flex">
+<span>def <span class="ident">svr_model</span></span>(<span>target: str, save: bool, search: bool) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Several SVR models with different kernel functions from given data.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>save</code></strong></dt>
+<dd>if should save</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>target name</dd>
+<dt><strong><code>search</code></strong></dt>
+<dd>search for hyper parameter</dd>
+<dt><strong><code>target</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>save</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>search</code></strong></dt>
+<dd>bool: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def svr_model(target: str, save: bool, search: bool) -&gt; None:
+    &#34;&#34;&#34;Several SVR models with different kernel functions from given data.
+
+    Args:
+      save: if should save
+      target: target name
+      search: search for hyper parameter
+      target: str: 
+      save: bool: 
+      search: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # split data in to train and test sets
+    X_train, X_test, y_train, y_test = get_processed_data(target)
+    if search:
+        # SVRs with different kernels
+        params = {&#34;epsilon&#34;: np.arange(0.1, 1, 0.01)}
+        tic = time()
+        search = GridSearchCV(estimator=SVR(kernel=&#34;rbf&#34;, C=2.0, gamma=2.0, cache_size=12000), param_grid=params,
+                              verbose=1)
+        search.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(f&#34;Training time: {gsh_time}&#34;)
+        print(&#34;The best parameters are %s with a score of %0.2f&#34;
+              % (search.best_params_, search.best_score_))
+    else:
+        svr = SVR(kernel=&#34;rbf&#34;, C=2.0, gamma=2.0, cache_size=12000)
+        tic = time()
+        svr.fit(X_train, y_train.ravel())
+        gsh_time = time() - tic
+        print(&#34;Support Vector Regression&#34;)
+        print(&#34;Target: &#34; + target)
+        print(f&#34;Training time: {gsh_time}&#34;)
+        # Make predictions using the testing set
+        tic = time()
+        y_pred = svr.predict(X_test)
+        pred_time = time() - tic
+        print(f&#34;Prediction time: {pred_time}&#34;)
+        # print scores
+        print(&#34;Metrics:&#34;)
+        get_metrics(y_test, y_pred)
+        plot_prediction(y_test, y_pred, &#34;svr&#34;, target)
+        if save:
+            save_model(svr, target, &#34;svr&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.ml.train_for_all_targets"><code class="name flex">
+<span>def <span class="ident">train_for_all_targets</span></span>(<span>kind: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Trains a given model for all targets.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>kind</code></strong></dt>
+<dd>model type</dd>
+<dt><strong><code>kind</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def train_for_all_targets(kind: str) -&gt; None:
+    &#34;&#34;&#34;Trains a given model for all targets.
+
+    Args:
+      kind: model type
+      kind: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    date = dt.datetime.now().strftime(&#34;%Y%m%d-%H%M%S&#34;)
+    targets = [&#34;average response time&#34;, &#34;cpu usage&#34;, &#34;memory usage&#34;]
+    for t in targets:
+        if kind == &#34;neural&#34;:
+            neural_network_model(t, False, True)
+        elif kind == &#34;linear&#34;:
+            linear_least_squares_model(t, True)
+            linear_bayesian_model(t, True, False)
+        elif kind == &#34;svr&#34;:
+            svr_model(t, True, False)
+        else:
+            logging.warning(&#34;There is no model type: &#34; + kind)
+            return
+    set_key(os.getenv(os.getcwd(), &#34;.env&#34;), &#34;LAST_TRAINED_DATA&#34;, date)
+    logging.info(&#34;All models are trained.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.ml.validate_parameter"><code class="name flex">
+<span>def <span class="ident">validate_parameter</span></span>(<span>data: list, rps: float) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validates if the given limits are below the requested resources.
+:return: validated resources</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>data</code></strong></dt>
+<dd>list: </dd>
+<dt><strong><code>rps</code></strong></dt>
+<dd>float: </dd>
+</dl>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_parameter(data: list, rps: float) -&gt; list:
+    &#34;&#34;&#34;Validates if the given limits are below the requested resources.
+    :return: validated resources
+
+    Args:
+      data: list: 
+      rps: float: 
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # get requests
+    request = k8s_tools.get_resource_requests()[os.getenv(&#34;SCALE_POD&#34;)]
+    cpu_request = int(str(request[&#34;cpu&#34;]).rstrip(&#34;m&#34;))
+    memory_request = int(str(request[&#34;memory&#34;]).rstrip(&#34;Mi&#34;))
+    cpu_limit = 700
+    memory_limit = 700
+    # init
+    validated = list()
+    for entry in data:
+        v = True
+        cpu, memory, pods, tmp = entry
+        if cpu &lt; cpu_request:
+            cpu = cpu_request
+        if cpu &gt; cpu_limit:
+            cpu = cpu_limit
+        if memory &gt; memory_limit:
+            memory = memory_limit
+        if memory &lt; memory_request:
+            memory = memory_request
+        if pods &lt; 1:
+            pods = 1
+        if pods &gt; int(os.getenv(&#34;MAX_PODS&#34;)):
+            pods = int(os.getenv(&#34;MAX_PODS&#34;))
+        if v:
+            validated.append((cpu, memory, pods, rps))
+    # remove duplicates
+    validated = list(dict.fromkeys(validated))
+    return validated</code></pre>
+</details>
+</dd>
+<dt id="app.ml.validate_targets"><code class="name flex">
+<span>def <span class="ident">validate_targets</span></span>(<span>predictions: numpy.ndarray, curr_pred: <built-in function array>, curr: <built-in function array>) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Validates predicted targets.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>predictions</code></strong></dt>
+<dd>predicted targets</dd>
+<dt><strong><code>curr_pred</code></strong></dt>
+<dd>current target prediction</dd>
+<dt><strong><code>curr</code></strong></dt>
+<dd>current target status</dd>
+<dt><strong><code>predictions</code></strong></dt>
+<dd>np.ndarray: </dd>
+<dt><strong><code>curr_pred</code></strong></dt>
+<dd>np.array: </dd>
+<dt><strong><code>curr</code></strong></dt>
+<dd>np.array: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>validated targets</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def validate_targets(predictions: np.ndarray, curr_pred: np.array, curr: np.array) -&gt; np.array:
+    &#34;&#34;&#34;Validates predicted targets.
+
+    Args:
+      predictions: predicted targets
+      curr_pred: current target prediction
+      curr: current target status
+      predictions: np.ndarray: 
+      curr_pred: np.array: 
+      curr: np.array: 
+
+    Returns:
+      validated targets
+
+    &#34;&#34;&#34;
+    # init
+    load_dotenv()
+    i, j = predictions.shape
+    validated = list()
+    # calculate difference
+    print(curr)
+    print(curr_pred)
+    r_diff = curr[0] - curr_pred[0, 0]
+    c_diff = curr[1] - curr_pred[1, 0]
+    m_diff = curr[2] - curr_pred[2, 0]
+    logging.info(f&#34;Diff: {r_diff}ms - {c_diff}% - {m_diff}%&#34;)
+    # check every entry
+    for ix in range(0, i):
+        logging.info(f&#34;Before: {predictions[ix]}&#34;)
+        v = True
+        for jx in range(0, j):
+            # average response time:
+            if jx == 0:
+                predictions[ix, jx] = predictions[ix, jx] + r_diff
+                if predictions[ix, jx] &gt; curr[0]:
+                    v = False
+            # cpu usage
+            elif jx == 1:
+                predictions[ix, jx] = predictions[ix, jx] + c_diff
+            # memory usage
+            elif jx == 2:
+                predictions[ix, jx] = predictions[ix, jx] + m_diff
+        # append validated predictions
+        logging.info(f&#34;After: {predictions[ix]}&#34;)
+        if v:
+            validated.append(predictions[ix])
+    # return list as array
+    return np.array(validated)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app" href="index.html">app</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="app.ml.choose_best" href="#app.ml.choose_best">choose_best</a></code></li>
+<li><code><a title="app.ml.get_best_parameters_hpa" href="#app.ml.get_best_parameters_hpa">get_best_parameters_hpa</a></code></li>
+<li><code><a title="app.ml.get_best_parameters_window" href="#app.ml.get_best_parameters_window">get_best_parameters_window</a></code></li>
+<li><code><a title="app.ml.get_data" href="#app.ml.get_data">get_data</a></code></li>
+<li><code><a title="app.ml.get_metrics" href="#app.ml.get_metrics">get_metrics</a></code></li>
+<li><code><a title="app.ml.get_models" href="#app.ml.get_models">get_models</a></code></li>
+<li><code><a title="app.ml.get_processed_data" href="#app.ml.get_processed_data">get_processed_data</a></code></li>
+<li><code><a title="app.ml.linear_bayesian_model" href="#app.ml.linear_bayesian_model">linear_bayesian_model</a></code></li>
+<li><code><a title="app.ml.linear_least_squares_model" href="#app.ml.linear_least_squares_model">linear_least_squares_model</a></code></li>
+<li><code><a title="app.ml.load_model" href="#app.ml.load_model">load_model</a></code></li>
+<li><code><a title="app.ml.neural_network_model" href="#app.ml.neural_network_model">neural_network_model</a></code></li>
+<li><code><a title="app.ml.plot_prediction" href="#app.ml.plot_prediction">plot_prediction</a></code></li>
+<li><code><a title="app.ml.predict_extrap" href="#app.ml.predict_extrap">predict_extrap</a></code></li>
+<li><code><a title="app.ml.processes_data" href="#app.ml.processes_data">processes_data</a></code></li>
+<li><code><a title="app.ml.save_model" href="#app.ml.save_model">save_model</a></code></li>
+<li><code><a title="app.ml.svr_model" href="#app.ml.svr_model">svr_model</a></code></li>
+<li><code><a title="app.ml.train_for_all_targets" href="#app.ml.train_for_all_targets">train_for_all_targets</a></code></li>
+<li><code><a title="app.ml.validate_parameter" href="#app.ml.validate_parameter">validate_parameter</a></code></li>
+<li><code><a title="app.ml.validate_targets" href="#app.ml.validate_targets">validate_targets</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

@@ -1,0 +1,1537 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>app.k8s_tools API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.k8s_tools</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) 2020 Angelina Horn
+import subprocess
+
+from gevent import monkey
+
+monkey.patch_all()
+# imports
+import logging
+import os
+import platform
+import time
+from pathlib import Path
+
+import docker
+import yaml
+from dotenv import load_dotenv, set_key
+from kubernetes import client, config, utils
+import requests
+
+# environment
+load_dotenv(override=True)
+kube_config = os.path.join(os.getcwd(), &#34;config&#34;)
+# init logger
+k = logging.getLogger()
+k.setLevel(logging.INFO)
+
+
+def k8s_create_teastore() -&gt; None:
+    &#34;&#34;&#34;Deploys the TeaStore.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # create deployment
+    work_directory = os.getcwd()
+    cmd_ns = f&#34;kubectl create namespace teastore&#34;
+    logging.debug(subprocess.check_output(cmd_ns, shell=True))
+    logging.info(&#34;Created namespace.&#34;)
+    time.sleep(10)
+    try:
+        teastore_path = os.path.join(os.getcwd(), &#34;k8s&#34;, &#34;TeaStore&#34;, &#34;examples&#34;, &#34;kubernetes&#34;)
+        os.chdir(teastore_path)
+        cmd = f&#34;kubectl create -f teastore-clusterip-linkerd.yaml -n teastore&#34;
+        logging.debug(subprocess.check_output(cmd, shell=True))
+        logging.info(&#34;Deployed teastore.&#34;)
+        os.chdir(work_directory)
+        # wait until deployment is ready
+        time.sleep(int(os.getenv(&#34;SLEEP_TIME&#34;)))
+        while not check_teastore_health():
+            time.sleep(10)
+        logging.info(&#34;Teastore is alive.&#34;)
+    except Exception as err:
+        logging.error(f&#34;Error while deploying teastore: {err}&#34;)
+        k8s_delete_namespace()
+
+
+def k8s_create_deployment_with_helm() -&gt; None:
+    &#34;&#34;&#34;Creates deployment with helm chart.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # creates namespace
+    os.system(f&#34;kubectl create namespace {os.getenv(&#39;NAMESPACE&#39;)}&#34;)
+    # deployment with helm
+    os.system(f&#34;helm install {os.getenv(&#39;APP_NAME&#39;)} --namespace {os.getenv(&#39;NAMESPACE&#39;)} .&#34;)
+
+
+def k8s_create_deployment_from_file(yaml_file: str) -&gt; None:
+    &#34;&#34;&#34;Creates a deployment from a yaml file.
+
+    Args:
+      yaml_file: name of yaml file
+      yaml_file: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # init
+    config.load_kube_config(config_file=kube_config)
+    k8s_client = client.ApiClient()
+    # create namespace
+    os.system(f&#34;kubectl create namespace {os.getenv(&#39;NAMESPACE&#39;)}&#34;)
+    time.sleep(10)
+    # create deployment from file
+    utils.create_from_yaml(k8s_client, yaml_file, True, os.getenv(&#34;NAMESPACE&#34;))
+
+
+def k8s_update_deployment_from_file(yaml_file: str, cpu_limit: int, memory_limit: int, number_of_replicas: int) -&gt; None:
+    &#34;&#34;&#34;Updates at least one deployment from a yaml file.
+
+    Args:
+      yaml_file: name of yaml file
+      cpu_limit: limit of CPU
+      memory_limit: limit of memory
+      number_of_replicas: number of replicas
+      yaml_file: str: 
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_replicas: int: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    yaml_file_path = os.path.join(os.getcwd(), &#34;k8s&#34;, f&#34;{yaml_file}.yaml&#34;)
+    deployment_names = list()
+    # read yaml file
+    with open(os.path.abspath(yaml_file_path)) as f:
+        yml_document_all = yaml.safe_load_all(f)
+        # for every deployment in yaml_file
+        for yml_document in yml_document_all:
+            # add deployment to list if not already done
+            if yml_document[&#34;metadata&#34;][&#34;name&#34;] not in deployment_names:
+                deployment_names.append(yml_document[&#34;metadata&#34;][&#34;name&#34;])
+        # update deployment for each deployment from list
+        try:
+            for deployment in deployment_names:
+                k8s_update_deployment(deployment, cpu_limit, memory_limit, number_of_replicas, replace=True)
+        except Exception as err:
+            logging.error(f&#34;Error while updating deployment from file: {err}&#34;)
+
+
+def k8s_create_deployment_from_image(name: str, port: int, docker_path: str) -&gt; None:
+    &#34;&#34;&#34;Deployment methods.
+
+    Args:
+      name: ms name
+      port: ms port
+      docker_path: ms docker file
+      name: str: 
+      port: int: 
+      docker_path: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # create namespace
+    os.system(f&#34;kubectl create namespace {os.getenv(&#39;NAMESPACE&#39;)}&#34;)
+    image = build_docker_image(name=name, docker_path=docker_path)
+    k8s_create_deployment(k8s_deployment(name=name, port=port, image=image))
+    time.sleep(60)
+
+
+def k8s_deployment(name: str, port: int, image: str) -&gt; client.V1Deployment:
+    &#34;&#34;&#34;Creates a Kubernetes deployment with given specification.
+
+    Args:
+      name: name of the deployment
+      port: deployment port
+      image: docker image
+      name: str: 
+      port: int: 
+      image: str: 
+
+    Returns:
+      deployment body
+
+    &#34;&#34;&#34;
+    # Configure Pod template container
+    container = client.V1Container(
+        name=name,
+        image=image,
+        ports=[client.V1ContainerPort(container_port=port)],
+        resources=client.V1ResourceRequirements(
+            requests={&#34;cpu&#34;: &#34;100m&#34;, &#34;memory&#34;: &#34;100&#34;},
+            limits={&#34;cpu&#34;: &#34;200m&#34;, &#34;memory&#34;: &#34;300Mi&#34;}
+        ),
+        image_pull_policy=&#34;Never&#34;
+    )
+    # Create and configure a spec section
+    template = client.V1PodTemplateSpec(
+        metadata=client.V1ObjectMeta(labels={&#34;app&#34;: name}, annotations={&#34;linkerd.io/inject&#34;: &#34;enabled&#34;}),
+        spec=client.V1PodSpec(containers=[container]))
+    # Create the specification of deployment
+    spec = client.V1DeploymentSpec(
+        replicas=1,
+        template=template,
+        selector={&#39;matchLabels&#39;: {&#39;app&#39;: &#34;teastore&#34;}})
+    # Instantiate the deployment object
+    deployment = client.V1Deployment(
+        api_version=&#34;apps/v1&#34;,
+        kind=&#34;Deployment&#34;,
+        metadata=client.V1ObjectMeta(name=os.getenv(&#34;APP_NAME&#34;)),
+        spec=spec)
+    return deployment
+
+
+def k8s_create_deployment(deployment: client.V1Deployment) -&gt; None:
+    &#34;&#34;&#34;Deploys a namespaced deployment to the Kubernetes cluster.
+
+    Args:
+      deployment: Deployment body
+      deployment: client.V1Deployment: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # init API
+    config.load_kube_config(config_file=kube_config)
+    apps_v1 = client.AppsV1Api()
+    try:
+        api_response = apps_v1.create_namespaced_deployment(
+            body=deployment,
+            namespace=os.getenv(&#34;NAMESPACE&#34;))
+        logging.info(f&#34;Successfully deployed deployment: {api_response.status}.&#34;)
+    except Exception as e:
+        logging.info(f&#34;Error while deployment: {e}&#34;)
+
+
+def k8s_update_all_deployments_in_namespace(cpu_limit: int, memory_limit: int,
+                                            number_of_replicas: int) -&gt; None:
+    &#34;&#34;&#34;Updates all deployments in a given namespace with given values.
+
+    Args:
+      cpu_limit: limit of cpu
+      memory_limit: limit of memory
+      number_of_replicas: limit of number of replicas
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_replicas: int: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    not_scalable = [&#34;mysql&#34;, &#34;mongodb&#34;, &#34;redis&#34;, &#34;rabbitmq&#34;]
+    # init API
+    config.load_kube_config(config_file=kube_config)
+    apps_v1 = client.AppsV1Api()
+    # read deployment
+    counter = 0
+    ret = apps_v1.list_namespaced_deployment(namespace=os.getenv(&#34;NAMESPACE&#34;))
+    # for every pod in namespace
+    for i in ret.items:
+        counter = counter + 1
+        logging.info(f&#34;Updating deployments in namespace: {counter}/{len(ret.items) - len(not_scalable)}&#34;)
+        # update deployment
+        if not any(ext in i.metadata.name for ext in not_scalable):
+            k8s_update_deployment(deployment_name=i.metadata.name, cpu_limit=cpu_limit, memory_limit=memory_limit,
+                                  number_of_replicas=number_of_replicas, replace=True)
+        else:
+            # keep number of replicas for not scalable pods
+            k8s_update_deployment(deployment_name=i.metadata.name, cpu_limit=cpu_limit, memory_limit=memory_limit,
+                                  number_of_replicas=1, replace=True)
+
+
+def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: int,
+                          number_of_replicas: int, replace: bool) -&gt; client.V1Deployment:
+    &#34;&#34;&#34;Updates a given deployment with given values for replicas, cpu limit and replicas limit.
+
+    Args:
+      replace: if the deployment should be replaced or patched
+      deployment_name: name of deployment
+      cpu_limit: new cpu limit
+      memory_limit: new memory limit
+      number_of_replicas: new number of replicas
+      deployment_name: str: 
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_replicas: int: 
+      replace: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # init API
+    config.load_kube_config(config_file=kube_config)
+    apps_v1 = client.AppsV1Api()
+    # read deployment
+    deployment = apps_v1.read_namespaced_deployment(name=deployment_name, namespace=os.getenv(&#34;NAMESPACE&#34;))
+    # get resource requests
+    resource_requests = get_resource_requests()
+    resource_requests = resource_requests[deployment_name]
+    # updates cpu and memory limits
+    new_resources = client.V1ResourceRequirements(
+        requests={&#34;cpu&#34;: resource_requests[&#34;cpu&#34;], &#34;memory&#34;: resource_requests[&#34;memory&#34;]},
+        limits={&#34;cpu&#34;: f&#34;{cpu_limit}m&#34;, &#34;memory&#34;: f&#34;{memory_limit}Mi&#34;}
+    )
+    deployment.spec.template.spec.containers[0].resources = new_resources
+    # updates number of replicas
+    deployment.spec.replicas = number_of_replicas
+    if not replace:
+        # updates the deployment
+        try:
+            api_response = apps_v1.patch_namespaced_deployment(
+                name=deployment_name,
+                namespace=os.getenv(&#34;NAMESPACE&#34;),
+                body=deployment)
+            logging.info(f&#34;Deployment updated of {deployment_name}.&#34;)
+            logging.debug(f&#34;f Deployment update: {api_response.status}&#34;)
+        except Exception as err:
+            logging.info(f&#34;Error while deployment: {err}&#34;)
+    else:
+        try:
+            api_response = apps_v1.replace_namespaced_deployment(
+                name=deployment_name,
+                namespace=os.getenv(&#34;NAMESPACE&#34;),
+                body=deployment)
+            logging.info(f&#34;Deployment updated of {deployment_name}.&#34;)
+            logging.debug(f&#34;f Deployment update: {api_response.status}&#34;)
+        except Exception as err:
+            logging.info(f&#34;Error while deployment: {err}&#34;)
+    return deployment
+
+
+def check_teastore_health() -&gt; bool:
+    &#34;&#34;&#34;Check the health of the TeaStore webui.
+    :return: if healthy
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    try:
+        health = requests.get(
+            f&#34;http://{os.getenv(&#39;HOST&#39;)}:{k8s_get_app_port()}/{os.getenv(&#39;ROUTE&#39;)}/rest/ready/isready&#34;)
+        if health.ok:
+            return bool(health.json())
+        else:
+            return False
+    except requests.exceptions.ConnectionError:
+        return False
+
+
+def k8s_delete_namespace() -&gt; None:
+    &#34;&#34;&#34;Deletes namespace.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init
+    config.load_kube_config(config_file=kube_config)
+    v1 = client.CoreV1Api()
+    try:
+        resp = v1.list_namespace()
+        for n in resp.items:
+            if os.getenv(&#34;NAMESPACE&#34;) in n.metadata.name:
+                api_response = v1.delete_namespace(os.getenv(&#34;NAMESPACE&#34;))
+                time.sleep(180)
+                logging.info(&#34;Deleted namespace &#34; + os.getenv(&#34;NAMESPACE&#34;))
+                logging.debug(api_response)
+                return
+        logging.warning(f&#34;Could not delete namespace: {os.getenv(&#39;NAMESPACE&#39;)} because is does not exist.&#34;)
+    except client.exceptions.ApiException as e:
+        print(&#34;Exception when calling CoreV1Api-&gt;delete_namespaced_pod: %s\n&#34; % e)
+
+
+def k8s_get_app_port() -&gt; int:
+    &#34;&#34;&#34;Returns the node port of the created service.
+    :return: node port
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init
+    config.load_kube_config(config_file=kube_config)
+    v1 = client.CoreV1Api()
+    # iterate through namespaces services
+    ret = v1.list_namespaced_service(namespace=os.getenv(&#34;NAMESPACE&#34;))
+    for i in ret.items:
+        if os.getenv(&#34;UI&#34;) in i.metadata.name:
+            # checks if node port is not NoneType
+            if i.spec.ports[0].node_port:
+                logging.debug(f&#34;NodePort for service {i.metadata.name} is {i.spec.ports[0].node_port}&#34;)
+                return int(i.spec.ports[0].node_port)
+
+
+def build_docker_image(name: str, docker_path: str) -&gt; str:
+    &#34;&#34;&#34;Builds a docker image from a given path with a given name.
+
+    Args:
+      name: desired name of docker image
+      docker_path: path to docker image
+      name: str: 
+      docker_path: str: 
+
+    Returns:
+      name of docker image
+
+    &#34;&#34;&#34;
+    # init
+    directory_path = None
+    image_name = None
+    try:
+        image_name = f&#34;{name}:latest&#34;
+        directory_path = Path(docker_path).parent
+        if Path(docker_path).exists() and directory_path.exists():
+            pass
+        else:
+            raise FileNotFoundError
+    except FileNotFoundError:
+        logging.error(&#34;Could not find Dockerfile.&#34;)
+    try:
+        if platform.system() == &#34;Windows&#34;:
+            docker_client = docker.APIClient(base_url=&#39;tcp://localhost:2375&#39;)
+        else:
+            docker_client = docker.APIClient(base_url=&#39;unix://var/run/docker.sock&#39;)
+        # build image
+        build = docker_client.build(path=str(directory_path), tag=name, dockerfile=docker_path, rm=True)
+        logging.info(list(build))
+        logging.info(f&#34;Build image with tag: {image_name}&#34;)
+        return image_name
+    except Exception as e:
+        logging.error(f&#34;Could not build image: {e}&#34;)
+
+
+def set_prometheus_info() -&gt; None:
+    &#34;&#34;&#34;Sets corresponding environment variable to NodePort of each Prometheus service instance.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init
+    print(kube_config)
+    config.load_kube_config(config_file=kube_config)
+    v1 = client.CoreV1Api()
+    # iterate through default namespaces services
+    ret_default = v1.list_namespaced_service(namespace=&#34;default&#34;)
+    for service in ret_default.items:
+        if &#34;prometheus-kube-prometheus-prometheus&#34; in service.metadata.name:
+            # set env variable
+            if os.getenv(&#34;PRODUCTION&#34;) == &#34;True&#34;:
+                port = service.spec.ports[0].port
+                host = service.spec.cluster_ip
+            else:
+                port = service.spec.ports[0].node_port
+                host = &#34;localhost&#34;
+            set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;PROMETHEUS_RESOURCES_HOST&#34;,
+                    value_to_set=f&#34;http://{host}:{port}&#34;)
+            break
+    # iterate through linkerd namespaces services
+    ret_linkerd = v1.list_namespaced_service(namespace=&#34;linkerd&#34;)
+    for service in ret_linkerd.items:
+        if &#34;linkerd-prometheus&#34; in service.metadata.name:
+            # set env variable
+            if os.getenv(&#34;PRODUCTION&#34;) == &#34;True&#34;:
+                port = service.spec.ports[0].port
+                host = service.spec.cluster_ip
+            else:
+                port = service.spec.ports[0].node_port
+                host = &#34;localhost&#34;
+            set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;PROMETHEUS_NETWORK_HOST&#34;,
+                    value_to_set=f&#34;http://{host}:{port}&#34;)
+            break
+    ret_teastore = v1.list_namespaced_service(namespace=&#34;teastore&#34;)
+    for service in ret_teastore.items:
+        if &#34;webui&#34; in service.metadata.name:
+            # set env variable
+            if os.getenv(&#34;PRODUCTION&#34;) == &#34;True&#34;:
+                port = str(service.spec.ports[0].port)
+                host = str(service.spec.cluster_ip)
+            else:
+                port = str(service.spec.ports[0].node_port)
+                host = &#34;localhost&#34;
+            set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;HOST&#34;,
+                    value_to_set=host)
+            set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;NODE_PORT&#34;,
+                    value_to_set=port)
+            break
+    load_dotenv(override=True)
+    logging.info(f&#34;PROMETHEUS_RESOURCES_HOST: {os.getenv(&#39;PROMETHEUS_RESOURCES_HOST&#39;)}&#34;)
+    logging.info(f&#34;PROMETHEUS_NETWORK_HOST: {os.getenv(&#39;PROMETHEUS_NETWORK_HOST&#39;)}&#34;)
+    logging.info(f&#34;Teastore: http://{os.getenv(&#39;HOST&#39;)}:{os.getenv(&#39;NODE_PORT&#39;)}&#34;)
+
+
+def get_resource_requests() -&gt; dict:
+    &#34;&#34;&#34;Gets the resource request for every deployment in a given namespace.
+    :return: resource requests
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init API
+    config.load_kube_config(config_file=kube_config)
+    apps_v1 = client.AppsV1Api()
+    resource_requests = dict()
+    # read deployment
+    ret = apps_v1.list_namespaced_deployment(namespace=os.getenv(&#34;NAMESPACE&#34;))
+    for i in ret.items:
+        deployment = apps_v1.read_namespaced_deployment(name=i.metadata.name, namespace=os.getenv(&#34;NAMESPACE&#34;))
+        resources = deployment.spec.template.spec.containers[0].resources.requests
+        resource_requests[i.metadata.name] = resources
+    return resource_requests
+
+
+def create_autoscaler() -&gt; None:
+    &#34;&#34;&#34;Deploys the autoscaler app with cron jobs for scaling and online learning.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    work_directory = os.getcwd()
+    try:
+        yaml_path = os.path.join(os.getcwd(), &#34;k8s&#34;)
+        os.chdir(yaml_path)
+        os.system(f&#34;kubectl create -f autoscaler.yaml -n teastore&#34;)
+        time.sleep(10)
+        autoscaler_status = requests.get(f&#34;http://{os.getenv(&#39;HOST&#39;)}:30050/heartbeat&#34;).json()
+        while not bool(autoscaler_status[&#34;success&#34;]):
+            time.sleep(10)
+        logging.info(&#34;Autoscaler is up and alive.&#34;)
+        # os.system(f&#34;kubectl create -f cronjob.yaml -n teastore&#34;)
+        time.sleep(10)
+        os.chdir(work_directory)
+    except Exception as err:
+        logging.error(f&#34;Error while creating autoscaler: {err}&#34;)
+
+
+def deploy_autoscaler_docker() -&gt; None:
+    &#34;&#34;&#34;Deploys the autoscaler as docker container.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    client = docker.from_env()
+    client.containers.run(image=&#34;angi2412/autoscaler&#34;, name=&#34;autoscaler&#34;, detach=True)
+
+
+def delete_autoscaler_docker() -&gt; None:
+    &#34;&#34;&#34;Deletes the autoscaler docker container.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    client = docker.from_env()
+    c = client.containers.get(&#34;autoscaler&#34;)
+    c.remove(force=True)
+
+
+def build_autoscaler_docker() -&gt; None:
+    &#34;&#34;&#34;Build the autoscaler docker image.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    client = docker.from_env()
+    logging.info(&#34;Building image...&#34;)
+    build = client.images.build(path=os.path.join(os.getcwd()), tag=&#34;angi2412/autoscaler&#34;)
+    logging.info(list(build))</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="app.k8s_tools.build_autoscaler_docker"><code class="name flex">
+<span>def <span class="ident">build_autoscaler_docker</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Build the autoscaler docker image.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_autoscaler_docker() -&gt; None:
+    &#34;&#34;&#34;Build the autoscaler docker image.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    client = docker.from_env()
+    logging.info(&#34;Building image...&#34;)
+    build = client.images.build(path=os.path.join(os.getcwd()), tag=&#34;angi2412/autoscaler&#34;)
+    logging.info(list(build))</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.build_docker_image"><code class="name flex">
+<span>def <span class="ident">build_docker_image</span></span>(<span>name: str, docker_path: str) ‑> str</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Builds a docker image from a given path with a given name.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>desired name of docker image</dd>
+<dt><strong><code>docker_path</code></strong></dt>
+<dd>path to docker image</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>docker_path</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>name of docker image</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def build_docker_image(name: str, docker_path: str) -&gt; str:
+    &#34;&#34;&#34;Builds a docker image from a given path with a given name.
+
+    Args:
+      name: desired name of docker image
+      docker_path: path to docker image
+      name: str: 
+      docker_path: str: 
+
+    Returns:
+      name of docker image
+
+    &#34;&#34;&#34;
+    # init
+    directory_path = None
+    image_name = None
+    try:
+        image_name = f&#34;{name}:latest&#34;
+        directory_path = Path(docker_path).parent
+        if Path(docker_path).exists() and directory_path.exists():
+            pass
+        else:
+            raise FileNotFoundError
+    except FileNotFoundError:
+        logging.error(&#34;Could not find Dockerfile.&#34;)
+    try:
+        if platform.system() == &#34;Windows&#34;:
+            docker_client = docker.APIClient(base_url=&#39;tcp://localhost:2375&#39;)
+        else:
+            docker_client = docker.APIClient(base_url=&#39;unix://var/run/docker.sock&#39;)
+        # build image
+        build = docker_client.build(path=str(directory_path), tag=name, dockerfile=docker_path, rm=True)
+        logging.info(list(build))
+        logging.info(f&#34;Build image with tag: {image_name}&#34;)
+        return image_name
+    except Exception as e:
+        logging.error(f&#34;Could not build image: {e}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.check_teastore_health"><code class="name flex">
+<span>def <span class="ident">check_teastore_health</span></span>(<span>) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Check the health of the TeaStore webui.
+:return: if healthy</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def check_teastore_health() -&gt; bool:
+    &#34;&#34;&#34;Check the health of the TeaStore webui.
+    :return: if healthy
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    try:
+        health = requests.get(
+            f&#34;http://{os.getenv(&#39;HOST&#39;)}:{k8s_get_app_port()}/{os.getenv(&#39;ROUTE&#39;)}/rest/ready/isready&#34;)
+        if health.ok:
+            return bool(health.json())
+        else:
+            return False
+    except requests.exceptions.ConnectionError:
+        return False</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.create_autoscaler"><code class="name flex">
+<span>def <span class="ident">create_autoscaler</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deploys the autoscaler app with cron jobs for scaling and online learning.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def create_autoscaler() -&gt; None:
+    &#34;&#34;&#34;Deploys the autoscaler app with cron jobs for scaling and online learning.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    work_directory = os.getcwd()
+    try:
+        yaml_path = os.path.join(os.getcwd(), &#34;k8s&#34;)
+        os.chdir(yaml_path)
+        os.system(f&#34;kubectl create -f autoscaler.yaml -n teastore&#34;)
+        time.sleep(10)
+        autoscaler_status = requests.get(f&#34;http://{os.getenv(&#39;HOST&#39;)}:30050/heartbeat&#34;).json()
+        while not bool(autoscaler_status[&#34;success&#34;]):
+            time.sleep(10)
+        logging.info(&#34;Autoscaler is up and alive.&#34;)
+        # os.system(f&#34;kubectl create -f cronjob.yaml -n teastore&#34;)
+        time.sleep(10)
+        os.chdir(work_directory)
+    except Exception as err:
+        logging.error(f&#34;Error while creating autoscaler: {err}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.delete_autoscaler_docker"><code class="name flex">
+<span>def <span class="ident">delete_autoscaler_docker</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deletes the autoscaler docker container.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def delete_autoscaler_docker() -&gt; None:
+    &#34;&#34;&#34;Deletes the autoscaler docker container.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    client = docker.from_env()
+    c = client.containers.get(&#34;autoscaler&#34;)
+    c.remove(force=True)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.deploy_autoscaler_docker"><code class="name flex">
+<span>def <span class="ident">deploy_autoscaler_docker</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deploys the autoscaler as docker container.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def deploy_autoscaler_docker() -&gt; None:
+    &#34;&#34;&#34;Deploys the autoscaler as docker container.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    client = docker.from_env()
+    client.containers.run(image=&#34;angi2412/autoscaler&#34;, name=&#34;autoscaler&#34;, detach=True)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.get_resource_requests"><code class="name flex">
+<span>def <span class="ident">get_resource_requests</span></span>(<span>) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets the resource request for every deployment in a given namespace.
+:return: resource requests</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_resource_requests() -&gt; dict:
+    &#34;&#34;&#34;Gets the resource request for every deployment in a given namespace.
+    :return: resource requests
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init API
+    config.load_kube_config(config_file=kube_config)
+    apps_v1 = client.AppsV1Api()
+    resource_requests = dict()
+    # read deployment
+    ret = apps_v1.list_namespaced_deployment(namespace=os.getenv(&#34;NAMESPACE&#34;))
+    for i in ret.items:
+        deployment = apps_v1.read_namespaced_deployment(name=i.metadata.name, namespace=os.getenv(&#34;NAMESPACE&#34;))
+        resources = deployment.spec.template.spec.containers[0].resources.requests
+        resource_requests[i.metadata.name] = resources
+    return resource_requests</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_create_deployment"><code class="name flex">
+<span>def <span class="ident">k8s_create_deployment</span></span>(<span>deployment: kubernetes.client.models.v1_deployment.V1Deployment) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deploys a namespaced deployment to the Kubernetes cluster.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>deployment</code></strong></dt>
+<dd>Deployment body</dd>
+<dt><strong><code>deployment</code></strong></dt>
+<dd>client.V1Deployment: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_create_deployment(deployment: client.V1Deployment) -&gt; None:
+    &#34;&#34;&#34;Deploys a namespaced deployment to the Kubernetes cluster.
+
+    Args:
+      deployment: Deployment body
+      deployment: client.V1Deployment: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # init API
+    config.load_kube_config(config_file=kube_config)
+    apps_v1 = client.AppsV1Api()
+    try:
+        api_response = apps_v1.create_namespaced_deployment(
+            body=deployment,
+            namespace=os.getenv(&#34;NAMESPACE&#34;))
+        logging.info(f&#34;Successfully deployed deployment: {api_response.status}.&#34;)
+    except Exception as e:
+        logging.info(f&#34;Error while deployment: {e}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_create_deployment_from_file"><code class="name flex">
+<span>def <span class="ident">k8s_create_deployment_from_file</span></span>(<span>yaml_file: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a deployment from a yaml file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>yaml_file</code></strong></dt>
+<dd>name of yaml file</dd>
+<dt><strong><code>yaml_file</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_create_deployment_from_file(yaml_file: str) -&gt; None:
+    &#34;&#34;&#34;Creates a deployment from a yaml file.
+
+    Args:
+      yaml_file: name of yaml file
+      yaml_file: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # init
+    config.load_kube_config(config_file=kube_config)
+    k8s_client = client.ApiClient()
+    # create namespace
+    os.system(f&#34;kubectl create namespace {os.getenv(&#39;NAMESPACE&#39;)}&#34;)
+    time.sleep(10)
+    # create deployment from file
+    utils.create_from_yaml(k8s_client, yaml_file, True, os.getenv(&#34;NAMESPACE&#34;))</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_create_deployment_from_image"><code class="name flex">
+<span>def <span class="ident">k8s_create_deployment_from_image</span></span>(<span>name: str, port: int, docker_path: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deployment methods.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>ms name</dd>
+<dt><strong><code>port</code></strong></dt>
+<dd>ms port</dd>
+<dt><strong><code>docker_path</code></strong></dt>
+<dd>ms docker file</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>port</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>docker_path</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_create_deployment_from_image(name: str, port: int, docker_path: str) -&gt; None:
+    &#34;&#34;&#34;Deployment methods.
+
+    Args:
+      name: ms name
+      port: ms port
+      docker_path: ms docker file
+      name: str: 
+      port: int: 
+      docker_path: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # create namespace
+    os.system(f&#34;kubectl create namespace {os.getenv(&#39;NAMESPACE&#39;)}&#34;)
+    image = build_docker_image(name=name, docker_path=docker_path)
+    k8s_create_deployment(k8s_deployment(name=name, port=port, image=image))
+    time.sleep(60)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_create_deployment_with_helm"><code class="name flex">
+<span>def <span class="ident">k8s_create_deployment_with_helm</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates deployment with helm chart.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_create_deployment_with_helm() -&gt; None:
+    &#34;&#34;&#34;Creates deployment with helm chart.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # creates namespace
+    os.system(f&#34;kubectl create namespace {os.getenv(&#39;NAMESPACE&#39;)}&#34;)
+    # deployment with helm
+    os.system(f&#34;helm install {os.getenv(&#39;APP_NAME&#39;)} --namespace {os.getenv(&#39;NAMESPACE&#39;)} .&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_create_teastore"><code class="name flex">
+<span>def <span class="ident">k8s_create_teastore</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deploys the TeaStore.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_create_teastore() -&gt; None:
+    &#34;&#34;&#34;Deploys the TeaStore.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # create deployment
+    work_directory = os.getcwd()
+    cmd_ns = f&#34;kubectl create namespace teastore&#34;
+    logging.debug(subprocess.check_output(cmd_ns, shell=True))
+    logging.info(&#34;Created namespace.&#34;)
+    time.sleep(10)
+    try:
+        teastore_path = os.path.join(os.getcwd(), &#34;k8s&#34;, &#34;TeaStore&#34;, &#34;examples&#34;, &#34;kubernetes&#34;)
+        os.chdir(teastore_path)
+        cmd = f&#34;kubectl create -f teastore-clusterip-linkerd.yaml -n teastore&#34;
+        logging.debug(subprocess.check_output(cmd, shell=True))
+        logging.info(&#34;Deployed teastore.&#34;)
+        os.chdir(work_directory)
+        # wait until deployment is ready
+        time.sleep(int(os.getenv(&#34;SLEEP_TIME&#34;)))
+        while not check_teastore_health():
+            time.sleep(10)
+        logging.info(&#34;Teastore is alive.&#34;)
+    except Exception as err:
+        logging.error(f&#34;Error while deploying teastore: {err}&#34;)
+        k8s_delete_namespace()</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_delete_namespace"><code class="name flex">
+<span>def <span class="ident">k8s_delete_namespace</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Deletes namespace.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_delete_namespace() -&gt; None:
+    &#34;&#34;&#34;Deletes namespace.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init
+    config.load_kube_config(config_file=kube_config)
+    v1 = client.CoreV1Api()
+    try:
+        resp = v1.list_namespace()
+        for n in resp.items:
+            if os.getenv(&#34;NAMESPACE&#34;) in n.metadata.name:
+                api_response = v1.delete_namespace(os.getenv(&#34;NAMESPACE&#34;))
+                time.sleep(180)
+                logging.info(&#34;Deleted namespace &#34; + os.getenv(&#34;NAMESPACE&#34;))
+                logging.debug(api_response)
+                return
+        logging.warning(f&#34;Could not delete namespace: {os.getenv(&#39;NAMESPACE&#39;)} because is does not exist.&#34;)
+    except client.exceptions.ApiException as e:
+        print(&#34;Exception when calling CoreV1Api-&gt;delete_namespaced_pod: %s\n&#34; % e)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_deployment"><code class="name flex">
+<span>def <span class="ident">k8s_deployment</span></span>(<span>name: str, port: int, image: str) ‑> kubernetes.client.models.v1_deployment.V1Deployment</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a Kubernetes deployment with given specification.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>name of the deployment</dd>
+<dt><strong><code>port</code></strong></dt>
+<dd>deployment port</dd>
+<dt><strong><code>image</code></strong></dt>
+<dd>docker image</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>port</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>image</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>deployment body</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_deployment(name: str, port: int, image: str) -&gt; client.V1Deployment:
+    &#34;&#34;&#34;Creates a Kubernetes deployment with given specification.
+
+    Args:
+      name: name of the deployment
+      port: deployment port
+      image: docker image
+      name: str: 
+      port: int: 
+      image: str: 
+
+    Returns:
+      deployment body
+
+    &#34;&#34;&#34;
+    # Configure Pod template container
+    container = client.V1Container(
+        name=name,
+        image=image,
+        ports=[client.V1ContainerPort(container_port=port)],
+        resources=client.V1ResourceRequirements(
+            requests={&#34;cpu&#34;: &#34;100m&#34;, &#34;memory&#34;: &#34;100&#34;},
+            limits={&#34;cpu&#34;: &#34;200m&#34;, &#34;memory&#34;: &#34;300Mi&#34;}
+        ),
+        image_pull_policy=&#34;Never&#34;
+    )
+    # Create and configure a spec section
+    template = client.V1PodTemplateSpec(
+        metadata=client.V1ObjectMeta(labels={&#34;app&#34;: name}, annotations={&#34;linkerd.io/inject&#34;: &#34;enabled&#34;}),
+        spec=client.V1PodSpec(containers=[container]))
+    # Create the specification of deployment
+    spec = client.V1DeploymentSpec(
+        replicas=1,
+        template=template,
+        selector={&#39;matchLabels&#39;: {&#39;app&#39;: &#34;teastore&#34;}})
+    # Instantiate the deployment object
+    deployment = client.V1Deployment(
+        api_version=&#34;apps/v1&#34;,
+        kind=&#34;Deployment&#34;,
+        metadata=client.V1ObjectMeta(name=os.getenv(&#34;APP_NAME&#34;)),
+        spec=spec)
+    return deployment</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_get_app_port"><code class="name flex">
+<span>def <span class="ident">k8s_get_app_port</span></span>(<span>) ‑> int</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the node port of the created service.
+:return: node port</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_get_app_port() -&gt; int:
+    &#34;&#34;&#34;Returns the node port of the created service.
+    :return: node port
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init
+    config.load_kube_config(config_file=kube_config)
+    v1 = client.CoreV1Api()
+    # iterate through namespaces services
+    ret = v1.list_namespaced_service(namespace=os.getenv(&#34;NAMESPACE&#34;))
+    for i in ret.items:
+        if os.getenv(&#34;UI&#34;) in i.metadata.name:
+            # checks if node port is not NoneType
+            if i.spec.ports[0].node_port:
+                logging.debug(f&#34;NodePort for service {i.metadata.name} is {i.spec.ports[0].node_port}&#34;)
+                return int(i.spec.ports[0].node_port)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_update_all_deployments_in_namespace"><code class="name flex">
+<span>def <span class="ident">k8s_update_all_deployments_in_namespace</span></span>(<span>cpu_limit: int, memory_limit: int, number_of_replicas: int) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates all deployments in a given namespace with given values.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>limit of cpu</dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>limit of memory</dd>
+<dt><strong><code>number_of_replicas</code></strong></dt>
+<dd>limit of number of replicas</dd>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>number_of_replicas</code></strong></dt>
+<dd>int: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_update_all_deployments_in_namespace(cpu_limit: int, memory_limit: int,
+                                            number_of_replicas: int) -&gt; None:
+    &#34;&#34;&#34;Updates all deployments in a given namespace with given values.
+
+    Args:
+      cpu_limit: limit of cpu
+      memory_limit: limit of memory
+      number_of_replicas: limit of number of replicas
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_replicas: int: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    not_scalable = [&#34;mysql&#34;, &#34;mongodb&#34;, &#34;redis&#34;, &#34;rabbitmq&#34;]
+    # init API
+    config.load_kube_config(config_file=kube_config)
+    apps_v1 = client.AppsV1Api()
+    # read deployment
+    counter = 0
+    ret = apps_v1.list_namespaced_deployment(namespace=os.getenv(&#34;NAMESPACE&#34;))
+    # for every pod in namespace
+    for i in ret.items:
+        counter = counter + 1
+        logging.info(f&#34;Updating deployments in namespace: {counter}/{len(ret.items) - len(not_scalable)}&#34;)
+        # update deployment
+        if not any(ext in i.metadata.name for ext in not_scalable):
+            k8s_update_deployment(deployment_name=i.metadata.name, cpu_limit=cpu_limit, memory_limit=memory_limit,
+                                  number_of_replicas=number_of_replicas, replace=True)
+        else:
+            # keep number of replicas for not scalable pods
+            k8s_update_deployment(deployment_name=i.metadata.name, cpu_limit=cpu_limit, memory_limit=memory_limit,
+                                  number_of_replicas=1, replace=True)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_update_deployment"><code class="name flex">
+<span>def <span class="ident">k8s_update_deployment</span></span>(<span>deployment_name: str, cpu_limit: int, memory_limit: int, number_of_replicas: int, replace: bool) ‑> kubernetes.client.models.v1_deployment.V1Deployment</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates a given deployment with given values for replicas, cpu limit and replicas limit.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>replace</code></strong></dt>
+<dd>if the deployment should be replaced or patched</dd>
+<dt><strong><code>deployment_name</code></strong></dt>
+<dd>name of deployment</dd>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>new cpu limit</dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>new memory limit</dd>
+<dt><strong><code>number_of_replicas</code></strong></dt>
+<dd>new number of replicas</dd>
+<dt><strong><code>deployment_name</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>number_of_replicas</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>replace</code></strong></dt>
+<dd>bool: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: int,
+                          number_of_replicas: int, replace: bool) -&gt; client.V1Deployment:
+    &#34;&#34;&#34;Updates a given deployment with given values for replicas, cpu limit and replicas limit.
+
+    Args:
+      replace: if the deployment should be replaced or patched
+      deployment_name: name of deployment
+      cpu_limit: new cpu limit
+      memory_limit: new memory limit
+      number_of_replicas: new number of replicas
+      deployment_name: str: 
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_replicas: int: 
+      replace: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # init API
+    config.load_kube_config(config_file=kube_config)
+    apps_v1 = client.AppsV1Api()
+    # read deployment
+    deployment = apps_v1.read_namespaced_deployment(name=deployment_name, namespace=os.getenv(&#34;NAMESPACE&#34;))
+    # get resource requests
+    resource_requests = get_resource_requests()
+    resource_requests = resource_requests[deployment_name]
+    # updates cpu and memory limits
+    new_resources = client.V1ResourceRequirements(
+        requests={&#34;cpu&#34;: resource_requests[&#34;cpu&#34;], &#34;memory&#34;: resource_requests[&#34;memory&#34;]},
+        limits={&#34;cpu&#34;: f&#34;{cpu_limit}m&#34;, &#34;memory&#34;: f&#34;{memory_limit}Mi&#34;}
+    )
+    deployment.spec.template.spec.containers[0].resources = new_resources
+    # updates number of replicas
+    deployment.spec.replicas = number_of_replicas
+    if not replace:
+        # updates the deployment
+        try:
+            api_response = apps_v1.patch_namespaced_deployment(
+                name=deployment_name,
+                namespace=os.getenv(&#34;NAMESPACE&#34;),
+                body=deployment)
+            logging.info(f&#34;Deployment updated of {deployment_name}.&#34;)
+            logging.debug(f&#34;f Deployment update: {api_response.status}&#34;)
+        except Exception as err:
+            logging.info(f&#34;Error while deployment: {err}&#34;)
+    else:
+        try:
+            api_response = apps_v1.replace_namespaced_deployment(
+                name=deployment_name,
+                namespace=os.getenv(&#34;NAMESPACE&#34;),
+                body=deployment)
+            logging.info(f&#34;Deployment updated of {deployment_name}.&#34;)
+            logging.debug(f&#34;f Deployment update: {api_response.status}&#34;)
+        except Exception as err:
+            logging.info(f&#34;Error while deployment: {err}&#34;)
+    return deployment</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.k8s_update_deployment_from_file"><code class="name flex">
+<span>def <span class="ident">k8s_update_deployment_from_file</span></span>(<span>yaml_file: str, cpu_limit: int, memory_limit: int, number_of_replicas: int) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Updates at least one deployment from a yaml file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>yaml_file</code></strong></dt>
+<dd>name of yaml file</dd>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>limit of CPU</dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>limit of memory</dd>
+<dt><strong><code>number_of_replicas</code></strong></dt>
+<dd>number of replicas</dd>
+<dt><strong><code>yaml_file</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>number_of_replicas</code></strong></dt>
+<dd>int: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def k8s_update_deployment_from_file(yaml_file: str, cpu_limit: int, memory_limit: int, number_of_replicas: int) -&gt; None:
+    &#34;&#34;&#34;Updates at least one deployment from a yaml file.
+
+    Args:
+      yaml_file: name of yaml file
+      cpu_limit: limit of CPU
+      memory_limit: limit of memory
+      number_of_replicas: number of replicas
+      yaml_file: str: 
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_replicas: int: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    yaml_file_path = os.path.join(os.getcwd(), &#34;k8s&#34;, f&#34;{yaml_file}.yaml&#34;)
+    deployment_names = list()
+    # read yaml file
+    with open(os.path.abspath(yaml_file_path)) as f:
+        yml_document_all = yaml.safe_load_all(f)
+        # for every deployment in yaml_file
+        for yml_document in yml_document_all:
+            # add deployment to list if not already done
+            if yml_document[&#34;metadata&#34;][&#34;name&#34;] not in deployment_names:
+                deployment_names.append(yml_document[&#34;metadata&#34;][&#34;name&#34;])
+        # update deployment for each deployment from list
+        try:
+            for deployment in deployment_names:
+                k8s_update_deployment(deployment, cpu_limit, memory_limit, number_of_replicas, replace=True)
+        except Exception as err:
+            logging.error(f&#34;Error while updating deployment from file: {err}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.k8s_tools.set_prometheus_info"><code class="name flex">
+<span>def <span class="ident">set_prometheus_info</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Sets corresponding environment variable to NodePort of each Prometheus service instance.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def set_prometheus_info() -&gt; None:
+    &#34;&#34;&#34;Sets corresponding environment variable to NodePort of each Prometheus service instance.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init
+    print(kube_config)
+    config.load_kube_config(config_file=kube_config)
+    v1 = client.CoreV1Api()
+    # iterate through default namespaces services
+    ret_default = v1.list_namespaced_service(namespace=&#34;default&#34;)
+    for service in ret_default.items:
+        if &#34;prometheus-kube-prometheus-prometheus&#34; in service.metadata.name:
+            # set env variable
+            if os.getenv(&#34;PRODUCTION&#34;) == &#34;True&#34;:
+                port = service.spec.ports[0].port
+                host = service.spec.cluster_ip
+            else:
+                port = service.spec.ports[0].node_port
+                host = &#34;localhost&#34;
+            set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;PROMETHEUS_RESOURCES_HOST&#34;,
+                    value_to_set=f&#34;http://{host}:{port}&#34;)
+            break
+    # iterate through linkerd namespaces services
+    ret_linkerd = v1.list_namespaced_service(namespace=&#34;linkerd&#34;)
+    for service in ret_linkerd.items:
+        if &#34;linkerd-prometheus&#34; in service.metadata.name:
+            # set env variable
+            if os.getenv(&#34;PRODUCTION&#34;) == &#34;True&#34;:
+                port = service.spec.ports[0].port
+                host = service.spec.cluster_ip
+            else:
+                port = service.spec.ports[0].node_port
+                host = &#34;localhost&#34;
+            set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;PROMETHEUS_NETWORK_HOST&#34;,
+                    value_to_set=f&#34;http://{host}:{port}&#34;)
+            break
+    ret_teastore = v1.list_namespaced_service(namespace=&#34;teastore&#34;)
+    for service in ret_teastore.items:
+        if &#34;webui&#34; in service.metadata.name:
+            # set env variable
+            if os.getenv(&#34;PRODUCTION&#34;) == &#34;True&#34;:
+                port = str(service.spec.ports[0].port)
+                host = str(service.spec.cluster_ip)
+            else:
+                port = str(service.spec.ports[0].node_port)
+                host = &#34;localhost&#34;
+            set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;HOST&#34;,
+                    value_to_set=host)
+            set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;NODE_PORT&#34;,
+                    value_to_set=port)
+            break
+    load_dotenv(override=True)
+    logging.info(f&#34;PROMETHEUS_RESOURCES_HOST: {os.getenv(&#39;PROMETHEUS_RESOURCES_HOST&#39;)}&#34;)
+    logging.info(f&#34;PROMETHEUS_NETWORK_HOST: {os.getenv(&#39;PROMETHEUS_NETWORK_HOST&#39;)}&#34;)
+    logging.info(f&#34;Teastore: http://{os.getenv(&#39;HOST&#39;)}:{os.getenv(&#39;NODE_PORT&#39;)}&#34;)</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app" href="index.html">app</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="app.k8s_tools.build_autoscaler_docker" href="#app.k8s_tools.build_autoscaler_docker">build_autoscaler_docker</a></code></li>
+<li><code><a title="app.k8s_tools.build_docker_image" href="#app.k8s_tools.build_docker_image">build_docker_image</a></code></li>
+<li><code><a title="app.k8s_tools.check_teastore_health" href="#app.k8s_tools.check_teastore_health">check_teastore_health</a></code></li>
+<li><code><a title="app.k8s_tools.create_autoscaler" href="#app.k8s_tools.create_autoscaler">create_autoscaler</a></code></li>
+<li><code><a title="app.k8s_tools.delete_autoscaler_docker" href="#app.k8s_tools.delete_autoscaler_docker">delete_autoscaler_docker</a></code></li>
+<li><code><a title="app.k8s_tools.deploy_autoscaler_docker" href="#app.k8s_tools.deploy_autoscaler_docker">deploy_autoscaler_docker</a></code></li>
+<li><code><a title="app.k8s_tools.get_resource_requests" href="#app.k8s_tools.get_resource_requests">get_resource_requests</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_create_deployment" href="#app.k8s_tools.k8s_create_deployment">k8s_create_deployment</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_create_deployment_from_file" href="#app.k8s_tools.k8s_create_deployment_from_file">k8s_create_deployment_from_file</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_create_deployment_from_image" href="#app.k8s_tools.k8s_create_deployment_from_image">k8s_create_deployment_from_image</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_create_deployment_with_helm" href="#app.k8s_tools.k8s_create_deployment_with_helm">k8s_create_deployment_with_helm</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_create_teastore" href="#app.k8s_tools.k8s_create_teastore">k8s_create_teastore</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_delete_namespace" href="#app.k8s_tools.k8s_delete_namespace">k8s_delete_namespace</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_deployment" href="#app.k8s_tools.k8s_deployment">k8s_deployment</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_get_app_port" href="#app.k8s_tools.k8s_get_app_port">k8s_get_app_port</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_update_all_deployments_in_namespace" href="#app.k8s_tools.k8s_update_all_deployments_in_namespace">k8s_update_all_deployments_in_namespace</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_update_deployment" href="#app.k8s_tools.k8s_update_deployment">k8s_update_deployment</a></code></li>
+<li><code><a title="app.k8s_tools.k8s_update_deployment_from_file" href="#app.k8s_tools.k8s_update_deployment_from_file">k8s_update_deployment_from_file</a></code></li>
+<li><code><a title="app.k8s_tools.set_prometheus_info" href="#app.k8s_tools.set_prometheus_info">set_prometheus_info</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

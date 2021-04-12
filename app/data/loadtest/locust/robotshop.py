@@ -6,14 +6,16 @@ from locust import HttpUser, task, constant
 
 
 class UserBehavior(HttpUser):
+    """ """
     wait_time = constant(1)
 
     def on_start(self):
-        """ on_start is called when a Locust start before any task is scheduled """
+        """on_start is called when a Locust start before any task is scheduled"""
         print('Starting')
         self.login()
 
     def login(self):
+        """ """
         credentials = {
             'name': 'user',
             'password': 'password'
@@ -23,6 +25,7 @@ class UserBehavior(HttpUser):
 
     @task
     def load(self):
+        """ """
         uniqueid = 1
         self.client.get('/')
 

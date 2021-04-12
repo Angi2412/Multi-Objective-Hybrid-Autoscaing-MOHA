@@ -9,11 +9,16 @@ logging.getLogger().setLevel(logging.DEBUG)
 
 
 class UserBehavior(FastHttpUser):
+    """ """
     @task(1)
     def load(self) -> None:
-        """
-        Simulates user behaviour.
+        """Simulates user behaviour.
         :return: None
+
+        Args:
+
+        Returns:
+
         """
         logging.debug("Starting user.")
         self.visit_home()
@@ -28,9 +33,13 @@ class UserBehavior(FastHttpUser):
         logging.debug("Completed user.")
 
     def visit_home(self) -> None:
-        """
-        Visits the landing page.
+        """Visits the landing page.
         :return: None
+
+        Args:
+
+        Returns:
+
         """
         # load landing page
         try:
@@ -40,9 +49,13 @@ class UserBehavior(FastHttpUser):
             logging.error(f"Could not load landing page: {err}")
 
     def login(self) -> None:
-        """
-        User login with random userid between 1 and 90.
+        """User login with random userid between 1 and 90.
         :return: categories
+
+        Args:
+
+        Returns:
+
         """
         # load login page
         try:
@@ -59,9 +72,13 @@ class UserBehavior(FastHttpUser):
                 f"Could not login with username: {user} - status: {err}")
 
     def browse(self) -> None:
-        """
-        Simulates random browsing behaviour.
+        """Simulates random browsing behaviour.
         :return: None
+
+        Args:
+
+        Returns:
+
         """
         # execute browsing action randomly between 2 and 5 times
         for i in range(1, randint(2, 5)):
@@ -88,9 +105,13 @@ class UserBehavior(FastHttpUser):
                     f"Could not add product {product_id} to cart: status {err}")
 
     def buy(self) -> None:
-        """
-        Simulates to buy products in the cart with sample user data.
+        """Simulates to buy products in the cart with sample user data.
         :return: None
+
+        Args:
+
+        Returns:
+
         """
         # sample user data
         user_data = {
@@ -110,9 +131,13 @@ class UserBehavior(FastHttpUser):
             logging.error(f"Could not buy products: {err}")
 
     def visit_profile(self) -> None:
-        """
-        Visits user profile.
+        """Visits user profile.
         :return: None
+
+        Args:
+
+        Returns:
+
         """
         try:
             self.client.get("/profile")
@@ -121,9 +146,13 @@ class UserBehavior(FastHttpUser):
             logging.error(f"Could not visit profile page: {err}")
 
     def logout(self) -> None:
-        """
-        User logout.
+        """User logout.
         :return: None
+
+        Args:
+
+        Returns:
+
         """
         try:
             self.client.post("/loginAction", params={"logout": ""})

@@ -26,9 +26,13 @@ k.setLevel(logging.INFO)
 
 
 def k8s_create_teastore() -> None:
-    """
-    Deploys the TeaStore.
+    """Deploys the TeaStore.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     # create deployment
     work_directory = os.getcwd()
@@ -54,9 +58,13 @@ def k8s_create_teastore() -> None:
 
 
 def k8s_create_deployment_with_helm() -> None:
-    """
-    Creates deployment with helm chart.
+    """Creates deployment with helm chart.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     # creates namespace
     os.system(f"kubectl create namespace {os.getenv('NAMESPACE')}")
@@ -65,10 +73,15 @@ def k8s_create_deployment_with_helm() -> None:
 
 
 def k8s_create_deployment_from_file(yaml_file: str) -> None:
-    """
-    Creates a deployment from a yaml file.
-    :param yaml_file: name of yaml file
-    :return: None
+    """Creates a deployment from a yaml file.
+
+    Args:
+      yaml_file: name of yaml file
+      yaml_file: str: 
+
+    Returns:
+      None
+
     """
     # init
     config.load_kube_config(config_file=kube_config)
@@ -81,13 +94,21 @@ def k8s_create_deployment_from_file(yaml_file: str) -> None:
 
 
 def k8s_update_deployment_from_file(yaml_file: str, cpu_limit: int, memory_limit: int, number_of_replicas: int) -> None:
-    """
-    Updates at least one deployment from a yaml file.
-    :param yaml_file: name of yaml file
-    :param cpu_limit: limit of CPU
-    :param memory_limit: limit of memory
-    :param number_of_replicas: number of replicas
-    :return: None
+    """Updates at least one deployment from a yaml file.
+
+    Args:
+      yaml_file: name of yaml file
+      cpu_limit: limit of CPU
+      memory_limit: limit of memory
+      number_of_replicas: number of replicas
+      yaml_file: str: 
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_replicas: int: 
+
+    Returns:
+      None
+
     """
     yaml_file_path = os.path.join(os.getcwd(), "k8s", f"{yaml_file}.yaml")
     deployment_names = list()
@@ -108,12 +129,19 @@ def k8s_update_deployment_from_file(yaml_file: str, cpu_limit: int, memory_limit
 
 
 def k8s_create_deployment_from_image(name: str, port: int, docker_path: str) -> None:
-    """
-    Deployment methods.
-    :param name: ms name
-    :param port: ms port
-    :param docker_path: ms docker file
-    :return: None
+    """Deployment methods.
+
+    Args:
+      name: ms name
+      port: ms port
+      docker_path: ms docker file
+      name: str: 
+      port: int: 
+      docker_path: str: 
+
+    Returns:
+      None
+
     """
     # create namespace
     os.system(f"kubectl create namespace {os.getenv('NAMESPACE')}")
@@ -123,12 +151,19 @@ def k8s_create_deployment_from_image(name: str, port: int, docker_path: str) -> 
 
 
 def k8s_deployment(name: str, port: int, image: str) -> client.V1Deployment:
-    """
-    Creates a Kubernetes deployment with given specification.
-    :param name: name of the deployment
-    :param port: deployment port
-    :param image: docker image
-    :return: deployment body
+    """Creates a Kubernetes deployment with given specification.
+
+    Args:
+      name: name of the deployment
+      port: deployment port
+      image: docker image
+      name: str: 
+      port: int: 
+      image: str: 
+
+    Returns:
+      deployment body
+
     """
     # Configure Pod template container
     container = client.V1Container(
@@ -160,10 +195,15 @@ def k8s_deployment(name: str, port: int, image: str) -> client.V1Deployment:
 
 
 def k8s_create_deployment(deployment: client.V1Deployment) -> None:
-    """
-    Deploys a namespaced deployment to the Kubernetes cluster.
-    :param deployment: Deployment body
-    :return: None
+    """Deploys a namespaced deployment to the Kubernetes cluster.
+
+    Args:
+      deployment: Deployment body
+      deployment: client.V1Deployment: 
+
+    Returns:
+      None
+
     """
     # init API
     config.load_kube_config(config_file=kube_config)
@@ -179,12 +219,19 @@ def k8s_create_deployment(deployment: client.V1Deployment) -> None:
 
 def k8s_update_all_deployments_in_namespace(cpu_limit: int, memory_limit: int,
                                             number_of_replicas: int) -> None:
-    """
-    Updates all deployments in a given namespace with given values.
-    :param cpu_limit: limit of cpu
-    :param memory_limit: limit of memory
-    :param number_of_replicas: limit of number of replicas
-    :return: None
+    """Updates all deployments in a given namespace with given values.
+
+    Args:
+      cpu_limit: limit of cpu
+      memory_limit: limit of memory
+      number_of_replicas: limit of number of replicas
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_replicas: int: 
+
+    Returns:
+      None
+
     """
     not_scalable = ["mysql", "mongodb", "redis", "rabbitmq"]
     # init API
@@ -209,14 +256,23 @@ def k8s_update_all_deployments_in_namespace(cpu_limit: int, memory_limit: int,
 
 def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: int,
                           number_of_replicas: int, replace: bool) -> client.V1Deployment:
-    """
-    Updates a given deployment with given values for replicas, cpu limit and replicas limit.
-    :param replace: if the deployment should be replaced or patched
-    :param deployment_name: name of deployment
-    :param cpu_limit: new cpu limit
-    :param memory_limit: new memory limit
-    :param number_of_replicas: new number of replicas
-    :return: None
+    """Updates a given deployment with given values for replicas, cpu limit and replicas limit.
+
+    Args:
+      replace: if the deployment should be replaced or patched
+      deployment_name: name of deployment
+      cpu_limit: new cpu limit
+      memory_limit: new memory limit
+      number_of_replicas: new number of replicas
+      deployment_name: str: 
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_replicas: int: 
+      replace: bool: 
+
+    Returns:
+      None
+
     """
     # init API
     config.load_kube_config(config_file=kube_config)
@@ -259,9 +315,13 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
 
 
 def check_teastore_health() -> bool:
-    """
-    Check the health of the TeaStore webui.
+    """Check the health of the TeaStore webui.
     :return: if healthy
+
+    Args:
+
+    Returns:
+
     """
     try:
         health = requests.get(
@@ -275,9 +335,13 @@ def check_teastore_health() -> bool:
 
 
 def k8s_delete_namespace() -> None:
-    """
-    Deletes namespace.
+    """Deletes namespace.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     # init
     config.load_kube_config(config_file=kube_config)
@@ -297,9 +361,13 @@ def k8s_delete_namespace() -> None:
 
 
 def k8s_get_app_port() -> int:
-    """
-    Returns the node port of the created service.
+    """Returns the node port of the created service.
     :return: node port
+
+    Args:
+
+    Returns:
+
     """
     # init
     config.load_kube_config(config_file=kube_config)
@@ -315,11 +383,17 @@ def k8s_get_app_port() -> int:
 
 
 def build_docker_image(name: str, docker_path: str) -> str:
-    """
-    Builds a docker image from a given path with a given name.
-    :param name: desired name of docker image
-    :param docker_path: path to docker image
-    :return: name of docker image
+    """Builds a docker image from a given path with a given name.
+
+    Args:
+      name: desired name of docker image
+      docker_path: path to docker image
+      name: str: 
+      docker_path: str: 
+
+    Returns:
+      name of docker image
+
     """
     # init
     directory_path = None
@@ -348,9 +422,13 @@ def build_docker_image(name: str, docker_path: str) -> str:
 
 
 def set_prometheus_info() -> None:
-    """
-    Sets corresponding environment variable to NodePort of each Prometheus service instance.
+    """Sets corresponding environment variable to NodePort of each Prometheus service instance.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     # init
     print(kube_config)
@@ -406,9 +484,13 @@ def set_prometheus_info() -> None:
 
 
 def get_resource_requests() -> dict:
-    """
-    Gets the resource request for every deployment in a given namespace.
+    """Gets the resource request for every deployment in a given namespace.
     :return: resource requests
+
+    Args:
+
+    Returns:
+
     """
     # init API
     config.load_kube_config(config_file=kube_config)
@@ -424,9 +506,13 @@ def get_resource_requests() -> dict:
 
 
 def create_autoscaler() -> None:
-    """
-    Deploys the autoscaler app with cron jobs for scaling and online learning.
+    """Deploys the autoscaler app with cron jobs for scaling and online learning.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     work_directory = os.getcwd()
     try:
@@ -446,18 +532,26 @@ def create_autoscaler() -> None:
 
 
 def deploy_autoscaler_docker() -> None:
-    """
-    Deploys the autoscaler as docker container.
+    """Deploys the autoscaler as docker container.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     client = docker.from_env()
     client.containers.run(image="angi2412/autoscaler", name="autoscaler", detach=True)
 
 
 def delete_autoscaler_docker() -> None:
-    """
-    Deletes the autoscaler docker container.
+    """Deletes the autoscaler docker container.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     client = docker.from_env()
     c = client.containers.get("autoscaler")
@@ -465,9 +559,13 @@ def delete_autoscaler_docker() -> None:
 
 
 def build_autoscaler_docker() -> None:
-    """
-    Build the autoscaler docker image.
+    """Build the autoscaler docker image.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     client = docker.from_env()
     logging.info("Building image...")

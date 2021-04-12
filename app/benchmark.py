@@ -36,10 +36,15 @@ p.setLevel(logging.INFO)
 
 
 def config_env(**kwargs) -> None:
-    """
-    Configures the environment file.
-    :param kwargs: keys and values to be set.
-    :return: None
+    """Configures the environment file.
+
+    Args:
+      kwargs: keys and values to be set.
+      **kwargs: 
+
+    Returns:
+      None
+
     """
     arguments = locals()
     env_file = os.path.join(os.getcwd(), ".env")
@@ -50,13 +55,21 @@ def config_env(**kwargs) -> None:
 
 
 def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
-    """
-    Exports metric data from prometheus to a csv file.
-    :param mm: minutes
-    :param hh: hours
-    :param folder: save folder
-    :param iteration: number of current iteration
-    :return: None
+    """Exports metric data from prometheus to a csv file.
+
+    Args:
+      mm: minutes
+      hh: hours
+      folder: save folder
+      iteration: number of current iteration
+      folder: str: 
+      iteration: int: 
+      hh: int: 
+      mm: int: 
+
+    Returns:
+      None
+
     """
     # metrics to export
     resource_metrics = [
@@ -110,10 +123,16 @@ def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
 
 
 def get_status(pod: str) -> (list, list):
-    """
-    Returns the current parameter and target status.
-    :param pod: name of the pod
-    :return: current parameter and target status
+    """Returns the current parameter and target status.
+
+    Args:
+      pod: name of the pod
+      pod: str) -> (list: 
+      list: 
+
+    Returns:
+      current parameter and target status
+
     """
     # init
     prom_res = PrometheusConnect(url=os.getenv(f'PROMETHEUS_RESOURCES_HOST'), disable_ssl=True)
@@ -195,14 +214,23 @@ def get_status(pod: str) -> (list, list):
 
 
 def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm: int) -> list:
-    """
-    Gets a given metric from prometheus in a given timeframe.
-    :param mm: minutes
-    :param hh: hours
-    :param custom: if custom query should be used
-    :param mode: which prometheus to use
-    :param metric_name: name of the metric
-    :return: metric
+    """Gets a given metric from prometheus in a given timeframe.
+
+    Args:
+      mm: minutes
+      hh: hours
+      custom: if custom query should be used
+      mode: which prometheus to use
+      metric_name: name of the metric
+      metric_name: str: 
+      mode: str: 
+      custom: bool: 
+      hh: int: 
+      mm: int: 
+
+    Returns:
+      metric
+
     """
     # init
     prom = PrometheusConnect(url=os.getenv(f'PROMETHEUS_{mode}_HOST'), disable_ssl=True)
@@ -253,14 +281,23 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
 
 
 def evaluation(load: int, spawn_rate: int, hh: int, mm: int, load_testing: str) -> None:
-    """
-    Start a evaluation run and gathers its metrics.
-    :param load: maximum number of users/rps
-    :param spawn_rate: only used with locust
-    :param hh: hours
-    :param mm: minutes
-    :param load_testing: Locust or JMeter
-    :return: none
+    """Start a evaluation run and gathers its metrics.
+
+    Args:
+      load: maximum number of users/rps
+      spawn_rate: only used with locust
+      hh: hours
+      mm: minutes
+      load_testing: Locust or JMeter
+      load: int: 
+      spawn_rate: int: 
+      hh: int: 
+      mm: int: 
+      load_testing: str: 
+
+    Returns:
+      none
+
     """
     # init date
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -301,20 +338,35 @@ def evaluation(load: int, spawn_rate: int, hh: int, mm: int, load_testing: str) 
 def benchmark(name: str, load: list, spawn_rate: int, expressions: int,
               step: int, run: int, run_max: int, custom_shape: bool, history: bool,
               sample: bool, locust: bool) -> None:
-    """
-    Starts the benchmark.
-    :param history: enable locust history
-    :param custom_shape: if using custom load shape
-    :param run_max: number of runs
-    :param run: current run
-    :param expressions: number of expressions per parameter
-    :param step: size of step
-    :param name: name of ms
-    :param load: number of users or rps
-    :param spawn_rate: spawn rate
-    :param sample: enable sample run
-    :param locust: use locust or jmeter
-    :return: None
+    """Starts the benchmark.
+
+    Args:
+      history: enable locust history
+      custom_shape: if using custom load shape
+      run_max: number of runs
+      run: current run
+      expressions: number of expressions per parameter
+      step: size of step
+      name: name of ms
+      load: number of users or rps
+      spawn_rate: spawn rate
+      sample: enable sample run
+      locust: use locust or jmeter
+      name: str: 
+      load: list: 
+      spawn_rate: int: 
+      expressions: int: 
+      step: int: 
+      run: int: 
+      run_max: int: 
+      custom_shape: bool: 
+      history: bool: 
+      sample: bool: 
+      locust: bool: 
+
+    Returns:
+      None
+
     """
     # init date
     # read new environment data
@@ -383,13 +435,21 @@ def benchmark(name: str, load: list, spawn_rate: int, expressions: int,
 
 
 def parameter_variation_namespace(expressions: int, step: int, sample: bool, load: list) -> dict:
-    """
-    Generates the parameter variation matrix for every deployment in a namespace with given values.
-    :param load: load
-    :param expressions: number of expressions
-    :param step: size of step
-    :param sample: enable sample run
-    :return: dict of parameter variation matrices
+    """Generates the parameter variation matrix for every deployment in a namespace with given values.
+
+    Args:
+      load: load
+      expressions: number of expressions
+      step: size of step
+      sample: enable sample run
+      expressions: int: 
+      step: int: 
+      sample: bool: 
+      load: list: 
+
+    Returns:
+      dict of parameter variation matrices
+
     """
     resource_requests = k8s.get_resource_requests()
     variation = dict()
@@ -415,9 +475,25 @@ def parameter_variation_namespace(expressions: int, step: int, sample: bool, loa
 def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int,
                         pods_request: int,
                         pods_limit: int, step: int, invert: bool, sample: bool, save: bool, load: list) -> np.array:
-    """
-    Calculates a matrix mit all combination of the parameters.
+    """Calculates a matrix mit all combination of the parameters.
     :return: parameter variation matrix
+
+    Args:
+      pod: str: 
+      cpu_request: int: 
+      cpu_limit: int: 
+      memory_request: int: 
+      memory_limit: int: 
+      pods_request: int: 
+      pods_limit: int: 
+      step: int: 
+      invert: bool: 
+      sample: bool: 
+      save: bool: 
+      load: list: 
+
+    Returns:
+
     """
     # init parameters: (start, end, step)
     cpu = np.arange(cpu_request, cpu_limit, step, np.int32)
@@ -465,13 +541,21 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
 
 
 def parameter_variation_array(cpu_limits: list, memory_limits: list, pod_limits: list, rps: float) -> np.array:
-    """
-    Creates a parameter variation matrix given discrete values.
-    :param cpu_limits: list of cpu limits
-    :param memory_limits: list of memory limits
-    :param pod_limits: list of pod limits
-    :param rps: current load
-    :return: parameter variation matrix
+    """Creates a parameter variation matrix given discrete values.
+
+    Args:
+      cpu_limits: list of cpu limits
+      memory_limits: list of memory limits
+      pod_limits: list of pod limits
+      rps: current load
+      cpu_limits: list: 
+      memory_limits: list: 
+      pod_limits: list: 
+      rps: float: 
+
+    Returns:
+      parameter variation matrix
+
     """
     cpu = np.array(cpu_limits, dtype=np.int32)
     memory = np.array(memory_limits, dtype=np.int32)
@@ -488,17 +572,29 @@ def parameter_variation_array(cpu_limits: list, memory_limits: list, pod_limits:
 
 def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool, users: int, spawn_rate: int, hh: int,
                  mm: int) -> None:
-    """
-    Start a locust load test.
-    :param spawn_rate: user spawn rate
-    :param users: number of users
-    :param custom_shape: use custom load shape
-    :param iteration: number of current iteration
-    :param folder: name of folder
-    :param history: enables stats
-    :param hh: duration hours
-    :param mm: duration minutes
-    :return: None
+    """Start a locust load test.
+
+    Args:
+      spawn_rate: user spawn rate
+      users: number of users
+      custom_shape: use custom load shape
+      iteration: number of current iteration
+      folder: name of folder
+      history: enables stats
+      hh: duration hours
+      mm: duration minutes
+      iteration: int: 
+      folder: str: 
+      history: bool: 
+      custom_shape: bool: 
+      users: int: 
+      spawn_rate: int: 
+      hh: int: 
+      mm: int: 
+
+    Returns:
+      None
+
     """
     load_dotenv(override=True)
     # setup Environment and Runner
@@ -532,9 +628,13 @@ def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool,
 
 
 def get_persistence_data() -> None:
-    """
-    Gets persistence data from the TeaStore.
+    """Gets persistence data from the TeaStore.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     base_path = os.path.join(os.getcwd(), "data", "loadtest")
     persistence_url = "http://localhost:30090/tools.descartes.teastore.persistence/rest"
@@ -560,19 +660,33 @@ def get_persistence_data() -> None:
 
 def start(name: str, load: list, spawn_rate: int, expressions: int, step: int, runs: int,
           custom_shape: bool, history: bool, sample: bool, locust: bool) -> None:
-    """
-    Starts the generation of a dataset.
-    :param name: application name
-    :param load: maximum load
-    :param spawn_rate: only used with Locust
-    :param expressions: number of expressions per parameter
-    :param step: step size
-    :param runs: number of stability runs
-    :param custom_shape: if custom shape should be used
-    :param history: only used with locust
-    :param sample: if a sample run should be executed
-    :param locust: if Locust is used
-    :return: None
+    """Starts the generation of a dataset.
+
+    Args:
+      name: application name
+      load: maximum load
+      spawn_rate: only used with Locust
+      expressions: number of expressions per parameter
+      step: step size
+      runs: number of stability runs
+      custom_shape: if custom shape should be used
+      history: only used with locust
+      sample: if a sample run should be executed
+      locust: if Locust is used
+      name: str: 
+      load: list: 
+      spawn_rate: int: 
+      expressions: int: 
+      step: int: 
+      runs: int: 
+      custom_shape: bool: 
+      history: bool: 
+      sample: bool: 
+      locust: bool: 
+
+    Returns:
+      None
+
     """
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
@@ -582,12 +696,20 @@ def start(name: str, load: list, spawn_rate: int, expressions: int, step: int, r
 
 
 def start_jmeter(iteration: int, date: str, evaluation: bool, rps: int):
-    """
-    Stats a jMeter run.
-    :param iteration: current iteration
-    :param date: current date
-    :param evaluation: if evaluation is used
-    :param rps: requests per second
+    """Stats a jMeter run.
+
+    Args:
+      iteration: current iteration
+      date: current date
+      evaluation: if evaluation is used
+      rps: requests per second
+      iteration: int: 
+      date: str: 
+      evaluation: bool: 
+      rps: int: 
+
+    Returns:
+
     """
     work_directory = os.getcwd()
     jmeter_path = os.path.join(os.getcwd(), "data", "loadtest", "jmeter", "bin")
@@ -609,12 +731,19 @@ def start_jmeter(iteration: int, date: str, evaluation: bool, rps: int):
 
 
 def change_build(alg: str, hpa: bool, weights: str) -> None:
-    """
-    Changes the autoscaler build to the given parameters and builds the docker image.
-    :param alg: which estimator to use
-    :param hpa: if only horizontal scaling is enabled
-    :param weights: mcdm weight distribution
-    :return: None
+    """Changes the autoscaler build to the given parameters and builds the docker image.
+
+    Args:
+      alg: which estimator to use
+      hpa: if only horizontal scaling is enabled
+      weights: mcdm weight distribution
+      alg: str: 
+      hpa: bool: 
+      weights: str: 
+
+    Returns:
+      None
+
     """
     # change environment variables
     if alg in ["svr", "neural_network", "linear_b"]:

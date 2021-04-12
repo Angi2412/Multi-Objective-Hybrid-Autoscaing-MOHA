@@ -25,11 +25,17 @@ import k8s_tools
 
 
 def linear_least_squares_model(target: str, save: bool) -> None:
-    """
-    Linear Regression model with given data.
-    :param save: if should save
-    :param target: target name
-    :return: None
+    """Linear Regression model with given data.
+
+    Args:
+      save: if should save
+      target: target name
+      target: str: 
+      save: bool: 
+
+    Returns:
+      None
+
     """
     X_train, X_test, y_train, y_test = get_processed_data(target)
     # Create linear regression object
@@ -57,12 +63,19 @@ def linear_least_squares_model(target: str, save: bool) -> None:
 
 
 def linear_bayesian_model(target: str, save: bool, search: bool) -> None:
-    """
-    Linear Regression model with given data.
-    :param save: if should save
-    :param target: target name
-    :param search: grid search
-    :return: None
+    """Linear Regression model with given data.
+
+    Args:
+      save: if should save
+      target: target name
+      search: grid search
+      target: str: 
+      save: bool: 
+      search: bool: 
+
+    Returns:
+      None
+
     """
     X_train, X_test, y_train, y_test = get_processed_data(target)
 
@@ -100,11 +113,17 @@ def linear_bayesian_model(target: str, save: bool, search: bool) -> None:
 
 
 def get_metrics(test: np.array, pred: np.array) -> None:
-    """
-    Prints mean squared error and r2 score.
-    :param test: test data
-    :param pred: predicted data
-    :return: None
+    """Prints mean squared error and r2 score.
+
+    Args:
+      test: test data
+      pred: predicted data
+      test: np.array: 
+      pred: np.array: 
+
+    Returns:
+      None
+
     """
     # The mean squared error
     print('Mean squared error: %.2f' % mean_squared_error(test, pred))
@@ -113,12 +132,19 @@ def get_metrics(test: np.array, pred: np.array) -> None:
 
 
 def svr_model(target: str, save: bool, search: bool) -> None:
-    """
-    Several SVR models with different kernel functions from given data.
-    :param save: if should save
-    :param target: target name
-    :param search: search for hyper parameter
-    :return: None
+    """Several SVR models with different kernel functions from given data.
+
+    Args:
+      save: if should save
+      target: target name
+      search: search for hyper parameter
+      target: str: 
+      save: bool: 
+      search: bool: 
+
+    Returns:
+      None
+
     """
     # split data in to train and test sets
     X_train, X_test, y_train, y_test = get_processed_data(target)
@@ -155,13 +181,17 @@ def svr_model(target: str, save: bool, search: bool) -> None:
 
 
 def plot_prediction(y_test, y_pred, alg, target) -> None:
-    """
-    Plot the predicted and expected values of a model.
-    :param y_test: expected values
-    :param y_pred: predicted values
-    :param alg: used model
-    :param target: target metric
-    :return: None
+    """Plot the predicted and expected values of a model.
+
+    Args:
+      y_test: expected values
+      y_pred: predicted values
+      alg: used model
+      target: target metric
+
+    Returns:
+      None
+
     """
     # regplot
     ax = sns.regplot(x=y_test, y=y_pred, scatter=True, fit_reg=True)
@@ -172,12 +202,19 @@ def plot_prediction(y_test, y_pred, alg, target) -> None:
 
 
 def neural_network_model(target: str, search: bool, save: bool) -> None:
-    """
-    MLPRegressor neural network with given data.
-    :param search: use search
-    :param save: should save
-    :param target: target name
-    :return: None
+    """MLPRegressor neural network with given data.
+
+    Args:
+      search: use search
+      save: should save
+      target: target name
+      target: str: 
+      search: bool: 
+      save: bool: 
+
+    Returns:
+      None
+
     """
     # split data
     X_train, X_test, y_train, y_test = get_processed_data(target)
@@ -221,12 +258,20 @@ def neural_network_model(target: str, search: bool, save: bool) -> None:
 
 
 def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
-    """
-    Gets filtered data and converts it to a numpy array.
-    :param combined: combined or filtered
-    :param target: name of target
-    :param date: name of filtered data
-    :return: X, y
+    """Gets filtered data and converts it to a numpy array.
+
+    Args:
+      combined: combined or filtered
+      target: name of target
+      date: name of filtered data
+      date: str: 
+      target: str: 
+      combined: bool) -> (np.array: 
+      np.array: 
+
+    Returns:
+      X, y
+
     """
     # init path
     if combined:
@@ -247,12 +292,18 @@ def get_data(date: str, target: str, combined: bool) -> (np.array, np.array):
 
 
 def save_model(model, name: str, alg: str) -> None:
-    """
-    Saves a model under a given name.
-    :param alg: used algorithm
-    :param model: model
-    :param name: model name
-    :return: None
+    """Saves a model under a given name.
+
+    Args:
+      alg: used algorithm
+      model: model
+      name: model name
+      name: str: 
+      alg: str: 
+
+    Returns:
+      None
+
     """
     save_path = os.path.join(os.getcwd(), "data", "models", alg)
     if not os.path.exists(save_path):
@@ -261,11 +312,17 @@ def save_model(model, name: str, alg: str) -> None:
 
 
 def load_model(name: str, alg: str) -> numpy_pickle:
-    """
-    Loads a given model.
-    :param alg: algorithm used
-    :param name: model name
-    :return: model
+    """Loads a given model.
+
+    Args:
+      alg: algorithm used
+      name: model name
+      name: str: 
+      alg: str: 
+
+    Returns:
+      model
+
     """
     save_path = os.path.join(os.getcwd(), "data", "models", alg, f"{name}.joblib")
     return load(save_path)
@@ -273,18 +330,31 @@ def load_model(name: str, alg: str) -> numpy_pickle:
 
 def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, alg: str,
                             response_time: float, cpu_usage: float, memory_usage: float, extrap: bool) -> np.array:
-    """
-    Resource Estimation based on Kubernetes HPA.
-    :param cpu_limit: current CPU limit
-    :param memory_limit: current memory limit
-    :param number_of_pods: current number of pods
-    :param rps: current load
-    :param alg: used model
-    :param response_time: current response time
-    :param cpu_usage: current CPU usage
-    :param memory_usage: current memory usage
-    :param extrap: If Extra-p should be used
-    :return: best parameters
+    """Resource Estimation based on Kubernetes HPA.
+
+    Args:
+      cpu_limit: current CPU limit
+      memory_limit: current memory limit
+      number_of_pods: current number of pods
+      rps: current load
+      alg: used model
+      response_time: current response time
+      cpu_usage: current CPU usage
+      memory_usage: current memory usage
+      extrap: If Extra-p should be used
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_pods: int: 
+      rps: float: 
+      alg: str: 
+      response_time: float: 
+      cpu_usage: float: 
+      memory_usage: float: 
+      extrap: bool: 
+
+    Returns:
+      best parameters
+
     """
     # init
     models = get_models(alg)
@@ -377,10 +447,15 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
 
 
 def predict_extrap(parameters: list) -> np.array:
-    """
-    Resource estimation with Extra-P.
-    :param parameters: current parameters
-    :return: resource prediction
+    """Resource estimation with Extra-P.
+
+    Args:
+      parameters: current parameters
+      parameters: list: 
+
+    Returns:
+      resource prediction
+
     """
     predicted = list()
     for c, m, p, rps in parameters:
@@ -401,19 +476,33 @@ def predict_extrap(parameters: list) -> np.array:
 def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, window: int,
                                alg: str, hpa: bool, response_time: float, cpu_usage: float,
                                memory_usage: float) -> np.array:
-    """
-    Chooses the best values for the parameters in a given window for a given status.
-    :param memory_usage: current memory usage
-    :param cpu_usage: current cpu usage
-    :param response_time: current average response time
-    :param hpa: only horizontal scaling
-    :param alg: algorithm to use
-    :param cpu_limit: current cpu limit
-    :param memory_limit: current memory limit
-    :param number_of_pods: current number of pods
-    :param rps: requests per second
-    :param window: size of window
-    :return: pes parameters
+    """Chooses the best values for the parameters in a given window for a given status.
+
+    Args:
+      memory_usage: current memory usage
+      cpu_usage: current cpu usage
+      response_time: current average response time
+      hpa: only horizontal scaling
+      alg: algorithm to use
+      cpu_limit: current cpu limit
+      memory_limit: current memory limit
+      number_of_pods: current number of pods
+      rps: requests per second
+      window: size of window
+      cpu_limit: int: 
+      memory_limit: int: 
+      number_of_pods: int: 
+      rps: float: 
+      window: int: 
+      alg: str: 
+      hpa: bool: 
+      response_time: float: 
+      cpu_usage: float: 
+      memory_usage: float: 
+
+    Returns:
+      pes parameters
+
     """
     # init
     step = int(os.getenv("STEP"))
@@ -494,12 +583,19 @@ def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods
 
 
 def validate_targets(predictions: np.ndarray, curr_pred: np.array, curr: np.array) -> np.array:
-    """
-    Validates predicted targets.
-    :param predictions: predicted targets
-    :param curr_pred: current target prediction
-    :param curr: current target status
-    :return: validated targets
+    """Validates predicted targets.
+
+    Args:
+      predictions: predicted targets
+      curr_pred: current target prediction
+      curr: current target status
+      predictions: np.ndarray: 
+      curr_pred: np.array: 
+      curr: np.array: 
+
+    Returns:
+      validated targets
+
     """
     # init
     load_dotenv()
@@ -537,9 +633,15 @@ def validate_targets(predictions: np.ndarray, curr_pred: np.array, curr: np.arra
 
 
 def validate_parameter(data: list, rps: float) -> list:
-    """
-    Validates if the given limits are below the requested resources.
+    """Validates if the given limits are below the requested resources.
     :return: validated resources
+
+    Args:
+      data: list: 
+      rps: float: 
+
+    Returns:
+
     """
     # get requests
     request = k8s_tools.get_resource_requests()[os.getenv("SCALE_POD")]
@@ -572,11 +674,17 @@ def validate_parameter(data: list, rps: float) -> list:
 
 
 def choose_best(mtx: np.array, method: bool) -> int:
-    """
-    Chooses the best alternative from given alternatives with multiple criteria.
-    :param method: which mcdm method to use
-    :param mtx: alternatives
-    :return: index of best alternative
+    """Chooses the best alternative from given alternatives with multiple criteria.
+
+    Args:
+      method: which mcdm method to use
+      mtx: alternatives
+      mtx: np.array: 
+      method: bool: 
+
+    Returns:
+      index of best alternative
+
     """
     # min average response time, max cpu usage, max memory usage, min cpu limit, min memory limit, min number of pods
     load_dotenv()
@@ -602,9 +710,14 @@ def choose_best(mtx: np.array, method: bool) -> int:
 
 
 def get_models(alg: str) -> list:
-    """
-    Imports all models.
+    """Imports all models.
     :return: list of models
+
+    Args:
+      alg: str: 
+
+    Returns:
+
     """
     targets = ["average response time", "cpu usage", "memory usage"]
     models = list()
@@ -619,10 +732,15 @@ def get_models(alg: str) -> list:
 
 
 def train_for_all_targets(kind: str) -> None:
-    """
-    Trains a given model for all targets.
-    :param kind: model type
-    :return: None
+    """Trains a given model for all targets.
+
+    Args:
+      kind: model type
+      kind: str: 
+
+    Returns:
+      None
+
     """
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     targets = ["average response time", "cpu usage", "memory usage"]
@@ -642,10 +760,16 @@ def train_for_all_targets(kind: str) -> None:
 
 
 def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
-    """
-    Returns scaled and split training- and test datasets.
-    :param target: target metric
-    :return: training- and test datasets
+    """Returns scaled and split training- and test datasets.
+
+    Args:
+      target: target metric
+      target: str) -> (np.array: 
+      np.array: 
+
+    Returns:
+      training- and test datasets
+
     """
     d_path = os.path.join(os.getcwd(), "data", "models", "data", target)
     d = [None, None, None, None]
@@ -655,10 +779,14 @@ def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
 
 
 def processes_data() -> None:
-    """
-    Scales and splits dataset into training- and test datasets.
+    """Scales and splits dataset into training- and test datasets.
     Saves scalers.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     load_dotenv()
     for t in ["average response time", "cpu usage", "memory usage"]:

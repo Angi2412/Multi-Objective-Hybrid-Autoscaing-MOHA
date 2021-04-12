@@ -14,9 +14,13 @@ logging.getLogger().setLevel(logging.INFO)
 
 
 def get_all_data() -> list:
-    """
-    Gets all metric tables between two dates.
+    """Gets all metric tables between two dates.
     :return: list of metric data
+
+    Args:
+
+    Returns:
+
     """
     # init
     all_data = list()
@@ -28,9 +32,15 @@ def get_all_data() -> list:
 
 
 def get_data(directory: str) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
-    """
-    Gets data from prometheus.
+    """Gets data from prometheus.
     :return: prometheus data
+
+    Args:
+      directory: str) -> (pd.DataFrame: 
+      pd.DataFrame: 
+
+    Returns:
+
     """
     # config
     load_dotenv(override=True)
@@ -58,13 +68,21 @@ def get_data(directory: str) -> (pd.DataFrame, pd.DataFrame, pd.DataFrame):
 
 
 def get_data_helper(data: pd.DataFrame, file: str, iteration: int, directory: str) -> pd.DataFrame:
-    """
-    Connects two dataframes.
-    :param data: given dataframe
-    :param file: data frame in file
-    :param iteration: number of iteration
-    :param directory: date
-    :return: connected data frame
+    """Connects two dataframes.
+
+    Args:
+      data: given dataframe
+      file: data frame in file
+      iteration: number of iteration
+      directory: date
+      data: pd.DataFrame: 
+      file: str: 
+      iteration: int: 
+      directory: str: 
+
+    Returns:
+      connected data frame
+
     """
     data_path = os.path.join(os.getcwd(), "data", "raw", directory)
     # concat metrics
@@ -78,9 +96,13 @@ def get_data_helper(data: pd.DataFrame, file: str, iteration: int, directory: st
 
 
 def get_directories() -> list:
-    """
-    Gets all directory names between the first and last data date.
+    """Gets all directory names between the first and last data date.
     :return: list of directory names
+
+    Args:
+
+    Returns:
+
     """
     load_dotenv()
     first_date = int(str(os.getenv("FIRST_DATA")).replace('-', "").strip())
@@ -98,10 +120,15 @@ def get_directories() -> list:
 
 
 def get_filtered_data(directory: str) -> pd.DataFrame:
-    """
-    Returns a data frame of a given filtered data.
-    :param directory: date
-    :return: data frame of filtered data
+    """Returns a data frame of a given filtered data.
+
+    Args:
+      directory: date
+      directory: str: 
+
+    Returns:
+      data frame of filtered data
+
     """
     base_path = os.path.join(os.getcwd(), "data", "filtered")
     for (dir_path, dir_names, filenames) in os.walk(base_path):
@@ -112,9 +139,13 @@ def get_filtered_data(directory: str) -> pd.DataFrame:
 
 
 def get_all_filtered_data() -> list:
-    """
-    Reads all filtered data between two dates.
+    """Reads all filtered data between two dates.
     :return: list of filtered data
+
+    Args:
+
+    Returns:
+
     """
     load_dotenv()
     first_date = int(str(os.getenv("FIRST_DATA")).replace('-', "").strip())
@@ -132,9 +163,13 @@ def get_all_filtered_data() -> list:
 
 
 def filter_all_data() -> None:
-    """
-    Filters all data between two dates.
+    """Filters all data between two dates.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     # init
     i = 1
@@ -147,10 +182,15 @@ def filter_all_data() -> None:
 
 
 def get_variation_matrix(directory: str) -> np.array:
-    """
-    Reads all variation matrices of a directory and puts them in a list.
-    :param directory: current directory
-    :return: variation matrix
+    """Reads all variation matrices of a directory and puts them in a list.
+
+    Args:
+      directory: current directory
+      directory: str: 
+
+    Returns:
+      variation matrix
+
     """
     dir_path = os.path.join(os.getcwd(), "data", "raw", directory)
     # find variation files
@@ -170,9 +210,14 @@ def get_variation_matrix(directory: str) -> np.array:
 
 
 def filter_data(directory: str) -> pd.DataFrame:
-    """
-    Filters data from prometheus.
+    """Filters data from prometheus.
     :return: filtered data
+
+    Args:
+      directory: str: 
+
+    Returns:
+
     """
     normal, custom, locust = get_data(directory)
     # filter for namespace
@@ -233,12 +278,19 @@ def filter_data(directory: str) -> pd.DataFrame:
 
 
 def save_data(data: pd.DataFrame, directory: str, mode: str) -> None:
-    """
-    Saves a given data frame in a given folder.
-    :param data: data frame
-    :param directory: name of file
-    :param mode: name of directory
-    :return: None
+    """Saves a given data frame in a given folder.
+
+    Args:
+      data: data frame
+      directory: name of file
+      mode: name of directory
+      data: pd.DataFrame: 
+      directory: str: 
+      mode: str: 
+
+    Returns:
+      None
+
     """
     save_path = os.path.join(os.getcwd(), "data", mode, f"{directory}.csv")
     if not os.path.exists(save_path):
@@ -248,9 +300,15 @@ def save_data(data: pd.DataFrame, directory: str, mode: str) -> None:
 
 
 def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
-    """
-    Plots a given metric from filtered data from prometheus.
+    """Plots a given metric from filtered data from prometheus.
     :return: None
+
+    Args:
+      data: pd.DataFrame: 
+      name: str: 
+
+    Returns:
+
     """
     # create directory
     dir_path = os.path.join(os.getcwd(), "data", "plots", f"{name}")
@@ -288,9 +346,13 @@ def plot_filtered_data(data: pd.DataFrame, name: str) -> None:
 
 
 def format_for_extra_p() -> None:
-    """
-    Formats a given benchmark for extra-p.
+    """Formats a given benchmark for extra-p.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     # init
     load_dotenv()
@@ -343,9 +405,13 @@ def format_for_extra_p() -> None:
 
 
 def correlation_coefficient_matrix() -> None:
-    """
-    Calculates and plots the correlation coefficient matrix for a given dataframe.
+    """Calculates and plots the correlation coefficient matrix for a given dataframe.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     dir_path = os.path.join(os.getcwd(), "data", "correlation", os.getenv("LAST_DATA"))
     if not os.path.exists(dir_path):
@@ -373,9 +439,13 @@ def correlation_coefficient_matrix() -> None:
 
 
 def combine_runs() -> None:
-    """
-    Combines data from all runs.
+    """Combines data from all runs.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     data = get_directories()
     data_path = os.path.join(os.getcwd(), "data", "filtered")
@@ -390,9 +460,15 @@ def combine_runs() -> None:
 
 
 def combine_data(data: list, name: str) -> None:
-    """
-    Combines data from all runs.
+    """Combines data from all runs.
     :return: None
+
+    Args:
+      data: list: 
+      name: str: 
+
+    Returns:
+
     """
     data_path = os.path.join(os.getcwd(), "data", "filtered")
     tmp = list()
@@ -406,9 +482,13 @@ def combine_data(data: list, name: str) -> None:
 
 
 def filter_run() -> None:
-    """
-    Filters all data from a run.
+    """Filters all data from a run.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
     data = pd.read_csv(path, delimiter=",")
@@ -417,9 +497,13 @@ def filter_run() -> None:
 
 
 def plot_run() -> None:
-    """
-    Plots all data from a run.
+    """Plots all data from a run.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     # plot combined run
     path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
@@ -432,9 +516,13 @@ def plot_run() -> None:
 
 
 def plot_all_data():
-    """
-    Plots data from all runs.
+    """Plots data from all runs.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     directory = os.path.join(os.getcwd(), "data", "plots", os.getenv("LAST_DATA"))
     # creates folder if does not exist
@@ -445,11 +533,17 @@ def plot_all_data():
 
 
 def plot_targets_4d(data: pd.DataFrame, name: str) -> None:
-    """
-    Plot all parameters and each target in a 4D plot.
-    :param data: dataset
-    :param name: save name
-    :return: None
+    """Plot all parameters and each target in a 4D plot.
+
+    Args:
+      data: dataset
+      name: save name
+      data: pd.DataFrame: 
+      name: str: 
+
+    Returns:
+      None
+
     """
     targets = ["average response time", "cpu usage", "memory usage"]
     for t in targets:
@@ -474,8 +568,12 @@ def plot_targets_4d(data: pd.DataFrame, name: str) -> None:
 
 def get_combined_data() -> pd.DataFrame:
     """
-    Return last combined data as dataframe.
-    :return: combined data
+
+    Args:
+
+    Returns:
+      :return: combined data
+
     """
     # get last combined run
     path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
@@ -484,9 +582,13 @@ def get_combined_data() -> pd.DataFrame:
 
 
 def histogram() -> None:
-    """
-    Creates histogram of the average response time.
+    """Creates histogram of the average response time.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     sns.set_style("whitegrid")
     data = get_combined_data()
@@ -497,9 +599,13 @@ def histogram() -> None:
 
 
 def boxplot() -> None:
-    """
-    Creates boxplot from the CPU- and memory usage.
+    """Creates boxplot from the CPU- and memory usage.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     data = get_combined_data()
     ax = sns.boxplot(data=data[["cpu usage", "memory usage"]])
@@ -508,28 +614,41 @@ def boxplot() -> None:
 
 
 def stats(column: str) -> None:
-    """
-    Prints stats of a given column of the combined data.
-    :param column: metric to be described
-    :return: None
+    """Prints stats of a given column of the combined data.
+
+    Args:
+      column: metric to be described
+      column: str: 
+
+    Returns:
+      None
+
     """
     data = get_combined_data()
     print(data[column].describe())
 
 
 def process_run() -> None:
-    """
-    Processes one single run.
+    """Processes one single run.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     filter_data(os.getenv("LAST_DATA"))
     plot_filtered_data(get_filtered_data(os.getenv("LAST_DATA")), os.getenv("LAST_DATA"))
 
 
 def process_all_runs() -> None:
-    """
-    Processes all runs between start- and last data.
+    """Processes all runs between start- and last data.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     filter_all_data()
     plot_all_data()
@@ -541,10 +660,16 @@ def process_all_runs() -> None:
 
 
 def formatting_evaluation(date: str) -> (pd.DataFrame, pd.DataFrame):
-    """
-    Formats evaluation data.
-    :param date: date of evaluation raw folder
-    :return: custom and normal filtered data
+    """Formats evaluation data.
+
+    Args:
+      date: date of evaluation raw folder
+      date: str) -> (pd.DataFrame: 
+      pd.DataFrame: 
+
+    Returns:
+      custom and normal filtered data
+
     """
     # get data
     dir_path = os.path.join(os.getcwd(), "data", "raw", f"{date}")
@@ -590,10 +715,15 @@ def formatting_evaluation(date: str) -> (pd.DataFrame, pd.DataFrame):
 
 
 def plot_evaluation(date: str) -> None:
-    """
-    Plots a given evaluation run.
-    :param date: name of folder
-    :return: None
+    """Plots a given evaluation run.
+
+    Args:
+      date: name of folder
+      date: str: 
+
+    Returns:
+      None
+
     """
     # format raw data
     n, c, dir_path = formatting_evaluation(date)
@@ -643,12 +773,19 @@ def plot_evaluation(date: str) -> None:
 
 
 def calc_eval_metrics(c: pd.DataFrame, n: pd.DataFrame, dir_path: str) -> None:
-    """
-    Calculated evaluation metrics.
-    :param c: custom data
-    :param n: normal data
-    :param dir_path: save path
-    :return: None
+    """Calculated evaluation metrics.
+
+    Args:
+      c: custom data
+      n: normal data
+      dir_path: save path
+      c: pd.DataFrame: 
+      n: pd.DataFrame: 
+      dir_path: str: 
+
+    Returns:
+      None
+
     """
     # init thresholds
     r = int(os.getenv("TARGET_RESPONSE"))
@@ -681,9 +818,13 @@ def calc_eval_metrics(c: pd.DataFrame, n: pd.DataFrame, dir_path: str) -> None:
 
 
 def plot_all_evaluation() -> None:
-    """
-    Plots all evaluations in the raw folder.
+    """Plots all evaluations in the raw folder.
     :return: None
+
+    Args:
+
+    Returns:
+
     """
     raw_path = os.path.join(os.getcwd(), "data", "raw")
     for (dir_path, dir_names, filenames) in os.walk(raw_path):

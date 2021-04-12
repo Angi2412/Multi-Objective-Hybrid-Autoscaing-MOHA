@@ -22,17 +22,20 @@ logging.basicConfig(
 
 
 def heartbeat():
-    """
-    Sends heartbeat if application is running.
+    """Sends heartbeat if application is running.
     :return: heartbeat
+
+    Args:
+
+    Returns:
+
+    
     """
     return True
 
 
 def scale() -> None:
-    """
-    Autoscaling loop.
-    """
+    """Autoscaling loop."""
     load_dotenv()
     parameter_status, target_status = benchmark.get_status("webui")
     logging.info("Started autosclaing:")
@@ -58,9 +61,14 @@ def scale() -> None:
 
 
 def improve() -> None:
-    """
-    Improves machine learning model in set period.
+    """Improves machine learning model in set period.
     :return: None
+
+    Args:
+
+    Returns:
+
+    
     """
     load_dotenv()
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -77,10 +85,16 @@ def improve() -> None:
 
 
 def check_target_status(targets: list) -> bool:
-    """
-    Checks if the current microservice status is healthy.
-    :param targets: current status
-    :return: if healthy
+    """Checks if the current microservice status is healthy.
+
+    Args:
+      targets: current status
+      targets(list :): 
+      targets: list: 
+
+    Returns:
+
+    
     """
     load_dotenv()
     # check if average response time is healthy
@@ -103,9 +117,14 @@ def check_target_status(targets: list) -> bool:
 
 
 def scale_k_hpa() -> None:
-    """
-    Kubernetes HPA implementation
+    """Kubernetes HPA implementation
     :return: None
+
+    Args:
+
+    Returns:
+
+    
     """
     # current status
     parameter_status, target_status = benchmark.get_status("webui")
@@ -135,11 +154,19 @@ def scale_k_hpa() -> None:
 
 
 def autoscale(sc: sched.scheduler, k_hpa: bool) -> None:
-    """
-    Autoscaling method
-    :param sc: scheduler
-    :param k_hpa: Kubernetes HPA
-    :return: None
+    """Autoscaling method
+
+    Args:
+      sc: scheduler
+      k_hpa: Kubernetes HPA
+      sc(sched.scheduler :): 
+      k_hpa(bool :): 
+      sc: sched.scheduler: 
+      k_hpa: bool: 
+
+    Returns:
+
+    
     """
     if k_hpa:
         scale_k_hpa()

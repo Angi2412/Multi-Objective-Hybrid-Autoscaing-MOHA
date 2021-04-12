@@ -1,0 +1,2029 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.2" />
+<title>app.benchmark API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>app.benchmark</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python"># Copyright (c) 2020 Angelina Horn
+import subprocess
+
+from gevent import monkey
+
+from data.loadtest.locust.loadshapes import DoubleWave
+
+monkey.patch_all()
+
+import gevent
+from locust.env import Environment
+from locust.stats import stats_history, StatsCSVFileWriter
+from data.loadtest.locust.teastore_fast import UserBehavior
+# imports
+import datetime as dt
+import logging
+import os
+import time
+import json
+
+from dotenv import load_dotenv, set_key
+
+from prometheus_api_client import PrometheusConnect, MetricRangeDataFrame, MetricSnapshotDataFrame
+
+import numpy as np
+import pandas as pd
+import k8s_tools as k8s
+import requests
+
+# environment
+load_dotenv(override=True)
+
+# init logger
+p = logging.getLogger(__name__)
+p.setLevel(logging.INFO)
+
+
+def config_env(**kwargs) -&gt; None:
+    &#34;&#34;&#34;Configures the environment file.
+
+    Args:
+      kwargs: keys and values to be set.
+      **kwargs: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    arguments = locals()
+    env_file = os.path.join(os.getcwd(), &#34;.env&#34;)
+    for i in arguments[&#34;kwargs&#34;].keys():
+        key = str(i).upper()
+        value = str(arguments[&#34;kwargs&#34;][i])
+        set_key(dotenv_path=env_file, key_to_set=key, value_to_set=value)
+
+
+def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -&gt; None:
+    &#34;&#34;&#34;Exports metric data from prometheus to a csv file.
+
+    Args:
+      mm: minutes
+      hh: hours
+      folder: save folder
+      iteration: number of current iteration
+      folder: str: 
+      iteration: int: 
+      hh: int: 
+      mm: int: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # metrics to export
+    resource_metrics = [
+        &#34;kube_pod_container_resource_requests_memory_bytes&#34;,
+        &#34;kube_pod_container_resource_limits_memory_bytes&#34;,
+        &#34;kube_pod_container_resource_limits_cpu_cores&#34;,
+        &#34;kube_pod_container_resource_requests_cpu_cores&#34;,
+        &#34;container_cpu_cfs_throttled_seconds_total&#34;,
+        &#34;kube_deployment_spec_replicas&#34;
+    ]
+    # get resource metric data resources
+    resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode=&#34;RESOURCES&#34;, custom=False,
+                                                  hh=hh, mm=mm)
+    for x in range(1, len(resource_metrics)):
+        resource_metrics_data = resource_metrics_data + get_prometheus_metric(metric_name=resource_metrics[x],
+                                                                              mode=&#34;RESOURCES&#34;, custom=False, hh=hh,
+                                                                              mm=mm)
+    # get custom resource metric data resources
+    # memory usage
+    custom_memory = get_prometheus_metric(metric_name=&#34;memory&#34;, mode=&#34;RESOURCES&#34;, custom=True, hh=hh, mm=mm)
+    custom_memory = MetricRangeDataFrame(custom_memory)
+    custom_memory.insert(0, &#39;metric&#39;, &#34;memory&#34;)
+    # cpu usage
+    custom_cpu = get_prometheus_metric(metric_name=&#34;cpu&#34;, mode=&#34;RESOURCES&#34;, custom=True, hh=hh, mm=mm)
+    custom_cpu = MetricRangeDataFrame(custom_cpu)
+    custom_cpu.insert(0, &#39;metric&#39;, &#34;cpu&#34;)
+    # rps
+    custom_rps = get_prometheus_metric(metric_name=&#34;rps&#34;, mode=&#34;NETWORK&#34;, custom=True, hh=hh, mm=mm)
+    custom_rps = MetricRangeDataFrame(custom_rps)
+    custom_rps.insert(0, &#39;metric&#39;, &#34;rps&#34;)
+    # average response time
+    custom_latency = get_prometheus_metric(metric_name=&#34;response_time&#34;, mode=&#34;NETWORK&#34;, custom=True, hh=hh, mm=mm)
+    custom_latency = MetricRangeDataFrame(custom_latency)
+    custom_latency.insert(0, &#39;metric&#39;, &#34;response_time&#34;)
+    # median response time
+    custom_med_latency = get_prometheus_metric(metric_name=&#34;median_latency&#34;, mode=&#34;NETWORK&#34;, custom=True, hh=hh, mm=mm)
+    custom_med_latency = MetricRangeDataFrame(custom_med_latency)
+    custom_med_latency.insert(0, &#39;metric&#39;, &#34;median_latency&#34;)
+    # 95th percentile latency
+    custom_95_latency = get_prometheus_metric(metric_name=&#34;latency95&#34;, mode=&#34;NETWORK&#34;, custom=True, hh=hh, mm=mm)
+    custom_95_latency = MetricRangeDataFrame(custom_95_latency)
+    custom_95_latency.insert(0, &#39;metric&#39;, &#34;latency95&#34;)
+    # convert to dataframe
+    metrics_data = resource_metrics_data
+    metric_df = MetricRangeDataFrame(metrics_data)
+    custom_metrics_df = pd.concat(
+        [custom_cpu, custom_memory, custom_rps, custom_latency, custom_med_latency, custom_95_latency])
+    # write to csv file
+    metric_df.to_csv(rf&#34;{folder}\metrics_{iteration}.csv&#34;)
+    custom_metrics_df.to_csv(rf&#34;{folder}\custom_metrics_{iteration}.csv&#34;)
+
+
+def get_status(pod: str) -&gt; (list, list):
+    &#34;&#34;&#34;Returns the current parameter and target status.
+
+    Args:
+      pod: name of the pod
+      pod: str) -&gt; (list: 
+      list: 
+
+    Returns:
+      current parameter and target status
+
+    &#34;&#34;&#34;
+    # init
+    prom_res = PrometheusConnect(url=os.getenv(f&#39;PROMETHEUS_RESOURCES_HOST&#39;), disable_ssl=True)
+    prom_net = PrometheusConnect(url=os.getenv(f&#39;PROMETHEUS_NETWORK_HOST&#39;), disable_ssl=True)
+    # custom queries
+    cpu_usage_query = &#39;(sum(rate(container_cpu_usage_seconds_total{namespace=&#34;teastore&#34;, container!=&#34;&#34;}[1m])) by (pod, &#39; \
+                      &#39;container) /sum(container_spec_cpu_quota{namespace=&#34;teastore&#34;, &#39; \
+                      &#39;container!=&#34;&#34;}/container_spec_cpu_period{namespace=&#34;teastore&#34;, container!=&#34;&#34;}) by (pod, &#39; \
+                      &#39;container) )*100&#39;
+    memory_usage_query = &#39;round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace=&#34;teastore&#34;,pod=~&#34;.*&#34; }[&#39; \
+                         &#39;1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)&#39;
+    rps_query = &#39;sum(irate(request_total{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;}[1m]))&#39;
+    response_time = &#39;sum(response_latency_ms_sum{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;})/sum(&#39; \
+                    &#39;response_latency_ms_count{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;})&#39;
+    # target metrics
+    cpu_usage = 0.0
+    memory_usage = 0.0
+    latency = 0.0
+    # get cpu
+    cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage_query))
+    try:
+        if &#39;pod&#39; in cpu_usage_data.columns:
+            cpu_usage_data[&#34;pod&#34;] = cpu_usage_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+            cpu_usage = cpu_usage_data.loc[(cpu_usage_data[&#39;pod&#39;] == pod)].at[0, &#39;value&#39;]
+        elif not cpu_usage_data.empty:
+            cpu_usage = cpu_usage_data.at[0, &#39;value&#39;]
+    except Exception as err:
+        logging.error(f&#34;Error while gathering cpu usage: {err}&#34;)
+        print(cpu_usage_data)
+    # get memory
+    try:
+        memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage_query))
+        if &#39;pod&#39; in memory_usage_data.columns:
+            memory_usage_data[&#34;pod&#34;] = memory_usage_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+            memory_usage = memory_usage_data.loc[(memory_usage_data[&#39;pod&#39;] == pod)].at[0, &#39;value&#39;]
+        else:
+            memory_usage = memory_usage_data.at[0, &#39;value&#39;]
+    except Exception as err:
+        logging.error(f&#34;Error while gathering memory usage: {err}&#34;)
+    # get average response time
+    try:
+        latency_data = MetricSnapshotDataFrame(prom_net.custom_query(response_time))
+        if not latency_data.empty:
+            latency = latency_data.at[0, &#39;value&#39;]
+        else:
+            raise Exception
+    except Exception as err:
+        logging.error(f&#34;Error while gathering latency: {err}&#34;)
+    targets = [float(cpu_usage), float(memory_usage), float(latency)]
+    # parameter metrics
+    # cpu
+    cpu_limit_data = MetricSnapshotDataFrame(
+        prom_res.get_current_metric_value(&#34;kube_pod_container_resource_limits_cpu_cores&#34;))
+    # memory
+    memory_limit_data = MetricSnapshotDataFrame(
+        prom_res.get_current_metric_value(&#34;kube_pod_container_resource_limits_memory_bytes&#34;))
+    # number of pods
+    number_of_pods_data = MetricSnapshotDataFrame(prom_res.get_current_metric_value(&#34;kube_deployment_spec_replicas&#34;))
+    # rps
+    rps_data = MetricSnapshotDataFrame(prom_net.custom_query(rps_query))
+    # filter
+    cpu_limit = 0
+    memory_limit = 0
+    number_of_pods = 0
+    rps = 0.0
+    try:
+        cpu_limit_data[&#34;pod&#34;] = cpu_limit_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+        memory_limit_data[&#34;pod&#34;] = memory_limit_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+        number_of_pods_data[&#34;pod&#34;] = number_of_pods_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+        cpu_limit = cpu_limit_data.loc[(cpu_limit_data[&#39;pod&#39;] == pod)][&#39;value&#39;].iloc[0]
+        memory_limit = memory_limit_data.loc[(memory_limit_data[&#39;pod&#39;] == pod)][&#39;value&#39;].iloc[0]
+        number_of_pods = \
+            number_of_pods_data.loc[(number_of_pods_data[&#39;deployment&#39;] == f&#34;teastore-{pod}&#34;)][&#39;value&#39;].iloc[0]
+        rps = rps_data.at[0, &#39;value&#39;]
+    except Exception as err:
+        logging.error(f&#34;Error while gathering parameter: {err}&#34;)
+    parameters = [int(float(cpu_limit) * 1000), int(float(memory_limit) / 1048576), int(number_of_pods), float(rps)]
+    return parameters, targets
+
+
+def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm: int) -&gt; list:
+    &#34;&#34;&#34;Gets a given metric from prometheus in a given timeframe.
+
+    Args:
+      mm: minutes
+      hh: hours
+      custom: if custom query should be used
+      mode: which prometheus to use
+      metric_name: name of the metric
+      metric_name: str: 
+      mode: str: 
+      custom: bool: 
+      hh: int: 
+      mm: int: 
+
+    Returns:
+      metric
+
+    &#34;&#34;&#34;
+    # init
+    prom = PrometheusConnect(url=os.getenv(f&#39;PROMETHEUS_{mode}_HOST&#39;), disable_ssl=True)
+    start_time = (dt.datetime.now() - dt.timedelta(hours=hh, minutes=mm))
+    # custom queries
+    cpu_usage = &#39;(sum(rate(container_cpu_usage_seconds_total{namespace=&#34;teastore&#34;, container!=&#34;&#34;}[1m])) by (pod, &#39; \
+                &#39;container) /sum(container_spec_cpu_quota{namespace=&#34;teastore&#34;, &#39; \
+                &#39;container!=&#34;&#34;}/container_spec_cpu_period{namespace=&#34;teastore&#34;, container!=&#34;&#34;}) by (pod, &#39; \
+                &#39;container) )*100&#39;
+    memory_usage = &#39;round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace=&#34;teastore&#34;,pod=~&#34;.*&#34; }[&#39; \
+                   &#39;1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)&#39;
+    rps = &#39;sum(irate(request_total{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;}[1m]))&#39;
+    response_time = &#39;sum(response_latency_ms_sum{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;})/sum(&#39; \
+                    &#39;response_latency_ms_count{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;})&#39;
+    median_latency = &#39;histogram_quantile(0.5, sum(irate(response_latency_ms_bucket{deployment=&#34;teastore-webui&#34;, &#39; \
+                     &#39;direction=&#34;inbound&#34;}[1m])) by (le, replicaset)) &#39;
+    latency95 = &#39;histogram_quantile(0.95, sum(irate(response_latency_ms_bucket{deployment=&#34;teastore-webui&#34;, &#39; \
+                &#39;direction=&#34;inbound&#34;}[1m])) by (le, replicaset)) &#39;
+    query = None
+    # get data
+    if custom:
+        if metric_name == &#34;cpu&#34;:
+            query = cpu_usage
+        elif metric_name == &#34;memory&#34;:
+            query = memory_usage
+        elif metric_name == &#34;rps&#34;:
+            query = rps
+        elif metric_name == &#34;response_time&#34;:
+            query = response_time
+        elif metric_name == &#34;median_latency&#34;:
+            query = median_latency
+        elif metric_name == &#34;latency95&#34;:
+            query = latency95
+        else:
+            logging.error(&#34;Accepts cpu, memory or rps but received &#34; + metric_name)
+        metric_data = prom.custom_query_range(
+            query=query,
+            start_time=start_time,
+            end_time=dt.datetime.now(),
+            step=&#34;10&#34;)
+    else:
+        metric_data = prom.get_metric_range_data(
+            metric_name=metric_name,
+            start_time=start_time,
+            end_time=dt.datetime.now(),
+        )
+    return metric_data
+
+
+def evaluation(load: int, spawn_rate: int, hh: int, mm: int, load_testing: str) -&gt; None:
+    &#34;&#34;&#34;Start a evaluation run and gathers its metrics.
+
+    Args:
+      load: maximum number of users/rps
+      spawn_rate: only used with locust
+      hh: hours
+      mm: minutes
+      load_testing: Locust or JMeter
+      load: int: 
+      spawn_rate: int: 
+      hh: int: 
+      mm: int: 
+      load_testing: str: 
+
+    Returns:
+      none
+
+    &#34;&#34;&#34;
+    # init date
+    date = dt.datetime.now().strftime(&#34;%Y%m%d-%H%M%S&#34;)
+    # create folder
+    folder_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;raw&#34;, f&#34;{date}_eval&#34;)
+    os.mkdir(folder_path)
+    # create deployments
+    k8s.k8s_create_teastore()
+    k8s.deploy_autoscaler_docker()
+    # config
+    k8s.set_prometheus_info()
+    config_env(
+        host=os.getenv(&#34;HOST&#34;),
+        node_port=k8s.k8s_get_app_port(),
+        date=date,
+        load=load,
+        spawn_rate=spawn_rate,
+        HH=hh,
+        MM=mm
+    )
+    # evaluation
+    logging.info(&#34;Starting Evaluation.&#34;)
+    logging.info(&#34;Start Locust.&#34;)
+    if load_testing == &#34;Locust&#34;:
+        start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True, users=load,
+                     spawn_rate=spawn_rate, hh=hh, mm=mm)
+    elif load_testing == &#34;JMeter&#34;:
+        start_jmeter(0, date, False, load)
+    # get prometheus data
+    time.sleep(30)
+    get_prometheus_data(folder=folder_path, iteration=0, hh=hh, mm=mm)
+    # clean up
+    k8s.delete_autoscaler_docker()
+    k8s.k8s_delete_namespace()
+    logging.info(&#34;Finished Benchmark.&#34;)
+
+
+def benchmark(name: str, load: list, spawn_rate: int, expressions: int,
+              step: int, run: int, run_max: int, custom_shape: bool, history: bool,
+              sample: bool, locust: bool) -&gt; None:
+    &#34;&#34;&#34;Starts the benchmark.
+
+    Args:
+      history: enable locust history
+      custom_shape: if using custom load shape
+      run_max: number of runs
+      run: current run
+      expressions: number of expressions per parameter
+      step: size of step
+      name: name of ms
+      load: number of users or rps
+      spawn_rate: spawn rate
+      sample: enable sample run
+      locust: use locust or jmeter
+      name: str: 
+      load: list: 
+      spawn_rate: int: 
+      expressions: int: 
+      step: int: 
+      run: int: 
+      run_max: int: 
+      custom_shape: bool: 
+      history: bool: 
+      sample: bool: 
+      locust: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # init date
+    # read new environment data
+    load_dotenv(override=True)
+    date = dt.datetime.now().strftime(&#34;%Y%m%d-%H%M%S&#34;)
+    # create folder
+    folder_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;raw&#34;, date)
+    os.mkdir(folder_path)
+    k8s.k8s_create_teastore()
+    # config
+    set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;LAST_DATA&#34;, value_to_set=date)
+    k8s.set_prometheus_info()
+    config_env(app_name=name,
+               host=os.getenv(&#34;HOST&#34;),
+               node_port=k8s.k8s_get_app_port(),
+               date=date,
+               load=load,
+               spawn_rate=spawn_rate
+               )
+    iteration = 1
+    scale_only = &#34;webui&#34;
+    # get variation
+    variations = parameter_variation_namespace(expressions, step, sample, load)
+    c_max, m_max, p_max, l_max = variations[os.getenv(&#34;UI&#34;)].shape
+
+    # benchmark
+    logging.info(&#34;Starting Benchmark.&#34;)
+    for c in range(0, c_max):
+        for m in range(0, m_max):
+            for p in range(0, p_max):
+                for l in range(0, l_max):
+                    logging.info(
+                        f&#34;Iteration: {iteration}/{c_max * m_max * p_max} run: {run}/ {run_max}&#34;)
+                    # for every pod in deployment
+                    for pod in variations.keys():
+                        # check that pod is scalable
+                        if scale_only in pod:
+                            # get parameter variation
+                            v = variations[pod][c, m, p, l]
+                            # check if variation is empty
+                            if v[0] == 0 or v[1] == 0 or v[2] == 0:
+                                break
+                            logging.info(f&#34;{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}&#34;)
+                            # update resources of pod
+                            k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
+                                                      memory_limit=int(v[1]),
+                                                      number_of_replicas=int(v[2]), replace=True)
+                            # wait for deployment
+                            time.sleep(90)
+                            while not k8s.check_teastore_health():
+                                time.sleep(10)
+                    # start load test
+                    logging.info(&#34;Start Load.&#34;)
+                    if locust:
+                        start_locust(iteration=iteration, folder=folder_path, history=history,
+                                     custom_shape=custom_shape, users=l, spawn_rate=spawn_rate, hh=int(os.getenv(&#34;HH&#34;)),
+                                     mm=int(os.getenv(&#34;MM&#34;)))
+                    else:
+                        start_jmeter(iteration, date, True, l)
+                    # get prometheus data
+                    get_prometheus_data(folder=folder_path, iteration=iteration, hh=int(os.getenv(&#34;HH&#34;)),
+                                        mm=int(os.getenv(&#34;MM&#34;)))
+                    iteration = iteration + 1
+    k8s.k8s_delete_namespace()
+    logging.info(&#34;Finished Benchmark.&#34;)
+
+
+def parameter_variation_namespace(expressions: int, step: int, sample: bool, load: list) -&gt; dict:
+    &#34;&#34;&#34;Generates the parameter variation matrix for every deployment in a namespace with given values.
+
+    Args:
+      load: load
+      expressions: number of expressions
+      step: size of step
+      sample: enable sample run
+      expressions: int: 
+      step: int: 
+      sample: bool: 
+      load: list: 
+
+    Returns:
+      dict of parameter variation matrices
+
+    &#34;&#34;&#34;
+    resource_requests = k8s.get_resource_requests()
+    variation = dict()
+    for p in resource_requests.keys():
+        if p == os.getenv(&#34;SCALE_POD&#34;):
+            logging.debug(&#34;Pod: &#34; + p)
+            # cpu
+            p_cpu_request = int(resource_requests[p][&#34;cpu&#34;].split(&#34;m&#34;)[0])
+            p_cpu_limit = p_cpu_request + (expressions * step)
+            logging.debug(f&#34;cpu request: {p_cpu_request}m - cpu limit: {p_cpu_limit}m&#34;)
+            # memory
+            p_memory_request = int(resource_requests[p][&#34;memory&#34;].split(&#34;Mi&#34;)[0])
+            p_memory_limit = p_memory_request + (expressions * step)
+            logging.debug(f&#34;memory request: {p_memory_request}Mi - memory limit: {p_memory_limit}Mi&#34;)
+            p_pod_limit = expressions
+            # parameter variation matrix
+            variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
+                                               p_memory_limit, 1, p_pod_limit, step, invert=False, sample=sample,
+                                               save=True, load=load)
+    return variation
+
+
+def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int,
+                        pods_request: int,
+                        pods_limit: int, step: int, invert: bool, sample: bool, save: bool, load: list) -&gt; np.array:
+    &#34;&#34;&#34;Calculates a matrix mit all combination of the parameters.
+    :return: parameter variation matrix
+
+    Args:
+      pod: str: 
+      cpu_request: int: 
+      cpu_limit: int: 
+      memory_request: int: 
+      memory_limit: int: 
+      pods_request: int: 
+      pods_limit: int: 
+      step: int: 
+      invert: bool: 
+      sample: bool: 
+      save: bool: 
+      load: list: 
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init parameters: (start, end, step)
+    cpu = np.arange(cpu_request, cpu_limit, step, np.int32)
+    memory = np.arange(memory_request, memory_limit, step, np.int32)
+    pods = np.arange(pods_request, pods_limit + 1, 1, np.int32)
+    load = np.array(load, np.int32)
+    if invert:
+        cpu = np.flip(cpu)
+        memory = np.flip(memory)
+        pods = np.flip(pods)
+    iterations = np.arange(1, (cpu.size * memory.size * pods.size) + 1, 1).tolist()
+    if sample:
+        cpu = cpu[(cpu == cpu.min()) | (cpu == np.median(cpu)) | (cpu == cpu.max())]
+        memory = memory[
+            (memory == memory.min()) | (memory == np.median(memory)) | (memory == memory.max())]
+    # init dataframe
+    df = pd.DataFrame(index=iterations, columns=[&#34;CPU&#34;, &#34;Memory&#34;, &#34;Pods&#34;])
+    csv_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;raw&#34;, os.getenv(&#34;LAST_DATA&#34;), f&#34;{pod}_variation.csv&#34;)
+    # init matrix
+    variation_matrix = np.zeros((cpu.size, memory.size, pods.size, load.size),
+                                dtype=[(&#39;cpu&#39;, np.int32), (&#39;memory&#39;, np.int32), (&#39;pods&#39;, np.int32), (&#39;load&#39;, np.int32)])
+    # fill matrix
+    i = 1
+    for c in range(0, cpu.size):
+        for m in range(0, memory.size):
+            for p in range(0, pods.size):
+                for l in range(0, load.size):
+                    if sample:
+                        if m != c:
+                            print(&#34;here&#34;)
+                            break
+                    variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p], load[l])
+                    # fill dataframe
+                    df.at[i, &#39;CPU&#39;] = cpu[c]
+                    df.at[i, &#39;Memory&#39;] = memory[m]
+                    df.at[i, &#39;Pods&#39;] = pods[p]
+                    df.at[i, &#39;RPS&#39;] = load[l]
+                    i = i + 1
+    logging.debug(df.head())
+    if save:
+        # save dataframe to csv
+        if not os.path.exists(csv_path):
+            df.to_csv(csv_path)
+    return variation_matrix
+
+
+def parameter_variation_array(cpu_limits: list, memory_limits: list, pod_limits: list, rps: float) -&gt; np.array:
+    &#34;&#34;&#34;Creates a parameter variation matrix given discrete values.
+
+    Args:
+      cpu_limits: list of cpu limits
+      memory_limits: list of memory limits
+      pod_limits: list of pod limits
+      rps: current load
+      cpu_limits: list: 
+      memory_limits: list: 
+      pod_limits: list: 
+      rps: float: 
+
+    Returns:
+      parameter variation matrix
+
+    &#34;&#34;&#34;
+    cpu = np.array(cpu_limits, dtype=np.int32)
+    memory = np.array(memory_limits, dtype=np.int32)
+    pods = np.array(pod_limits, dtype=np.int32)
+    variation_matrix = np.zeros((cpu.size, memory.size, pods.size, 1),
+                                dtype=[(&#39;cpu&#39;, np.int32), (&#39;memory&#39;, np.int32), (&#39;pods&#39;, np.int32),
+                                       (&#39;load&#39;, np.float64)])
+    for c in range(0, cpu.size):
+        for m in range(0, memory.size):
+            for p in range(0, pods.size):
+                variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p], rps)
+    return variation_matrix
+
+
+def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool, users: int, spawn_rate: int, hh: int,
+                 mm: int) -&gt; None:
+    &#34;&#34;&#34;Start a locust load test.
+
+    Args:
+      spawn_rate: user spawn rate
+      users: number of users
+      custom_shape: use custom load shape
+      iteration: number of current iteration
+      folder: name of folder
+      history: enables stats
+      hh: duration hours
+      mm: duration minutes
+      iteration: int: 
+      folder: str: 
+      history: bool: 
+      custom_shape: bool: 
+      users: int: 
+      spawn_rate: int: 
+      hh: int: 
+      mm: int: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    load_dotenv(override=True)
+    # setup Environment and Runner
+
+    env = Environment(user_classes=[UserBehavior], shape_class=DoubleWave,
+                      host=f&#34;http://{os.getenv(&#39;HOST&#39;)}:{os.getenv(&#39;NODE_PORT&#39;)}/{os.getenv(&#39;ROUTE&#39;)}&#34;)
+    env.create_local_runner()
+    # CSV writer
+    stats_path = os.path.join(folder, f&#34;locust_{iteration}&#34;)
+    if history:
+        csv_writer = StatsCSVFileWriter(
+            environment=env,
+            base_filepath=stats_path,
+            full_history=True,
+            percentiles_to_report=[90.0, 50.0]
+        )
+        # start a greenlet that save current stats to history
+        gevent.spawn(stats_history, env.runner)
+        # spawn csv writer
+        gevent.spawn(csv_writer)
+    # start the test
+    if custom_shape:
+        env.runner.start_shape()
+    else:
+        env.runner.start(user_count=users, spawn_rate=spawn_rate)
+    # stop the runner in a given time
+    time_in_seconds = ((hh * 60 * 60) + mm * 60)
+    gevent.spawn_later(time_in_seconds, lambda: env.runner.quit())
+    # wait for the greenlets
+    env.runner.greenlet.join()
+
+
+def get_persistence_data() -&gt; None:
+    &#34;&#34;&#34;Gets persistence data from the TeaStore.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    base_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;loadtest&#34;)
+    persistence_url = &#34;http://localhost:30090/tools.descartes.teastore.persistence/rest&#34;
+    # get category ids
+    categories_request = requests.get(persistence_url + &#34;/categories&#34;).json()
+    tmp_categories = list()
+    for c in categories_request:
+        tmp_categories.append(c[&#34;id&#34;])
+    with open(os.path.join(base_path, &#34;categories.json&#34;), &#39;x&#39;) as outfile:
+        json.dump(tmp_categories, outfile)
+    # get product ids
+    products_request = requests.get(persistence_url + &#34;/products&#34;).json()
+    tmp_products = list()
+    for p in products_request:
+        tmp_products.append(p[&#34;id&#34;])
+    with open(os.path.join(base_path, &#34;products.json&#34;), &#39;x&#39;) as outfile:
+        json.dump(tmp_products, outfile)
+    # get users
+    users = requests.get(persistence_url + &#34;/users&#34;).json()
+    with open(os.path.join(base_path, &#34;users.json&#34;), &#39;x&#39;) as outfile:
+        json.dump(users, outfile)
+
+
+def start(name: str, load: list, spawn_rate: int, expressions: int, step: int, runs: int,
+          custom_shape: bool, history: bool, sample: bool, locust: bool) -&gt; None:
+    &#34;&#34;&#34;Starts the generation of a dataset.
+
+    Args:
+      name: application name
+      load: maximum load
+      spawn_rate: only used with Locust
+      expressions: number of expressions per parameter
+      step: step size
+      runs: number of stability runs
+      custom_shape: if custom shape should be used
+      history: only used with locust
+      sample: if a sample run should be executed
+      locust: if Locust is used
+      name: str: 
+      load: list: 
+      spawn_rate: int: 
+      expressions: int: 
+      step: int: 
+      runs: int: 
+      custom_shape: bool: 
+      history: bool: 
+      sample: bool: 
+      locust: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    date = dt.datetime.now().strftime(&#34;%Y%m%d-%H%M%S&#34;)
+    set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;FIRST_DATA&#34;, value_to_set=date)
+    for i in range(1, runs + 1):
+        benchmark(name, load, spawn_rate, expressions, step, i, runs, custom_shape, history, sample,
+                  locust)
+
+
+def start_jmeter(iteration: int, date: str, evaluation: bool, rps: int):
+    &#34;&#34;&#34;Stats a jMeter run.
+
+    Args:
+      iteration: current iteration
+      date: current date
+      evaluation: if evaluation is used
+      rps: requests per second
+      iteration: int: 
+      date: str: 
+      evaluation: bool: 
+      rps: int: 
+
+    Returns:
+
+    &#34;&#34;&#34;
+    work_directory = os.getcwd()
+    jmeter_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;loadtest&#34;, &#34;jmeter&#34;, &#34;bin&#34;)
+    os.chdir(jmeter_path)
+    if not evaluation:
+        cmd = [&#34;java&#34;, &#34;-jar&#34;, &#34;ApacheJMeter.jar&#34;, &#34;-t&#34;, &#34;teastore_browse_rps.jmx&#34;, &#34;-Jhostname&#34;, os.getenv(&#34;HOST&#34;),
+               &#34;-Jport&#34;, os.getenv(&#39;NODE_PORT&#39;), &#34;-l&#34;, f&#34;{date}_{iteration}.log&#34;,
+               &#39;-Jload_profile&#39;, f&#39;const({rps},{int(os.getenv(&#34;MM&#34;)) * 60}s)&#39;, &#34;-n&#34;]
+    else:
+        # f&#39;-Jload_profile=step(2,{rps},2,180s) const({rps},240s) step({rps},2,2,180s)&#39;
+        cmd = [&#34;java&#34;, &#34;-jar&#34;, &#34;ApacheJMeter.jar&#34;, &#34;-t&#34;, &#34;teastore_browse_rps.jmx&#34;, &#34;-Jhostname&#34;, os.getenv(&#34;HOST&#34;),
+               &#34;-Jport&#34;, os.getenv(&#39;NODE_PORT&#39;), &#34;-l&#34;, f&#34;{date}_{iteration}.log&#34;,
+               &#34;-Jjmeterengine.force.system.exit=true&#34;, &#34;-n&#34;]
+    logging.info(cmd)
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True) as p:
+        for line in p.stdout:
+            print(line, end=&#39;&#39;)  # process line here
+    os.chdir(work_directory)
+
+
+def change_build(alg: str, hpa: bool, weights: str) -&gt; None:
+    &#34;&#34;&#34;Changes the autoscaler build to the given parameters and builds the docker image.
+
+    Args:
+      alg: which estimator to use
+      hpa: if only horizontal scaling is enabled
+      weights: mcdm weight distribution
+      alg: str: 
+      hpa: bool: 
+      weights: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # change environment variables
+    if alg in [&#34;svr&#34;, &#34;neural_network&#34;, &#34;linear_b&#34;]:
+        set_key(os.path.join(os.getcwd(), &#34;prod.env&#34;), &#34;ALGORITHM&#34;, alg)
+        set_key(os.path.join(os.getcwd(), &#34;.env&#34;), &#34;ALGORITHM&#34;, alg)
+    if hpa:
+        set_key(os.path.join(os.getcwd(), &#34;prod.env&#34;), &#34;HPA&#34;, &#34;True&#34;)
+        set_key(os.path.join(os.getcwd(), &#34;.env&#34;), &#34;HPA&#34;, &#34;True&#34;)
+    else:
+        set_key(os.path.join(os.getcwd(), &#34;prod.env&#34;), &#34;HPA&#34;, &#34;False&#34;)
+        set_key(os.path.join(os.getcwd(), &#34;.env&#34;), &#34;HPA&#34;, &#34;False&#34;)
+    # set weights
+    set_key(os.path.join(os.getcwd(), &#34;prod.env&#34;), &#34;WEIGHTS&#34;, weights)
+    set_key(os.path.join(os.getcwd(), &#34;.env&#34;), &#34;WEIGHTS&#34;, weights)
+    # build docker image
+    k8s.buil_autoscaler_docker()
+    logging.info(f&#34;Changed build. alg: {alg} - hpa:{hpa} - w: {weights}&#34;)</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-functions">Functions</h2>
+<dl>
+<dt id="app.benchmark.benchmark"><code class="name flex">
+<span>def <span class="ident">benchmark</span></span>(<span>name: str, load: list, spawn_rate: int, expressions: int, step: int, run: int, run_max: int, custom_shape: bool, history: bool, sample: bool, locust: bool) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Starts the benchmark.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>history</code></strong></dt>
+<dd>enable locust history</dd>
+<dt><strong><code>custom_shape</code></strong></dt>
+<dd>if using custom load shape</dd>
+<dt><strong><code>run_max</code></strong></dt>
+<dd>number of runs</dd>
+<dt><strong><code>run</code></strong></dt>
+<dd>current run</dd>
+<dt><strong><code>expressions</code></strong></dt>
+<dd>number of expressions per parameter</dd>
+<dt><strong><code>step</code></strong></dt>
+<dd>size of step</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>name of ms</dd>
+<dt><strong><code>load</code></strong></dt>
+<dd>number of users or rps</dd>
+<dt><strong><code>spawn_rate</code></strong></dt>
+<dd>spawn rate</dd>
+<dt><strong><code>sample</code></strong></dt>
+<dd>enable sample run</dd>
+<dt><strong><code>locust</code></strong></dt>
+<dd>use locust or jmeter</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>load</code></strong></dt>
+<dd>list: </dd>
+<dt><strong><code>spawn_rate</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>expressions</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>step</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>run</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>run_max</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>custom_shape</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>history</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>sample</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>locust</code></strong></dt>
+<dd>bool: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def benchmark(name: str, load: list, spawn_rate: int, expressions: int,
+              step: int, run: int, run_max: int, custom_shape: bool, history: bool,
+              sample: bool, locust: bool) -&gt; None:
+    &#34;&#34;&#34;Starts the benchmark.
+
+    Args:
+      history: enable locust history
+      custom_shape: if using custom load shape
+      run_max: number of runs
+      run: current run
+      expressions: number of expressions per parameter
+      step: size of step
+      name: name of ms
+      load: number of users or rps
+      spawn_rate: spawn rate
+      sample: enable sample run
+      locust: use locust or jmeter
+      name: str: 
+      load: list: 
+      spawn_rate: int: 
+      expressions: int: 
+      step: int: 
+      run: int: 
+      run_max: int: 
+      custom_shape: bool: 
+      history: bool: 
+      sample: bool: 
+      locust: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # init date
+    # read new environment data
+    load_dotenv(override=True)
+    date = dt.datetime.now().strftime(&#34;%Y%m%d-%H%M%S&#34;)
+    # create folder
+    folder_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;raw&#34;, date)
+    os.mkdir(folder_path)
+    k8s.k8s_create_teastore()
+    # config
+    set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;LAST_DATA&#34;, value_to_set=date)
+    k8s.set_prometheus_info()
+    config_env(app_name=name,
+               host=os.getenv(&#34;HOST&#34;),
+               node_port=k8s.k8s_get_app_port(),
+               date=date,
+               load=load,
+               spawn_rate=spawn_rate
+               )
+    iteration = 1
+    scale_only = &#34;webui&#34;
+    # get variation
+    variations = parameter_variation_namespace(expressions, step, sample, load)
+    c_max, m_max, p_max, l_max = variations[os.getenv(&#34;UI&#34;)].shape
+
+    # benchmark
+    logging.info(&#34;Starting Benchmark.&#34;)
+    for c in range(0, c_max):
+        for m in range(0, m_max):
+            for p in range(0, p_max):
+                for l in range(0, l_max):
+                    logging.info(
+                        f&#34;Iteration: {iteration}/{c_max * m_max * p_max} run: {run}/ {run_max}&#34;)
+                    # for every pod in deployment
+                    for pod in variations.keys():
+                        # check that pod is scalable
+                        if scale_only in pod:
+                            # get parameter variation
+                            v = variations[pod][c, m, p, l]
+                            # check if variation is empty
+                            if v[0] == 0 or v[1] == 0 or v[2] == 0:
+                                break
+                            logging.info(f&#34;{pod}: cpu: {int(v[0])}m - memory: {int(v[1])}Mi - # pods: {int(v[2])}&#34;)
+                            # update resources of pod
+                            k8s.k8s_update_deployment(deployment_name=pod, cpu_limit=int(v[0]),
+                                                      memory_limit=int(v[1]),
+                                                      number_of_replicas=int(v[2]), replace=True)
+                            # wait for deployment
+                            time.sleep(90)
+                            while not k8s.check_teastore_health():
+                                time.sleep(10)
+                    # start load test
+                    logging.info(&#34;Start Load.&#34;)
+                    if locust:
+                        start_locust(iteration=iteration, folder=folder_path, history=history,
+                                     custom_shape=custom_shape, users=l, spawn_rate=spawn_rate, hh=int(os.getenv(&#34;HH&#34;)),
+                                     mm=int(os.getenv(&#34;MM&#34;)))
+                    else:
+                        start_jmeter(iteration, date, True, l)
+                    # get prometheus data
+                    get_prometheus_data(folder=folder_path, iteration=iteration, hh=int(os.getenv(&#34;HH&#34;)),
+                                        mm=int(os.getenv(&#34;MM&#34;)))
+                    iteration = iteration + 1
+    k8s.k8s_delete_namespace()
+    logging.info(&#34;Finished Benchmark.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.change_build"><code class="name flex">
+<span>def <span class="ident">change_build</span></span>(<span>alg: str, hpa: bool, weights: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Changes the autoscaler build to the given parameters and builds the docker image.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>alg</code></strong></dt>
+<dd>which estimator to use</dd>
+<dt><strong><code>hpa</code></strong></dt>
+<dd>if only horizontal scaling is enabled</dd>
+<dt><strong><code>weights</code></strong></dt>
+<dd>mcdm weight distribution</dd>
+<dt><strong><code>alg</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>hpa</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>weights</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def change_build(alg: str, hpa: bool, weights: str) -&gt; None:
+    &#34;&#34;&#34;Changes the autoscaler build to the given parameters and builds the docker image.
+
+    Args:
+      alg: which estimator to use
+      hpa: if only horizontal scaling is enabled
+      weights: mcdm weight distribution
+      alg: str: 
+      hpa: bool: 
+      weights: str: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # change environment variables
+    if alg in [&#34;svr&#34;, &#34;neural_network&#34;, &#34;linear_b&#34;]:
+        set_key(os.path.join(os.getcwd(), &#34;prod.env&#34;), &#34;ALGORITHM&#34;, alg)
+        set_key(os.path.join(os.getcwd(), &#34;.env&#34;), &#34;ALGORITHM&#34;, alg)
+    if hpa:
+        set_key(os.path.join(os.getcwd(), &#34;prod.env&#34;), &#34;HPA&#34;, &#34;True&#34;)
+        set_key(os.path.join(os.getcwd(), &#34;.env&#34;), &#34;HPA&#34;, &#34;True&#34;)
+    else:
+        set_key(os.path.join(os.getcwd(), &#34;prod.env&#34;), &#34;HPA&#34;, &#34;False&#34;)
+        set_key(os.path.join(os.getcwd(), &#34;.env&#34;), &#34;HPA&#34;, &#34;False&#34;)
+    # set weights
+    set_key(os.path.join(os.getcwd(), &#34;prod.env&#34;), &#34;WEIGHTS&#34;, weights)
+    set_key(os.path.join(os.getcwd(), &#34;.env&#34;), &#34;WEIGHTS&#34;, weights)
+    # build docker image
+    k8s.buil_autoscaler_docker()
+    logging.info(f&#34;Changed build. alg: {alg} - hpa:{hpa} - w: {weights}&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.config_env"><code class="name flex">
+<span>def <span class="ident">config_env</span></span>(<span>**kwargs) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Configures the environment file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>kwargs</code></strong></dt>
+<dd>keys and values to be set.</dd>
+<dt><strong><code>**kwargs</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def config_env(**kwargs) -&gt; None:
+    &#34;&#34;&#34;Configures the environment file.
+
+    Args:
+      kwargs: keys and values to be set.
+      **kwargs: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    arguments = locals()
+    env_file = os.path.join(os.getcwd(), &#34;.env&#34;)
+    for i in arguments[&#34;kwargs&#34;].keys():
+        key = str(i).upper()
+        value = str(arguments[&#34;kwargs&#34;][i])
+        set_key(dotenv_path=env_file, key_to_set=key, value_to_set=value)</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.evaluation"><code class="name flex">
+<span>def <span class="ident">evaluation</span></span>(<span>load: int, spawn_rate: int, hh: int, mm: int, load_testing: str) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Start a evaluation run and gathers its metrics.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>load</code></strong></dt>
+<dd>maximum number of users/rps</dd>
+<dt><strong><code>spawn_rate</code></strong></dt>
+<dd>only used with locust</dd>
+<dt><strong><code>hh</code></strong></dt>
+<dd>hours</dd>
+<dt><strong><code>mm</code></strong></dt>
+<dd>minutes</dd>
+<dt><strong><code>load_testing</code></strong></dt>
+<dd>Locust or JMeter</dd>
+<dt><strong><code>load</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>spawn_rate</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>hh</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>mm</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>load_testing</code></strong></dt>
+<dd>str: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>none</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def evaluation(load: int, spawn_rate: int, hh: int, mm: int, load_testing: str) -&gt; None:
+    &#34;&#34;&#34;Start a evaluation run and gathers its metrics.
+
+    Args:
+      load: maximum number of users/rps
+      spawn_rate: only used with locust
+      hh: hours
+      mm: minutes
+      load_testing: Locust or JMeter
+      load: int: 
+      spawn_rate: int: 
+      hh: int: 
+      mm: int: 
+      load_testing: str: 
+
+    Returns:
+      none
+
+    &#34;&#34;&#34;
+    # init date
+    date = dt.datetime.now().strftime(&#34;%Y%m%d-%H%M%S&#34;)
+    # create folder
+    folder_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;raw&#34;, f&#34;{date}_eval&#34;)
+    os.mkdir(folder_path)
+    # create deployments
+    k8s.k8s_create_teastore()
+    k8s.deploy_autoscaler_docker()
+    # config
+    k8s.set_prometheus_info()
+    config_env(
+        host=os.getenv(&#34;HOST&#34;),
+        node_port=k8s.k8s_get_app_port(),
+        date=date,
+        load=load,
+        spawn_rate=spawn_rate,
+        HH=hh,
+        MM=mm
+    )
+    # evaluation
+    logging.info(&#34;Starting Evaluation.&#34;)
+    logging.info(&#34;Start Locust.&#34;)
+    if load_testing == &#34;Locust&#34;:
+        start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True, users=load,
+                     spawn_rate=spawn_rate, hh=hh, mm=mm)
+    elif load_testing == &#34;JMeter&#34;:
+        start_jmeter(0, date, False, load)
+    # get prometheus data
+    time.sleep(30)
+    get_prometheus_data(folder=folder_path, iteration=0, hh=hh, mm=mm)
+    # clean up
+    k8s.delete_autoscaler_docker()
+    k8s.k8s_delete_namespace()
+    logging.info(&#34;Finished Benchmark.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.get_persistence_data"><code class="name flex">
+<span>def <span class="ident">get_persistence_data</span></span>(<span>) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets persistence data from the TeaStore.
+:return: None</p>
+<p>Args:</p>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_persistence_data() -&gt; None:
+    &#34;&#34;&#34;Gets persistence data from the TeaStore.
+    :return: None
+
+    Args:
+
+    Returns:
+
+    &#34;&#34;&#34;
+    base_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;loadtest&#34;)
+    persistence_url = &#34;http://localhost:30090/tools.descartes.teastore.persistence/rest&#34;
+    # get category ids
+    categories_request = requests.get(persistence_url + &#34;/categories&#34;).json()
+    tmp_categories = list()
+    for c in categories_request:
+        tmp_categories.append(c[&#34;id&#34;])
+    with open(os.path.join(base_path, &#34;categories.json&#34;), &#39;x&#39;) as outfile:
+        json.dump(tmp_categories, outfile)
+    # get product ids
+    products_request = requests.get(persistence_url + &#34;/products&#34;).json()
+    tmp_products = list()
+    for p in products_request:
+        tmp_products.append(p[&#34;id&#34;])
+    with open(os.path.join(base_path, &#34;products.json&#34;), &#39;x&#39;) as outfile:
+        json.dump(tmp_products, outfile)
+    # get users
+    users = requests.get(persistence_url + &#34;/users&#34;).json()
+    with open(os.path.join(base_path, &#34;users.json&#34;), &#39;x&#39;) as outfile:
+        json.dump(users, outfile)</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.get_prometheus_data"><code class="name flex">
+<span>def <span class="ident">get_prometheus_data</span></span>(<span>folder: str, iteration: int, hh: int, mm: int) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Exports metric data from prometheus to a csv file.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>mm</code></strong></dt>
+<dd>minutes</dd>
+<dt><strong><code>hh</code></strong></dt>
+<dd>hours</dd>
+<dt><strong><code>folder</code></strong></dt>
+<dd>save folder</dd>
+<dt><strong><code>iteration</code></strong></dt>
+<dd>number of current iteration</dd>
+<dt><strong><code>folder</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>iteration</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>hh</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>mm</code></strong></dt>
+<dd>int: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -&gt; None:
+    &#34;&#34;&#34;Exports metric data from prometheus to a csv file.
+
+    Args:
+      mm: minutes
+      hh: hours
+      folder: save folder
+      iteration: number of current iteration
+      folder: str: 
+      iteration: int: 
+      hh: int: 
+      mm: int: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    # metrics to export
+    resource_metrics = [
+        &#34;kube_pod_container_resource_requests_memory_bytes&#34;,
+        &#34;kube_pod_container_resource_limits_memory_bytes&#34;,
+        &#34;kube_pod_container_resource_limits_cpu_cores&#34;,
+        &#34;kube_pod_container_resource_requests_cpu_cores&#34;,
+        &#34;container_cpu_cfs_throttled_seconds_total&#34;,
+        &#34;kube_deployment_spec_replicas&#34;
+    ]
+    # get resource metric data resources
+    resource_metrics_data = get_prometheus_metric(metric_name=resource_metrics[0], mode=&#34;RESOURCES&#34;, custom=False,
+                                                  hh=hh, mm=mm)
+    for x in range(1, len(resource_metrics)):
+        resource_metrics_data = resource_metrics_data + get_prometheus_metric(metric_name=resource_metrics[x],
+                                                                              mode=&#34;RESOURCES&#34;, custom=False, hh=hh,
+                                                                              mm=mm)
+    # get custom resource metric data resources
+    # memory usage
+    custom_memory = get_prometheus_metric(metric_name=&#34;memory&#34;, mode=&#34;RESOURCES&#34;, custom=True, hh=hh, mm=mm)
+    custom_memory = MetricRangeDataFrame(custom_memory)
+    custom_memory.insert(0, &#39;metric&#39;, &#34;memory&#34;)
+    # cpu usage
+    custom_cpu = get_prometheus_metric(metric_name=&#34;cpu&#34;, mode=&#34;RESOURCES&#34;, custom=True, hh=hh, mm=mm)
+    custom_cpu = MetricRangeDataFrame(custom_cpu)
+    custom_cpu.insert(0, &#39;metric&#39;, &#34;cpu&#34;)
+    # rps
+    custom_rps = get_prometheus_metric(metric_name=&#34;rps&#34;, mode=&#34;NETWORK&#34;, custom=True, hh=hh, mm=mm)
+    custom_rps = MetricRangeDataFrame(custom_rps)
+    custom_rps.insert(0, &#39;metric&#39;, &#34;rps&#34;)
+    # average response time
+    custom_latency = get_prometheus_metric(metric_name=&#34;response_time&#34;, mode=&#34;NETWORK&#34;, custom=True, hh=hh, mm=mm)
+    custom_latency = MetricRangeDataFrame(custom_latency)
+    custom_latency.insert(0, &#39;metric&#39;, &#34;response_time&#34;)
+    # median response time
+    custom_med_latency = get_prometheus_metric(metric_name=&#34;median_latency&#34;, mode=&#34;NETWORK&#34;, custom=True, hh=hh, mm=mm)
+    custom_med_latency = MetricRangeDataFrame(custom_med_latency)
+    custom_med_latency.insert(0, &#39;metric&#39;, &#34;median_latency&#34;)
+    # 95th percentile latency
+    custom_95_latency = get_prometheus_metric(metric_name=&#34;latency95&#34;, mode=&#34;NETWORK&#34;, custom=True, hh=hh, mm=mm)
+    custom_95_latency = MetricRangeDataFrame(custom_95_latency)
+    custom_95_latency.insert(0, &#39;metric&#39;, &#34;latency95&#34;)
+    # convert to dataframe
+    metrics_data = resource_metrics_data
+    metric_df = MetricRangeDataFrame(metrics_data)
+    custom_metrics_df = pd.concat(
+        [custom_cpu, custom_memory, custom_rps, custom_latency, custom_med_latency, custom_95_latency])
+    # write to csv file
+    metric_df.to_csv(rf&#34;{folder}\metrics_{iteration}.csv&#34;)
+    custom_metrics_df.to_csv(rf&#34;{folder}\custom_metrics_{iteration}.csv&#34;)</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.get_prometheus_metric"><code class="name flex">
+<span>def <span class="ident">get_prometheus_metric</span></span>(<span>metric_name: str, mode: str, custom: bool, hh: int, mm: int) ‑> list</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Gets a given metric from prometheus in a given timeframe.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>mm</code></strong></dt>
+<dd>minutes</dd>
+<dt><strong><code>hh</code></strong></dt>
+<dd>hours</dd>
+<dt><strong><code>custom</code></strong></dt>
+<dd>if custom query should be used</dd>
+<dt><strong><code>mode</code></strong></dt>
+<dd>which prometheus to use</dd>
+<dt><strong><code>metric_name</code></strong></dt>
+<dd>name of the metric</dd>
+<dt><strong><code>metric_name</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>mode</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>custom</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>hh</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>mm</code></strong></dt>
+<dd>int: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>metric</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm: int) -&gt; list:
+    &#34;&#34;&#34;Gets a given metric from prometheus in a given timeframe.
+
+    Args:
+      mm: minutes
+      hh: hours
+      custom: if custom query should be used
+      mode: which prometheus to use
+      metric_name: name of the metric
+      metric_name: str: 
+      mode: str: 
+      custom: bool: 
+      hh: int: 
+      mm: int: 
+
+    Returns:
+      metric
+
+    &#34;&#34;&#34;
+    # init
+    prom = PrometheusConnect(url=os.getenv(f&#39;PROMETHEUS_{mode}_HOST&#39;), disable_ssl=True)
+    start_time = (dt.datetime.now() - dt.timedelta(hours=hh, minutes=mm))
+    # custom queries
+    cpu_usage = &#39;(sum(rate(container_cpu_usage_seconds_total{namespace=&#34;teastore&#34;, container!=&#34;&#34;}[1m])) by (pod, &#39; \
+                &#39;container) /sum(container_spec_cpu_quota{namespace=&#34;teastore&#34;, &#39; \
+                &#39;container!=&#34;&#34;}/container_spec_cpu_period{namespace=&#34;teastore&#34;, container!=&#34;&#34;}) by (pod, &#39; \
+                &#39;container) )*100&#39;
+    memory_usage = &#39;round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace=&#34;teastore&#34;,pod=~&#34;.*&#34; }[&#39; \
+                   &#39;1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)&#39;
+    rps = &#39;sum(irate(request_total{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;}[1m]))&#39;
+    response_time = &#39;sum(response_latency_ms_sum{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;})/sum(&#39; \
+                    &#39;response_latency_ms_count{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;})&#39;
+    median_latency = &#39;histogram_quantile(0.5, sum(irate(response_latency_ms_bucket{deployment=&#34;teastore-webui&#34;, &#39; \
+                     &#39;direction=&#34;inbound&#34;}[1m])) by (le, replicaset)) &#39;
+    latency95 = &#39;histogram_quantile(0.95, sum(irate(response_latency_ms_bucket{deployment=&#34;teastore-webui&#34;, &#39; \
+                &#39;direction=&#34;inbound&#34;}[1m])) by (le, replicaset)) &#39;
+    query = None
+    # get data
+    if custom:
+        if metric_name == &#34;cpu&#34;:
+            query = cpu_usage
+        elif metric_name == &#34;memory&#34;:
+            query = memory_usage
+        elif metric_name == &#34;rps&#34;:
+            query = rps
+        elif metric_name == &#34;response_time&#34;:
+            query = response_time
+        elif metric_name == &#34;median_latency&#34;:
+            query = median_latency
+        elif metric_name == &#34;latency95&#34;:
+            query = latency95
+        else:
+            logging.error(&#34;Accepts cpu, memory or rps but received &#34; + metric_name)
+        metric_data = prom.custom_query_range(
+            query=query,
+            start_time=start_time,
+            end_time=dt.datetime.now(),
+            step=&#34;10&#34;)
+    else:
+        metric_data = prom.get_metric_range_data(
+            metric_name=metric_name,
+            start_time=start_time,
+            end_time=dt.datetime.now(),
+        )
+    return metric_data</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.get_status"><code class="name flex">
+<span>def <span class="ident">get_status</span></span>(<span>pod: str) ‑> (<class 'list'>, <class 'list'>)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns the current parameter and target status.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pod</code></strong></dt>
+<dd>name of the pod</dd>
+<dt><strong><code>pod</code></strong></dt>
+<dd>str) -&gt; (list: </dd>
+<dt><strong><code>list</code></strong></dt>
+<dd>&nbsp;</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>current parameter and target status</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_status(pod: str) -&gt; (list, list):
+    &#34;&#34;&#34;Returns the current parameter and target status.
+
+    Args:
+      pod: name of the pod
+      pod: str) -&gt; (list: 
+      list: 
+
+    Returns:
+      current parameter and target status
+
+    &#34;&#34;&#34;
+    # init
+    prom_res = PrometheusConnect(url=os.getenv(f&#39;PROMETHEUS_RESOURCES_HOST&#39;), disable_ssl=True)
+    prom_net = PrometheusConnect(url=os.getenv(f&#39;PROMETHEUS_NETWORK_HOST&#39;), disable_ssl=True)
+    # custom queries
+    cpu_usage_query = &#39;(sum(rate(container_cpu_usage_seconds_total{namespace=&#34;teastore&#34;, container!=&#34;&#34;}[1m])) by (pod, &#39; \
+                      &#39;container) /sum(container_spec_cpu_quota{namespace=&#34;teastore&#34;, &#39; \
+                      &#39;container!=&#34;&#34;}/container_spec_cpu_period{namespace=&#34;teastore&#34;, container!=&#34;&#34;}) by (pod, &#39; \
+                      &#39;container) )*100&#39;
+    memory_usage_query = &#39;round(max by (pod)(max_over_time(container_memory_usage_bytes{namespace=&#34;teastore&#34;,pod=~&#34;.*&#34; }[&#39; \
+                         &#39;1m]))/ on (pod) (max by (pod) (kube_pod_container_resource_limits)) * 100,0.01)&#39;
+    rps_query = &#39;sum(irate(request_total{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;}[1m]))&#39;
+    response_time = &#39;sum(response_latency_ms_sum{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;})/sum(&#39; \
+                    &#39;response_latency_ms_count{deployment=&#34;teastore-webui&#34;, direction=&#34;inbound&#34;})&#39;
+    # target metrics
+    cpu_usage = 0.0
+    memory_usage = 0.0
+    latency = 0.0
+    # get cpu
+    cpu_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(cpu_usage_query))
+    try:
+        if &#39;pod&#39; in cpu_usage_data.columns:
+            cpu_usage_data[&#34;pod&#34;] = cpu_usage_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+            cpu_usage = cpu_usage_data.loc[(cpu_usage_data[&#39;pod&#39;] == pod)].at[0, &#39;value&#39;]
+        elif not cpu_usage_data.empty:
+            cpu_usage = cpu_usage_data.at[0, &#39;value&#39;]
+    except Exception as err:
+        logging.error(f&#34;Error while gathering cpu usage: {err}&#34;)
+        print(cpu_usage_data)
+    # get memory
+    try:
+        memory_usage_data = MetricSnapshotDataFrame(prom_res.custom_query(memory_usage_query))
+        if &#39;pod&#39; in memory_usage_data.columns:
+            memory_usage_data[&#34;pod&#34;] = memory_usage_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+            memory_usage = memory_usage_data.loc[(memory_usage_data[&#39;pod&#39;] == pod)].at[0, &#39;value&#39;]
+        else:
+            memory_usage = memory_usage_data.at[0, &#39;value&#39;]
+    except Exception as err:
+        logging.error(f&#34;Error while gathering memory usage: {err}&#34;)
+    # get average response time
+    try:
+        latency_data = MetricSnapshotDataFrame(prom_net.custom_query(response_time))
+        if not latency_data.empty:
+            latency = latency_data.at[0, &#39;value&#39;]
+        else:
+            raise Exception
+    except Exception as err:
+        logging.error(f&#34;Error while gathering latency: {err}&#34;)
+    targets = [float(cpu_usage), float(memory_usage), float(latency)]
+    # parameter metrics
+    # cpu
+    cpu_limit_data = MetricSnapshotDataFrame(
+        prom_res.get_current_metric_value(&#34;kube_pod_container_resource_limits_cpu_cores&#34;))
+    # memory
+    memory_limit_data = MetricSnapshotDataFrame(
+        prom_res.get_current_metric_value(&#34;kube_pod_container_resource_limits_memory_bytes&#34;))
+    # number of pods
+    number_of_pods_data = MetricSnapshotDataFrame(prom_res.get_current_metric_value(&#34;kube_deployment_spec_replicas&#34;))
+    # rps
+    rps_data = MetricSnapshotDataFrame(prom_net.custom_query(rps_query))
+    # filter
+    cpu_limit = 0
+    memory_limit = 0
+    number_of_pods = 0
+    rps = 0.0
+    try:
+        cpu_limit_data[&#34;pod&#34;] = cpu_limit_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+        memory_limit_data[&#34;pod&#34;] = memory_limit_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+        number_of_pods_data[&#34;pod&#34;] = number_of_pods_data[&#34;pod&#34;].str.split(&#34;-&#34;, n=2).str[1]
+        cpu_limit = cpu_limit_data.loc[(cpu_limit_data[&#39;pod&#39;] == pod)][&#39;value&#39;].iloc[0]
+        memory_limit = memory_limit_data.loc[(memory_limit_data[&#39;pod&#39;] == pod)][&#39;value&#39;].iloc[0]
+        number_of_pods = \
+            number_of_pods_data.loc[(number_of_pods_data[&#39;deployment&#39;] == f&#34;teastore-{pod}&#34;)][&#39;value&#39;].iloc[0]
+        rps = rps_data.at[0, &#39;value&#39;]
+    except Exception as err:
+        logging.error(f&#34;Error while gathering parameter: {err}&#34;)
+    parameters = [int(float(cpu_limit) * 1000), int(float(memory_limit) / 1048576), int(number_of_pods), float(rps)]
+    return parameters, targets</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.parameter_variation"><code class="name flex">
+<span>def <span class="ident">parameter_variation</span></span>(<span>pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int, pods_request: int, pods_limit: int, step: int, invert: bool, sample: bool, save: bool, load: list) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculates a matrix mit all combination of the parameters.
+:return: parameter variation matrix</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>pod</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>cpu_request</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>cpu_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>memory_request</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>memory_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>pods_request</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>pods_limit</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>step</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>invert</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>sample</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>save</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>load</code></strong></dt>
+<dd>list: </dd>
+</dl>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_request: int, memory_limit: int,
+                        pods_request: int,
+                        pods_limit: int, step: int, invert: bool, sample: bool, save: bool, load: list) -&gt; np.array:
+    &#34;&#34;&#34;Calculates a matrix mit all combination of the parameters.
+    :return: parameter variation matrix
+
+    Args:
+      pod: str: 
+      cpu_request: int: 
+      cpu_limit: int: 
+      memory_request: int: 
+      memory_limit: int: 
+      pods_request: int: 
+      pods_limit: int: 
+      step: int: 
+      invert: bool: 
+      sample: bool: 
+      save: bool: 
+      load: list: 
+
+    Returns:
+
+    &#34;&#34;&#34;
+    # init parameters: (start, end, step)
+    cpu = np.arange(cpu_request, cpu_limit, step, np.int32)
+    memory = np.arange(memory_request, memory_limit, step, np.int32)
+    pods = np.arange(pods_request, pods_limit + 1, 1, np.int32)
+    load = np.array(load, np.int32)
+    if invert:
+        cpu = np.flip(cpu)
+        memory = np.flip(memory)
+        pods = np.flip(pods)
+    iterations = np.arange(1, (cpu.size * memory.size * pods.size) + 1, 1).tolist()
+    if sample:
+        cpu = cpu[(cpu == cpu.min()) | (cpu == np.median(cpu)) | (cpu == cpu.max())]
+        memory = memory[
+            (memory == memory.min()) | (memory == np.median(memory)) | (memory == memory.max())]
+    # init dataframe
+    df = pd.DataFrame(index=iterations, columns=[&#34;CPU&#34;, &#34;Memory&#34;, &#34;Pods&#34;])
+    csv_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;raw&#34;, os.getenv(&#34;LAST_DATA&#34;), f&#34;{pod}_variation.csv&#34;)
+    # init matrix
+    variation_matrix = np.zeros((cpu.size, memory.size, pods.size, load.size),
+                                dtype=[(&#39;cpu&#39;, np.int32), (&#39;memory&#39;, np.int32), (&#39;pods&#39;, np.int32), (&#39;load&#39;, np.int32)])
+    # fill matrix
+    i = 1
+    for c in range(0, cpu.size):
+        for m in range(0, memory.size):
+            for p in range(0, pods.size):
+                for l in range(0, load.size):
+                    if sample:
+                        if m != c:
+                            print(&#34;here&#34;)
+                            break
+                    variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p], load[l])
+                    # fill dataframe
+                    df.at[i, &#39;CPU&#39;] = cpu[c]
+                    df.at[i, &#39;Memory&#39;] = memory[m]
+                    df.at[i, &#39;Pods&#39;] = pods[p]
+                    df.at[i, &#39;RPS&#39;] = load[l]
+                    i = i + 1
+    logging.debug(df.head())
+    if save:
+        # save dataframe to csv
+        if not os.path.exists(csv_path):
+            df.to_csv(csv_path)
+    return variation_matrix</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.parameter_variation_array"><code class="name flex">
+<span>def <span class="ident">parameter_variation_array</span></span>(<span>cpu_limits: list, memory_limits: list, pod_limits: list, rps: float) ‑> <built-in function array></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Creates a parameter variation matrix given discrete values.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>cpu_limits</code></strong></dt>
+<dd>list of cpu limits</dd>
+<dt><strong><code>memory_limits</code></strong></dt>
+<dd>list of memory limits</dd>
+<dt><strong><code>pod_limits</code></strong></dt>
+<dd>list of pod limits</dd>
+<dt><strong><code>rps</code></strong></dt>
+<dd>current load</dd>
+<dt><strong><code>cpu_limits</code></strong></dt>
+<dd>list: </dd>
+<dt><strong><code>memory_limits</code></strong></dt>
+<dd>list: </dd>
+<dt><strong><code>pod_limits</code></strong></dt>
+<dd>list: </dd>
+<dt><strong><code>rps</code></strong></dt>
+<dd>float: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>parameter variation matrix</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parameter_variation_array(cpu_limits: list, memory_limits: list, pod_limits: list, rps: float) -&gt; np.array:
+    &#34;&#34;&#34;Creates a parameter variation matrix given discrete values.
+
+    Args:
+      cpu_limits: list of cpu limits
+      memory_limits: list of memory limits
+      pod_limits: list of pod limits
+      rps: current load
+      cpu_limits: list: 
+      memory_limits: list: 
+      pod_limits: list: 
+      rps: float: 
+
+    Returns:
+      parameter variation matrix
+
+    &#34;&#34;&#34;
+    cpu = np.array(cpu_limits, dtype=np.int32)
+    memory = np.array(memory_limits, dtype=np.int32)
+    pods = np.array(pod_limits, dtype=np.int32)
+    variation_matrix = np.zeros((cpu.size, memory.size, pods.size, 1),
+                                dtype=[(&#39;cpu&#39;, np.int32), (&#39;memory&#39;, np.int32), (&#39;pods&#39;, np.int32),
+                                       (&#39;load&#39;, np.float64)])
+    for c in range(0, cpu.size):
+        for m in range(0, memory.size):
+            for p in range(0, pods.size):
+                variation_matrix[c, m, p] = (cpu[c], memory[m], pods[p], rps)
+    return variation_matrix</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.parameter_variation_namespace"><code class="name flex">
+<span>def <span class="ident">parameter_variation_namespace</span></span>(<span>expressions: int, step: int, sample: bool, load: list) ‑> dict</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generates the parameter variation matrix for every deployment in a namespace with given values.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>load</code></strong></dt>
+<dd>load</dd>
+<dt><strong><code>expressions</code></strong></dt>
+<dd>number of expressions</dd>
+<dt><strong><code>step</code></strong></dt>
+<dd>size of step</dd>
+<dt><strong><code>sample</code></strong></dt>
+<dd>enable sample run</dd>
+<dt><strong><code>expressions</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>step</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>sample</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>load</code></strong></dt>
+<dd>list: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>dict of parameter variation matrices</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def parameter_variation_namespace(expressions: int, step: int, sample: bool, load: list) -&gt; dict:
+    &#34;&#34;&#34;Generates the parameter variation matrix for every deployment in a namespace with given values.
+
+    Args:
+      load: load
+      expressions: number of expressions
+      step: size of step
+      sample: enable sample run
+      expressions: int: 
+      step: int: 
+      sample: bool: 
+      load: list: 
+
+    Returns:
+      dict of parameter variation matrices
+
+    &#34;&#34;&#34;
+    resource_requests = k8s.get_resource_requests()
+    variation = dict()
+    for p in resource_requests.keys():
+        if p == os.getenv(&#34;SCALE_POD&#34;):
+            logging.debug(&#34;Pod: &#34; + p)
+            # cpu
+            p_cpu_request = int(resource_requests[p][&#34;cpu&#34;].split(&#34;m&#34;)[0])
+            p_cpu_limit = p_cpu_request + (expressions * step)
+            logging.debug(f&#34;cpu request: {p_cpu_request}m - cpu limit: {p_cpu_limit}m&#34;)
+            # memory
+            p_memory_request = int(resource_requests[p][&#34;memory&#34;].split(&#34;Mi&#34;)[0])
+            p_memory_limit = p_memory_request + (expressions * step)
+            logging.debug(f&#34;memory request: {p_memory_request}Mi - memory limit: {p_memory_limit}Mi&#34;)
+            p_pod_limit = expressions
+            # parameter variation matrix
+            variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
+                                               p_memory_limit, 1, p_pod_limit, step, invert=False, sample=sample,
+                                               save=True, load=load)
+    return variation</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.start"><code class="name flex">
+<span>def <span class="ident">start</span></span>(<span>name: str, load: list, spawn_rate: int, expressions: int, step: int, runs: int, custom_shape: bool, history: bool, sample: bool, locust: bool) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Starts the generation of a dataset.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>name</code></strong></dt>
+<dd>application name</dd>
+<dt><strong><code>load</code></strong></dt>
+<dd>maximum load</dd>
+<dt><strong><code>spawn_rate</code></strong></dt>
+<dd>only used with Locust</dd>
+<dt><strong><code>expressions</code></strong></dt>
+<dd>number of expressions per parameter</dd>
+<dt><strong><code>step</code></strong></dt>
+<dd>step size</dd>
+<dt><strong><code>runs</code></strong></dt>
+<dd>number of stability runs</dd>
+<dt><strong><code>custom_shape</code></strong></dt>
+<dd>if custom shape should be used</dd>
+<dt><strong><code>history</code></strong></dt>
+<dd>only used with locust</dd>
+<dt><strong><code>sample</code></strong></dt>
+<dd>if a sample run should be executed</dd>
+<dt><strong><code>locust</code></strong></dt>
+<dd>if Locust is used</dd>
+<dt><strong><code>name</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>load</code></strong></dt>
+<dd>list: </dd>
+<dt><strong><code>spawn_rate</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>expressions</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>step</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>runs</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>custom_shape</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>history</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>sample</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>locust</code></strong></dt>
+<dd>bool: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start(name: str, load: list, spawn_rate: int, expressions: int, step: int, runs: int,
+          custom_shape: bool, history: bool, sample: bool, locust: bool) -&gt; None:
+    &#34;&#34;&#34;Starts the generation of a dataset.
+
+    Args:
+      name: application name
+      load: maximum load
+      spawn_rate: only used with Locust
+      expressions: number of expressions per parameter
+      step: step size
+      runs: number of stability runs
+      custom_shape: if custom shape should be used
+      history: only used with locust
+      sample: if a sample run should be executed
+      locust: if Locust is used
+      name: str: 
+      load: list: 
+      spawn_rate: int: 
+      expressions: int: 
+      step: int: 
+      runs: int: 
+      custom_shape: bool: 
+      history: bool: 
+      sample: bool: 
+      locust: bool: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    date = dt.datetime.now().strftime(&#34;%Y%m%d-%H%M%S&#34;)
+    set_key(dotenv_path=os.path.join(os.getcwd(), &#34;.env&#34;), key_to_set=&#34;FIRST_DATA&#34;, value_to_set=date)
+    for i in range(1, runs + 1):
+        benchmark(name, load, spawn_rate, expressions, step, i, runs, custom_shape, history, sample,
+                  locust)</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.start_jmeter"><code class="name flex">
+<span>def <span class="ident">start_jmeter</span></span>(<span>iteration: int, date: str, evaluation: bool, rps: int)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Stats a jMeter run.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>iteration</code></strong></dt>
+<dd>current iteration</dd>
+<dt><strong><code>date</code></strong></dt>
+<dd>current date</dd>
+<dt><strong><code>evaluation</code></strong></dt>
+<dd>if evaluation is used</dd>
+<dt><strong><code>rps</code></strong></dt>
+<dd>requests per second</dd>
+<dt><strong><code>iteration</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>date</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>evaluation</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>rps</code></strong></dt>
+<dd>int: </dd>
+</dl>
+<p>Returns:</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start_jmeter(iteration: int, date: str, evaluation: bool, rps: int):
+    &#34;&#34;&#34;Stats a jMeter run.
+
+    Args:
+      iteration: current iteration
+      date: current date
+      evaluation: if evaluation is used
+      rps: requests per second
+      iteration: int: 
+      date: str: 
+      evaluation: bool: 
+      rps: int: 
+
+    Returns:
+
+    &#34;&#34;&#34;
+    work_directory = os.getcwd()
+    jmeter_path = os.path.join(os.getcwd(), &#34;data&#34;, &#34;loadtest&#34;, &#34;jmeter&#34;, &#34;bin&#34;)
+    os.chdir(jmeter_path)
+    if not evaluation:
+        cmd = [&#34;java&#34;, &#34;-jar&#34;, &#34;ApacheJMeter.jar&#34;, &#34;-t&#34;, &#34;teastore_browse_rps.jmx&#34;, &#34;-Jhostname&#34;, os.getenv(&#34;HOST&#34;),
+               &#34;-Jport&#34;, os.getenv(&#39;NODE_PORT&#39;), &#34;-l&#34;, f&#34;{date}_{iteration}.log&#34;,
+               &#39;-Jload_profile&#39;, f&#39;const({rps},{int(os.getenv(&#34;MM&#34;)) * 60}s)&#39;, &#34;-n&#34;]
+    else:
+        # f&#39;-Jload_profile=step(2,{rps},2,180s) const({rps},240s) step({rps},2,2,180s)&#39;
+        cmd = [&#34;java&#34;, &#34;-jar&#34;, &#34;ApacheJMeter.jar&#34;, &#34;-t&#34;, &#34;teastore_browse_rps.jmx&#34;, &#34;-Jhostname&#34;, os.getenv(&#34;HOST&#34;),
+               &#34;-Jport&#34;, os.getenv(&#39;NODE_PORT&#39;), &#34;-l&#34;, f&#34;{date}_{iteration}.log&#34;,
+               &#34;-Jjmeterengine.force.system.exit=true&#34;, &#34;-n&#34;]
+    logging.info(cmd)
+    with subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=True, bufsize=1, universal_newlines=True) as p:
+        for line in p.stdout:
+            print(line, end=&#39;&#39;)  # process line here
+    os.chdir(work_directory)</code></pre>
+</details>
+</dd>
+<dt id="app.benchmark.start_locust"><code class="name flex">
+<span>def <span class="ident">start_locust</span></span>(<span>iteration: int, folder: str, history: bool, custom_shape: bool, users: int, spawn_rate: int, hh: int, mm: int) ‑> NoneType</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Start a locust load test.</p>
+<h2 id="args">Args</h2>
+<dl>
+<dt><strong><code>spawn_rate</code></strong></dt>
+<dd>user spawn rate</dd>
+<dt><strong><code>users</code></strong></dt>
+<dd>number of users</dd>
+<dt><strong><code>custom_shape</code></strong></dt>
+<dd>use custom load shape</dd>
+<dt><strong><code>iteration</code></strong></dt>
+<dd>number of current iteration</dd>
+<dt><strong><code>folder</code></strong></dt>
+<dd>name of folder</dd>
+<dt><strong><code>history</code></strong></dt>
+<dd>enables stats</dd>
+<dt><strong><code>hh</code></strong></dt>
+<dd>duration hours</dd>
+<dt><strong><code>mm</code></strong></dt>
+<dd>duration minutes</dd>
+<dt><strong><code>iteration</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>folder</code></strong></dt>
+<dd>str: </dd>
+<dt><strong><code>history</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>custom_shape</code></strong></dt>
+<dd>bool: </dd>
+<dt><strong><code>users</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>spawn_rate</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>hh</code></strong></dt>
+<dd>int: </dd>
+<dt><strong><code>mm</code></strong></dt>
+<dd>int: </dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>None</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool, users: int, spawn_rate: int, hh: int,
+                 mm: int) -&gt; None:
+    &#34;&#34;&#34;Start a locust load test.
+
+    Args:
+      spawn_rate: user spawn rate
+      users: number of users
+      custom_shape: use custom load shape
+      iteration: number of current iteration
+      folder: name of folder
+      history: enables stats
+      hh: duration hours
+      mm: duration minutes
+      iteration: int: 
+      folder: str: 
+      history: bool: 
+      custom_shape: bool: 
+      users: int: 
+      spawn_rate: int: 
+      hh: int: 
+      mm: int: 
+
+    Returns:
+      None
+
+    &#34;&#34;&#34;
+    load_dotenv(override=True)
+    # setup Environment and Runner
+
+    env = Environment(user_classes=[UserBehavior], shape_class=DoubleWave,
+                      host=f&#34;http://{os.getenv(&#39;HOST&#39;)}:{os.getenv(&#39;NODE_PORT&#39;)}/{os.getenv(&#39;ROUTE&#39;)}&#34;)
+    env.create_local_runner()
+    # CSV writer
+    stats_path = os.path.join(folder, f&#34;locust_{iteration}&#34;)
+    if history:
+        csv_writer = StatsCSVFileWriter(
+            environment=env,
+            base_filepath=stats_path,
+            full_history=True,
+            percentiles_to_report=[90.0, 50.0]
+        )
+        # start a greenlet that save current stats to history
+        gevent.spawn(stats_history, env.runner)
+        # spawn csv writer
+        gevent.spawn(csv_writer)
+    # start the test
+    if custom_shape:
+        env.runner.start_shape()
+    else:
+        env.runner.start(user_count=users, spawn_rate=spawn_rate)
+    # stop the runner in a given time
+    time_in_seconds = ((hh * 60 * 60) + mm * 60)
+    gevent.spawn_later(time_in_seconds, lambda: env.runner.quit())
+    # wait for the greenlets
+    env.runner.greenlet.join()</code></pre>
+</details>
+</dd>
+</dl>
+</section>
+<section>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="app" href="index.html">app</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-functions">Functions</a></h3>
+<ul class="">
+<li><code><a title="app.benchmark.benchmark" href="#app.benchmark.benchmark">benchmark</a></code></li>
+<li><code><a title="app.benchmark.change_build" href="#app.benchmark.change_build">change_build</a></code></li>
+<li><code><a title="app.benchmark.config_env" href="#app.benchmark.config_env">config_env</a></code></li>
+<li><code><a title="app.benchmark.evaluation" href="#app.benchmark.evaluation">evaluation</a></code></li>
+<li><code><a title="app.benchmark.get_persistence_data" href="#app.benchmark.get_persistence_data">get_persistence_data</a></code></li>
+<li><code><a title="app.benchmark.get_prometheus_data" href="#app.benchmark.get_prometheus_data">get_prometheus_data</a></code></li>
+<li><code><a title="app.benchmark.get_prometheus_metric" href="#app.benchmark.get_prometheus_metric">get_prometheus_metric</a></code></li>
+<li><code><a title="app.benchmark.get_status" href="#app.benchmark.get_status">get_status</a></code></li>
+<li><code><a title="app.benchmark.parameter_variation" href="#app.benchmark.parameter_variation">parameter_variation</a></code></li>
+<li><code><a title="app.benchmark.parameter_variation_array" href="#app.benchmark.parameter_variation_array">parameter_variation_array</a></code></li>
+<li><code><a title="app.benchmark.parameter_variation_namespace" href="#app.benchmark.parameter_variation_namespace">parameter_variation_namespace</a></code></li>
+<li><code><a title="app.benchmark.start" href="#app.benchmark.start">start</a></code></li>
+<li><code><a title="app.benchmark.start_jmeter" href="#app.benchmark.start_jmeter">start_jmeter</a></code></li>
+<li><code><a title="app.benchmark.start_locust" href="#app.benchmark.start_locust">start_locust</a></code></li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.2</a>.</p>
+</footer>
+</body>
+</html>

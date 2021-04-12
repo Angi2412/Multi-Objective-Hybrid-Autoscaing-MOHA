@@ -29,7 +29,7 @@ def heartbeat():
     return True
 
 
-def scale():
+def scale() -> None:
     """
     Autoscaling loop.
     """
@@ -102,7 +102,11 @@ def check_target_status(targets: list) -> bool:
         return True
 
 
-def scale_hpa():
+def scale_k_hpa() -> None:
+    """
+    Kubernetes HPA implementation
+    :return: None
+    """
     # current status
     parameter_status, target_status = benchmark.get_status("webui")
     # average usage
@@ -130,9 +134,15 @@ def scale_hpa():
     logging.info("Finished Autoscaling.")
 
 
-def autoscale(sc, hpa):
-    if hpa:
-        scale_hpa()
+def autoscale(sc: sched.scheduler, k_hpa: bool) -> None:
+    """
+    Autoscaling method
+    :param sc: scheduler
+    :param k_hpa: Kubernetes HPA
+    :return: None
+    """
+    if k_hpa:
+        scale_k_hpa()
         s.enter(int(os.getenv("SCALING_TIME")), 1, autoscale, (sc, True,))
     else:
         scale()
@@ -142,8 +152,7 @@ def autoscale(sc, hpa):
 if __name__ == '__main__':
     load_dotenv()
     set_prometheus_info()
-    a = "False"
-    if a == "True":
+    if os.getenv("K_HPA") == "True":
         s.enter(int(os.getenv("SCALING_TIME")), 1, autoscale, (s, True,))
     else:
         s.enter(int(os.getenv("SCALING_TIME")), 1, autoscale, (s, False,))

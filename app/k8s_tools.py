@@ -25,7 +25,11 @@ k = logging.getLogger()
 k.setLevel(logging.INFO)
 
 
-def k8s_create_teastore():
+def k8s_create_teastore() -> None:
+    """
+    Deploys the TeaStore.
+    :return: None
+    """
     # create deployment
     work_directory = os.getcwd()
     cmd_ns = f"kubectl create namespace teastore"
@@ -255,6 +259,10 @@ def k8s_update_deployment(deployment_name: str, cpu_limit: int, memory_limit: in
 
 
 def check_teastore_health() -> bool:
+    """
+    Check the health of the TeaStore webui.
+    :return: if healthy
+    """
     try:
         health = requests.get(
             f"http://{os.getenv('HOST')}:{k8s_get_app_port()}/{os.getenv('ROUTE')}/rest/ready/isready")
@@ -437,18 +445,30 @@ def create_autoscaler() -> None:
         logging.error(f"Error while creating autoscaler: {err}")
 
 
-def deploy_autoscaler_docker():
+def deploy_autoscaler_docker() -> None:
+    """
+    Deploys the autoscaler as docker container.
+    :return: None
+    """
     client = docker.from_env()
     client.containers.run(image="angi2412/autoscaler", name="autoscaler", detach=True)
 
 
-def delete_autoscaler_docker():
+def delete_autoscaler_docker() -> None:
+    """
+    Deletes the autoscaler docker container.
+    :return: None
+    """
     client = docker.from_env()
     c = client.containers.get("autoscaler")
     c.remove(force=True)
 
 
-def buil_autoscaler_docker():
+def build_autoscaler_docker() -> None:
+    """
+    Build the autoscaler docker image.
+    :return: None
+    """
     client = docker.from_env()
     logging.info("Building image...")
     build = client.images.build(path=os.path.join(os.getcwd()), tag="angi2412/autoscaler")

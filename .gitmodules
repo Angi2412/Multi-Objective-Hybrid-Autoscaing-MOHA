@@ -1,3 +1,0 @@
-[submodule "/app/k8s/TeaStore"]
-	path = /app/k8s/TeaStore
-	url = https://github.com/Angi2412/TeaStore.git

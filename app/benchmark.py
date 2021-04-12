@@ -26,7 +26,6 @@ import numpy as np
 import pandas as pd
 import k8s_tools as k8s
 import requests
-from formatting import plot_all_evaluation
 
 # environment
 load_dotenv(override=True)
@@ -34,9 +33,6 @@ load_dotenv(override=True)
 # init logger
 p = logging.getLogger(__name__)
 p.setLevel(logging.INFO)
-
-
-# logging.basicConfig(filename='benchmark.log', level=logging.DEBUG)
 
 
 def config_env(**kwargs) -> None:
@@ -114,6 +110,11 @@ def get_prometheus_data(folder: str, iteration: int, hh: int, mm: int) -> None:
 
 
 def get_status(pod: str) -> (list, list):
+    """
+    Returns the current parameter and target status.
+    :param pod: name of the pod
+    :return: current parameter and target status
+    """
     # init
     prom_res = PrometheusConnect(url=os.getenv(f'PROMETHEUS_RESOURCES_HOST'), disable_ssl=True)
     prom_net = PrometheusConnect(url=os.getenv(f'PROMETHEUS_NETWORK_HOST'), disable_ssl=True)
@@ -140,7 +141,7 @@ def get_status(pod: str) -> (list, list):
         elif not cpu_usage_data.empty:
             cpu_usage = cpu_usage_data.at[0, 'value']
     except Exception as err:
-        logging.error("Error while gathering cpu usage")
+        logging.error(f"Error while gathering cpu usage: {err}")
         print(cpu_usage_data)
     # get memory
     try:
@@ -151,7 +152,7 @@ def get_status(pod: str) -> (list, list):
         else:
             memory_usage = memory_usage_data.at[0, 'value']
     except Exception as err:
-        logging.error("Error while gathering memory usage")
+        logging.error(f"Error while gathering memory usage: {err}")
     # get average response time
     try:
         latency_data = MetricSnapshotDataFrame(prom_net.custom_query(response_time))
@@ -160,7 +161,7 @@ def get_status(pod: str) -> (list, list):
         else:
             raise Exception
     except Exception as err:
-        logging.error("Error while gathering latency")
+        logging.error(f"Error while gathering latency: {err}")
     targets = [float(cpu_usage), float(memory_usage), float(latency)]
     # parameter metrics
     # cpu
@@ -188,7 +189,7 @@ def get_status(pod: str) -> (list, list):
             number_of_pods_data.loc[(number_of_pods_data['deployment'] == f"teastore-{pod}")]['value'].iloc[0]
         rps = rps_data.at[0, 'value']
     except Exception as err:
-        logging.error("Error while gathering parameter")
+        logging.error(f"Error while gathering parameter: {err}")
     parameters = [int(float(cpu_limit) * 1000), int(float(memory_limit) / 1048576), int(number_of_pods), float(rps)]
     return parameters, targets
 
@@ -251,7 +252,16 @@ def get_prometheus_metric(metric_name: str, mode: str, custom: bool, hh: int, mm
     return metric_data
 
 
-def evaluation(users: int, spawn_rate: int, hh: int, mm: int):
+def evaluation(load: int, spawn_rate: int, hh: int, mm: int, load_testing: str) -> None:
+    """
+    Start a evaluation run and gathers its metrics.
+    :param load: maximum number of users/rps
+    :param spawn_rate: only used with locust
+    :param hh: hours
+    :param mm: minutes
+    :param load_testing: Locust or JMeter
+    :return: none
+    """
     # init date
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     # create folder
@@ -266,7 +276,7 @@ def evaluation(users: int, spawn_rate: int, hh: int, mm: int):
         host=os.getenv("HOST"),
         node_port=k8s.k8s_get_app_port(),
         date=date,
-        load=users,
+        load=load,
         spawn_rate=spawn_rate,
         HH=hh,
         MM=mm
@@ -274,9 +284,11 @@ def evaluation(users: int, spawn_rate: int, hh: int, mm: int):
     # evaluation
     logging.info("Starting Evaluation.")
     logging.info("Start Locust.")
-    # start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True, users=users, spawn_rate=spawn_rate,
-    #             hh=hh, mm=mm)
-    start_jmeter(0, date, False, users)
+    if load_testing == "Locust":
+        start_locust(iteration=0, folder=folder_path, history=True, custom_shape=True, users=load,
+                     spawn_rate=spawn_rate, hh=hh, mm=mm)
+    elif load_testing == "JMeter":
+        start_jmeter(0, date, False, load)
     # get prometheus data
     time.sleep(30)
     get_prometheus_data(folder=folder_path, iteration=0, hh=hh, mm=mm)
@@ -287,16 +299,15 @@ def evaluation(users: int, spawn_rate: int, hh: int, mm: int):
 
 
 def benchmark(name: str, load: list, spawn_rate: int, expressions: int,
-              step: int, pods_limit: int, run: int, run_max: int, custom_shape: bool, history: bool,
+              step: int, run: int, run_max: int, custom_shape: bool, history: bool,
               sample: bool, locust: bool) -> None:
     """
-    Benchmark methods.
+    Starts the benchmark.
     :param history: enable locust history
     :param custom_shape: if using custom load shape
     :param run_max: number of runs
     :param run: current run
     :param expressions: number of expressions per parameter
-    :param pods_limit: pods limit
     :param step: size of step
     :param name: name of ms
     :param load: number of users or rps
@@ -326,7 +337,7 @@ def benchmark(name: str, load: list, spawn_rate: int, expressions: int,
     iteration = 1
     scale_only = "webui"
     # get variation
-    variations = parameter_variation_namespace(pods_limit, expressions, step, sample, load)
+    variations = parameter_variation_namespace(expressions, step, sample, load)
     c_max, m_max, p_max, l_max = variations[os.getenv("UI")].shape
 
     # benchmark
@@ -371,11 +382,10 @@ def benchmark(name: str, load: list, spawn_rate: int, expressions: int,
     logging.info("Finished Benchmark.")
 
 
-def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, sample: bool, load: list) -> dict:
+def parameter_variation_namespace(expressions: int, step: int, sample: bool, load: list) -> dict:
     """
     Generates the parameter variation matrix for every deployment in a namespace with given values.
     :param load: load
-    :param pods_limit: pod limit
     :param expressions: number of expressions
     :param step: size of step
     :param sample: enable sample run
@@ -394,9 +404,10 @@ def parameter_variation_namespace(pods_limit: int, expressions: int, step: int, 
             p_memory_request = int(resource_requests[p]["memory"].split("Mi")[0])
             p_memory_limit = p_memory_request + (expressions * step)
             logging.debug(f"memory request: {p_memory_request}Mi - memory limit: {p_memory_limit}Mi")
+            p_pod_limit = expressions
             # parameter variation matrix
             variation[p] = parameter_variation(p, p_cpu_request, p_cpu_limit, p_memory_request,
-                                               p_memory_limit, 1, pods_limit, step, invert=False, sample=sample,
+                                               p_memory_limit, 1, p_pod_limit, step, invert=False, sample=sample,
                                                save=True, load=load)
     return variation
 
@@ -453,7 +464,15 @@ def parameter_variation(pod: str, cpu_request: int, cpu_limit: int, memory_reque
     return variation_matrix
 
 
-def parameter_variation_array(cpu_limits: list, memory_limits: list, pod_limits: list, rps: float):
+def parameter_variation_array(cpu_limits: list, memory_limits: list, pod_limits: list, rps: float) -> np.array:
+    """
+    Creates a parameter variation matrix given discrete values.
+    :param cpu_limits: list of cpu limits
+    :param memory_limits: list of memory limits
+    :param pod_limits: list of pod limits
+    :param rps: current load
+    :return: parameter variation matrix
+    """
     cpu = np.array(cpu_limits, dtype=np.int32)
     memory = np.array(memory_limits, dtype=np.int32)
     pods = np.array(pod_limits, dtype=np.int32)
@@ -477,6 +496,8 @@ def start_locust(iteration: int, folder: str, history: bool, custom_shape: bool,
     :param iteration: number of current iteration
     :param folder: name of folder
     :param history: enables stats
+    :param hh: duration hours
+    :param mm: duration minutes
     :return: None
     """
     load_dotenv(override=True)
@@ -537,27 +558,41 @@ def get_persistence_data() -> None:
         json.dump(users, outfile)
 
 
-def start_run(name: str, load: list, spawn_rate: int, expressions: int, step: int, pods_limit: int, runs: int,
-              custom_shape: bool, history: bool, sample: bool, locust: bool) -> None:
+def start(name: str, load: list, spawn_rate: int, expressions: int, step: int, runs: int,
+          custom_shape: bool, history: bool, sample: bool, locust: bool) -> None:
+    """
+    Starts the generation of a dataset.
+    :param name: application name
+    :param load: maximum load
+    :param spawn_rate: only used with Locust
+    :param expressions: number of expressions per parameter
+    :param step: step size
+    :param runs: number of stability runs
+    :param custom_shape: if custom shape should be used
+    :param history: only used with locust
+    :param sample: if a sample run should be executed
+    :param locust: if Locust is used
+    :return: None
+    """
     date = dt.datetime.now().strftime("%Y%m%d-%H%M%S")
     set_key(dotenv_path=os.path.join(os.getcwd(), ".env"), key_to_set="FIRST_DATA", value_to_set=date)
     for i in range(1, runs + 1):
-        benchmark(name, load, spawn_rate, expressions, step, pods_limit, i, runs, custom_shape, history, sample,
+        benchmark(name, load, spawn_rate, expressions, step, i, runs, custom_shape, history, sample,
                   locust)
 
 
-def start_jmeter(iteration: int, date: str, test: bool, rps: int):
+def start_jmeter(iteration: int, date: str, evaluation: bool, rps: int):
     """
     Stats a jMeter run.
     :param iteration: current iteration
     :param date: current date
-    :param test: test cmd
+    :param evaluation: if evaluation is used
     :param rps: requests per second
     """
     work_directory = os.getcwd()
     jmeter_path = os.path.join(os.getcwd(), "data", "loadtest", "jmeter", "bin")
     os.chdir(jmeter_path)
-    if test:
+    if not evaluation:
         cmd = ["java", "-jar", "ApacheJMeter.jar", "-t", "teastore_browse_rps.jmx", "-Jhostname", os.getenv("HOST"),
                "-Jport", os.getenv('NODE_PORT'), "-l", f"{date}_{iteration}.log",
                '-Jload_profile', f'const({rps},{int(os.getenv("MM")) * 60}s)', "-n"]
@@ -573,7 +608,14 @@ def start_jmeter(iteration: int, date: str, test: bool, rps: int):
     os.chdir(work_directory)
 
 
-def change_build(alg: str, hpa: bool, weights: str):
+def change_build(alg: str, hpa: bool, weights: str) -> None:
+    """
+    Changes the autoscaler build to the given parameters and builds the docker image.
+    :param alg: which estimator to use
+    :param hpa: if only horizontal scaling is enabled
+    :param weights: mcdm weight distribution
+    :return: None
+    """
     # change environment variables
     if alg in ["svr", "neural_network", "linear_b"]:
         set_key(os.path.join(os.getcwd(), "prod.env"), "ALGORITHM", alg)
@@ -590,11 +632,3 @@ def change_build(alg: str, hpa: bool, weights: str):
     # build docker image
     k8s.buil_autoscaler_docker()
     logging.info(f"Changed build. alg: {alg} - hpa:{hpa} - w: {weights}")
-
-
-if __name__ == '__main__':
-    set_key(os.path.join(os.getcwd(), "prod.env"), "SCALING_TIME", "60")
-    set_key(os.path.join(os.getcwd(), ".env"), "SCALING_TIME", "60")
-    k8s.buil_autoscaler_docker()
-    evaluation(5, 1, 0, 10)
-    plot_all_evaluation()

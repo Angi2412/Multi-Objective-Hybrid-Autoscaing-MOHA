@@ -473,6 +473,10 @@ def plot_targets_4d(data: pd.DataFrame, name: str) -> None:
 
 
 def get_combined_data() -> pd.DataFrame:
+    """
+    Return last combined data as dataframe.
+    :return: combined data
+    """
     # get last combined run
     path = os.path.join(os.getcwd(), "data", "combined", f"{os.getenv('LAST_DATA')}.csv")
     data = pd.read_csv(path, delimiter=",")
@@ -480,6 +484,10 @@ def get_combined_data() -> pd.DataFrame:
 
 
 def histogram() -> None:
+    """
+    Creates histogram of the average response time.
+    :return: None
+    """
     sns.set_style("whitegrid")
     data = get_combined_data()
     ax = sns.histplot(data, x="average response time",
@@ -489,6 +497,10 @@ def histogram() -> None:
 
 
 def boxplot() -> None:
+    """
+    Creates boxplot from the CPU- and memory usage.
+    :return: None
+    """
     data = get_combined_data()
     ax = sns.boxplot(data=data[["cpu usage", "memory usage"]])
     ax.set_ylabel("Usage [%]")
@@ -496,6 +508,11 @@ def boxplot() -> None:
 
 
 def stats(column: str) -> None:
+    """
+    Prints stats of a given column of the combined data.
+    :param column: metric to be described
+    :return: None
+    """
     data = get_combined_data()
     print(data[column].describe())
 
@@ -524,47 +541,60 @@ def process_all_runs() -> None:
 
 
 def formatting_evaluation(date: str) -> (pd.DataFrame, pd.DataFrame):
+    """
+    Formats evaluation data.
+    :param date: date of evaluation raw folder
+    :return: custom and normal filtered data
+    """
     # get data
     dir_path = os.path.join(os.getcwd(), "data", "raw", f"{date}")
     custom = pd.read_csv(os.path.join(dir_path, "custom_metrics_0.csv"), delimiter=',')
     normal = pd.read_csv(os.path.join(dir_path, "metrics_0.csv"), delimiter=',')
-    # filter for namespace
-    filtered_data = pd.concat(objs=[normal[normal.namespace.eq(os.getenv("NAMESPACE"))]])
-    # filter for pod name
-    filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
-    custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
-    custom['pod'].fillna("webui", inplace=True)
-    # timestamps in seconds
-    filtered_data["timestamp"] = pd.to_datetime(filtered_data["timestamp"], unit='s', origin='unix')
-    filtered_data["timestamp"] = (filtered_data["timestamp"] - filtered_data["timestamp"].min())
-    custom["timestamp"] = pd.to_datetime(custom["timestamp"], unit='s', origin='unix')
-    custom["timestamp"] = (custom["timestamp"] - custom["timestamp"].min())
-    filtered_data["timestamp"] = (filtered_data.timestamp / np.timedelta64(1, 'm'))
-    custom["timestamp"] = (custom.timestamp / np.timedelta64(1, 'm'))
-    filtered_data["timestamp"] = filtered_data["timestamp"] + 0.5
-    custom["timestamp"] = custom["timestamp"] + 0.5
-    # filter for pod
-    filtered_data_a = filtered_data[filtered_data['deployment'] == "teastore-webui"]
-    filtered_data_b = filtered_data[filtered_data['pod'] == "webui"]
-    filtered_data = pd.concat([filtered_data_a, filtered_data_b])
-    custom = custom[(custom['pod'] == "webui")]
-    # pivot
-    filtered_data = pd.pivot_table(filtered_data, index=["timestamp"], columns=["__name__"],
-                                   values="value").reset_index()
-    filtered_custom_data = pd.pivot_table(custom, index=["timestamp"], columns=["metric"],
-                                          values="value").reset_index()
-    filtered_custom_data.set_index("timestamp")
-    # fix units
-    filtered_data["kube_pod_container_resource_limits_cpu_cores"] = filtered_data[
-                                                                        "kube_pod_container_resource_limits_cpu_cores"] * 1000
-    filtered_data["kube_pod_container_resource_limits_memory_bytes"] = filtered_data[
-                                                                           "kube_pod_container_resource_limits_memory_bytes"] / 1048576
-    filtered_data.to_csv(os.path.join(dir_path, "filtered.csv"))
-    filtered_custom_data.to_csv(os.path.join(dir_path, "filtered_custom.csv"))
-    return filtered_data, filtered_custom_data, dir_path
+    if os.path.exists(os.path.join(dir_path, "custom_metrics_0.csv")) and os.path.exists(
+            os.path.join(dir_path, "metrics_0.csv")):
+        # filter for namespace
+        filtered_data = pd.concat(objs=[normal[normal.namespace.eq(os.getenv("NAMESPACE"))]])
+        # filter for pod name
+        filtered_data["pod"] = filtered_data["pod"].str.split("-", n=2).str[1]
+        custom["pod"] = custom["pod"].str.split("-", n=2).str[1]
+        custom['pod'].fillna("webui", inplace=True)
+        # timestamps in seconds
+        filtered_data["timestamp"] = pd.to_datetime(filtered_data["timestamp"], unit='s', origin='unix')
+        filtered_data["timestamp"] = (filtered_data["timestamp"] - filtered_data["timestamp"].min())
+        custom["timestamp"] = pd.to_datetime(custom["timestamp"], unit='s', origin='unix')
+        custom["timestamp"] = (custom["timestamp"] - custom["timestamp"].min())
+        filtered_data["timestamp"] = (filtered_data.timestamp / np.timedelta64(1, 'm'))
+        custom["timestamp"] = (custom.timestamp / np.timedelta64(1, 'm'))
+        # filter for pod
+        filtered_data_a = filtered_data[filtered_data['deployment'] == "teastore-webui"]
+        filtered_data_b = filtered_data[filtered_data['pod'] == "webui"]
+        filtered_data = pd.concat([filtered_data_a, filtered_data_b])
+        custom = custom[(custom['pod'] == "webui")]
+        # pivot
+        filtered_data = pd.pivot_table(filtered_data, index=["timestamp"], columns=["__name__"],
+                                       values="value").reset_index()
+        filtered_custom_data = pd.pivot_table(custom, index=["timestamp"], columns=["metric"],
+                                              values="value").reset_index()
+        filtered_custom_data.set_index("timestamp")
+        # fix units
+        filtered_data["kube_pod_container_resource_limits_cpu_cores"] = filtered_data[
+                                                                            "kube_pod_container_resource_limits_cpu_cores"] * 1000
+        filtered_data["kube_pod_container_resource_limits_memory_bytes"] = filtered_data[
+                                                                               "kube_pod_container_resource_limits_memory_bytes"] / 1048576
+        filtered_data.to_csv(os.path.join(dir_path, "filtered.csv"))
+        filtered_custom_data.to_csv(os.path.join(dir_path, "filtered_custom.csv"))
+        return filtered_data, filtered_custom_data, dir_path
+    else:
+        logging.warning(f"Metric files do not exist in folder: {date}")
+        return
 
 
-def plot_evaluation(date: str):
+def plot_evaluation(date: str) -> None:
+    """
+    Plots a given evaluation run.
+    :param date: name of folder
+    :return: None
+    """
     # format raw data
     n, c, dir_path = formatting_evaluation(date)
 
@@ -612,7 +642,14 @@ def plot_evaluation(date: str):
     calc_eval_metrics(c, n, dir_path)
 
 
-def calc_eval_metrics(c: pd.DataFrame, n: pd.DataFrame, dir_path: str):
+def calc_eval_metrics(c: pd.DataFrame, n: pd.DataFrame, dir_path: str) -> None:
+    """
+    Calculated evaluation metrics.
+    :param c: custom data
+    :param n: normal data
+    :param dir_path: save path
+    :return: None
+    """
     # init thresholds
     r = int(os.getenv("TARGET_RESPONSE"))
     min_usage = int(os.getenv("MIN_USAGE"))
@@ -635,19 +672,20 @@ def calc_eval_metrics(c: pd.DataFrame, n: pd.DataFrame, dir_path: str):
     result["average cpu limit"] = n["kube_pod_container_resource_limits_cpu_cores"].mean()
     result["average memory limit"] = n["kube_pod_container_resource_limits_memory_bytes"].mean()
     result["average pods"] = n["kube_deployment_spec_replicas"].mean()
-    result["metric 50/50"] = 0.5 * response_time_exceeded + 0.5 * (cpu_out_threshold + memory_out_threshold) * n["kube_deployment_spec_replicas"].mean()
+    result["metric 50/50"] = 0.5 * response_time_exceeded + 0.5 * (cpu_out_threshold + memory_out_threshold) * n[
+        "kube_deployment_spec_replicas"].mean()
     result["median response time"] = c["response_time"].median()
     result["average cpu usage"] = c["cpu"].mean()
     result["average memory usage"] = c["memory"].mean()
     result.to_csv(os.path.join(dir_path, "results.csv"))
 
 
-def plot_all_evaluation():
+def plot_all_evaluation() -> None:
+    """
+    Plots all evaluations in the raw folder.
+    :return: None
+    """
     raw_path = os.path.join(os.getcwd(), "data", "raw")
     for (dir_path, dir_names, filenames) in os.walk(raw_path):
         for d in dir_names:
             plot_evaluation(d)
-
-
-if __name__ == '__main__':
-    plot_all_evaluation()

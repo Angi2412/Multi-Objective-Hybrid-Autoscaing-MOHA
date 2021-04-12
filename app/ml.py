@@ -154,9 +154,17 @@ def svr_model(target: str, save: bool, search: bool) -> None:
             save_model(svr, target, "svr")
 
 
-def plot_prediction(y_train, y_pred, alg, target):
+def plot_prediction(y_test, y_pred, alg, target) -> None:
+    """
+    Plot the predicted and expected values of a model.
+    :param y_test: expected values
+    :param y_pred: predicted values
+    :param alg: used model
+    :param target: target metric
+    :return: None
+    """
     # regplot
-    ax = sns.regplot(x=y_train, y=y_pred, scatter=True, fit_reg=True)
+    ax = sns.regplot(x=y_test, y=y_pred, scatter=True, fit_reg=True)
     ax.set_xlabel("Expected values")
     ax.set_ylabel("Predicted values")
     ax.figure.savefig(os.path.join(os.getcwd(), "data", "plots", f"{alg}_{target}.png"))
@@ -264,7 +272,20 @@ def load_model(name: str, alg: str) -> numpy_pickle:
 
 
 def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: int, rps: float, alg: str,
-                            response_time: float, cpu_usage: float, memory_usage: float, extrap: bool):
+                            response_time: float, cpu_usage: float, memory_usage: float, extrap: bool) -> np.array:
+    """
+    Resource Estimation based on Kubernetes HPA.
+    :param cpu_limit: current CPU limit
+    :param memory_limit: current memory limit
+    :param number_of_pods: current number of pods
+    :param rps: current load
+    :param alg: used model
+    :param response_time: current response time
+    :param cpu_usage: current CPU usage
+    :param memory_usage: current memory usage
+    :param extrap: If Extra-p should be used
+    :return: best parameters
+    """
     # init
     models = get_models(alg)
     cpu_limits = list()
@@ -356,6 +377,11 @@ def get_best_parameters_hpa(cpu_limit: int, memory_limit: int, number_of_pods: i
 
 
 def predict_extrap(parameters: list) -> np.array:
+    """
+    Resource estimation with Extra-P.
+    :param parameters: current parameters
+    :return: resource prediction
+    """
     predicted = list()
     for c, m, p, rps in parameters:
         response_time = 25714.32539236546 - 2502.3032054616065 * math.log(c, 2) - 222.9076387765515 * math.log(m,
@@ -468,6 +494,13 @@ def get_best_parameters_window(cpu_limit: int, memory_limit: int, number_of_pods
 
 
 def validate_targets(predictions: np.ndarray, curr_pred: np.array, curr: np.array) -> np.array:
+    """
+    Validates predicted targets.
+    :param predictions: predicted targets
+    :param curr_pred: current target prediction
+    :param curr: current target status
+    :return: validated targets
+    """
     # init
     load_dotenv()
     i, j = predictions.shape
@@ -609,6 +642,11 @@ def train_for_all_targets(kind: str) -> None:
 
 
 def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
+    """
+    Returns scaled and split training- and test datasets.
+    :param target: target metric
+    :return: training- and test datasets
+    """
     d_path = os.path.join(os.getcwd(), "data", "models", "data", target)
     d = [None, None, None, None]
     for i in range(0, 4):
@@ -617,6 +655,11 @@ def get_processed_data(target: str) -> (np.array, np.array, np.array, np.array):
 
 
 def processes_data() -> None:
+    """
+    Scales and splits dataset into training- and test datasets.
+    Saves scalers.
+    :return: None
+    """
     load_dotenv()
     for t in ["average response time", "cpu usage", "memory usage"]:
         X, y = get_data(os.getenv("LAST_DATA"), t, True)
@@ -638,21 +681,3 @@ def processes_data() -> None:
         d_path = os.path.join(os.getcwd(), "data", "models", "data", t)
         for i, d in enumerate([X_train, X_test, y_train, y_test]):
             np.save(os.path.join(d_path, str(i)), d)
-
-
-def test_plot(alg: str):
-    d = list()
-    for p in range(1, 6):
-        d.append((300, 400, p, 10))
-    data = np.array(d, dtype=np.float64)
-    # get models & scaler
-    m = get_models(alg)
-    scaler_path = os.path.join(os.getcwd(), "data", "models", "data")
-    x_scaler = load(os.path.join(scaler_path, "x_scaler_average response time.gz"))
-    y_scaler = load(os.path.join(scaler_path, "y_scaler_average response time.gz"))
-    # predict
-    data_scaled = x_scaler.transform(data)
-    data_predicted = m[0].predict(data_scaled)
-    prediction_inversed = y_scaler.inverse_transform(data_predicted.reshape(-1, 1))
-    plt.scatter(data[:, 2], prediction_inversed)
-    plt.show()

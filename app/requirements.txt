@@ -14,3 +14,5 @@ scikit-criteria
 joblib
 sklearn
 extrap
+scikit-learn
+PySimpleGUI

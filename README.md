@@ -12,8 +12,7 @@ The dataset as well as the trained machine learning models that are used in the 
  1. Open the git bash
  2. Clone the repository e.g. via https: 
 	 `git clone https://git.rwth-aachen.de/parallel/sci-staff/dissemination.git`
- 3.  Go to the thesis directory: 
-	 `cd dissemination/theses/2020/angelina_horn_msc/implementation/app/`
+ 3.  Go to the `app` directory.
  4. Open a Python IDE of your choice (e.g. [PyCharm](https://www.jetbrains.com/de-de/pycharm/))
  5. Create a new virtual Environment using [Python 3.8](https://www.python.org/downloads/release/python-387/)
  6. Install the required packages via pip: 

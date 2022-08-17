@@ -93,3 +93,25 @@ If you want to recreate the evaluation runs, you have to first deploy the autosc
  2. Use the `evaluation` method with the desired parameters.
  3. The data of the evaluation runs will also be saved in the `data/raw` folder and can be filtered analogous to the raw dataset data.
  4. The evaluation metrics and plots can be created with the ``plot_all_evaluation``  method of the `formatting.py`file.
+
+# Citation
+Horn, A., Fard, H.M., Wolf, F. (2022). Multi-objective Hybrid Autoscaling of Microservices in Kubernetes Clusters. In: Cano, J., Trinder, P. (eds) Euro-Par 2022: Parallel Processing. Euro-Par 2022. Lecture Notes in Computer Science, vol 13440. Springer, Cham. https://doi.org/10.1007/978-3-031-12597-3_15
+
+BibTex:
+```
+@InProceedings{10.1007/978-3-031-12597-3_15,
+author="Horn, Angelina
+and Fard, Hamid Mohammadi
+and Wolf, Felix",
+editor="Cano, Jos{\'e}
+and Trinder, Phil",
+title="Multi-objective Hybrid Autoscaling of Microservices in Kubernetes Clusters",
+booktitle="Euro-Par 2022: Parallel Processing",
+year="2022",
+publisher="Springer International Publishing",
+address="Cham",
+pages="233--250",
+abstract="The cloud community has accepted microservices as the dominant architecture for implementing cloud native applications. To efficiently execute microservice-based applications, application owners need to carefully scale the required resources, considering the dynamic workload of individual microservices. The complexity of resource provisioning for such applications highlights the crucial role of autoscaling mechanisms. Kubernetes, the common orchestration framework for microservice-based applications, mainly proposes a horizontal pod autoscaling (HPA) mechanism, which, however, lacks efficiency. To hinder resource wastage and still achieve the requested average response time of microservices, we propose a multi-objective autoscaling mechanism. Based on machine learning techniques, we introduce a toolchain for hybrid autoscaling of microservices in Kubernetes. Comparing several machine learning techniques and also our in-house performance modeling tool, called Extra-P, we propose the most adequate model for solving the problem. Our extensive evaluation on a real-world benchmark application shows a significant reduction of resource consumption while still meeting the average response time specified by the user, which outperforms the results of common HPA in Kubernetes.",
+isbn="978-3-031-12597-3"
+}
+```

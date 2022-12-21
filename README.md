@@ -11,7 +11,7 @@ The dataset as well as the trained machine learning models that are used in the 
 
  1. Open the git bash
  2. Clone the repository e.g. via https: 
-	 `git clone https://git.rwth-aachen.de/parallel/sci-staff/dissemination.git`
+	 `git clone https://github.com/Angi2412/Multi-Objective-Hybrid-Autoscaing-MOHA.git`
  3.  Go to the `app` directory.
  4. Open a Python IDE of your choice (e.g. [PyCharm](https://www.jetbrains.com/de-de/pycharm/))
  5. Create a new virtual Environment using [Python 3.8](https://www.python.org/downloads/release/python-387/)
